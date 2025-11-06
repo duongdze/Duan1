@@ -17,7 +17,7 @@
 <body>
     <?php
     // filepath: d:\Code\laragon\www\duanmau\MVC\views\admin\main.php
-    if (empty($_SESSION['username'])) {
+    if (empty($_SESSION['user'])) {
         header('Location: ' . BASE_URL_ADMIN . '&action=login');
         exit;
     }
