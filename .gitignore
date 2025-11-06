@@ -1,0 +1,2 @@
+# Bỏ qua file env.php nằm trong thư mục config
+config/env.php
