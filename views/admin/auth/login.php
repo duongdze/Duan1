@@ -1,3 +1,6 @@
+<?php
+$error = '';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,28 +14,34 @@
 </head>
 
 <body>
-    <div class="content">
-        <form action="">
-            <h2>Login</h2>
-            <div class="input-box">
-                <input type="text" placeholder="Username" required />
-                <i class="ri-user-fill"></i>
-            </div>
-            <div class="input-box">
-                <input type="password" id="password" placeholder="Password" required autocomplete="new-password" />
-                <i class="ri-eye-off-fill toggle-password" id="togglePassword"></i>
-            </div>
-            <div class="remember">
-                <label><input type="checkbox" />Remember me</label>
-                <a href="#">Forgot Password?</a>
-            </div>
-            <button type="submit" class="btn">Login</button>
-            <div class="button">
-                <a href="#"> <i class="ri-google-fill"></i> Google </a>--<a href="#">
-                    <i class="ri-facebook-fill"></i> Facebook
-                </a>
-            </div>
-        </form>
+    <div class="body-login">
+        <div class="login-content">
+            <!-- Nếu nhập sai sẽ hiện thông báo error -->
+            <?php if (!empty($error)) : ?>
+                <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+            <?php endif; ?>
+            <form action="<?= BASE_URL_ADMIN ?>&action=loginProcess" method="POST">
+                <h2>Login</h2>
+                <div class="input-box">
+                    <input type="text" id="username" placeholder="Username" required />
+                    <i class="ri-user-fill"></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" id="password" placeholder="Password" required autocomplete="new-password" />
+                    <i class="ri-eye-off-fill toggle-password" id="togglePassword"></i>
+                </div>
+                <div class="remember">
+                    <label><input type="checkbox" />Remember me/</label>
+                    <a href="#">Forgot Password?</a>
+                </div>
+                <button type="submit" class="btn-login">Login</button>
+                <div class="button">
+                    <a href="#"> <i class="ri-google-fill"></i> Google </a>--<a href="#">
+                        <i class="ri-facebook-fill"></i> Facebook
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
     <script src="./script.js"></script>
 
