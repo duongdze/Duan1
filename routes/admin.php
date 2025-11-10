@@ -2,8 +2,9 @@
 $action = $_GET['action'] ?? '/';
 
 match ($action){
-    '/'         => (new DashboardController)->index(),
+    '/'                     => (new DashboardController)->index(),
 
 
-    'login'     => (new AutherController)->login(),
+    'login'                 => (new AuthorController)->login(),
+    'loginProcess'          => (new AuthorController)->loginProcess(),
 };
