@@ -26,7 +26,7 @@
                 <label><input type="checkbox" />Remember me</label>
                 <a href="#">Forgot Password?</a>
             </div>
-            <button type="submit" class="btnn">Login</button>
+            <button type="submit" class="btn">Login</button>
             <div class="button">
                 <a href="#"> <i class="ri-google-fill"></i> Google </a>--<a href="#">
                     <i class="ri-facebook-fill"></i> Facebook
