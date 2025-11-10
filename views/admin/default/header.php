@@ -25,25 +25,25 @@
             <strong>Admin Panel</strong>
         </div>
         <div class="list-group list-group-flush">
-            <a href="?action=/" class="list-group-item list-group-item-action bg-dark text-white">
+            <a href="<?= BASE_URL_ADMIN ?>" class="list-group-item list-group-item-action bg-dark text-white">
                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
             </a>
-            <a href="?action=tours" class="list-group-item list-group-item-action bg-dark text-white">
+            <a href="<?= BASE_URL_ADMIN ?>&action=tours" class="list-group-item list-group-item-action bg-dark text-white">
                 <i class="fas fa-map-signs me-2"></i> Tours
             </a>
-            <a href="?action=bookings" class="list-group-item list-group-item-action bg-dark text-white">
+            <a href="<?= BASE_URL_ADMIN ?>&action=bookings" class="list-group-item list-group-item-action bg-dark text-white">
                 <i class="fas fa-book-open me-2"></i> Bookings
             </a>
-            <a href="?action=guides" class="list-group-item list-group-item-action bg-dark text-white">
+            <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="list-group-item list-group-item-action bg-dark text-white">
                 <i class="fas fa-user-tie me-2"></i> Guides
             </a>
-            <a href="?action=suppliers" class="list-group-item list-group-item-action bg-dark text-white">
+            <a href="<?= BASE_URL_ADMIN ?>&action=suppliers" class="list-group-item list-group-item-action bg-dark text-white">
                 <i class="fas fa-handshake me-2"></i> Suppliers
             </a>
-            <a href="?action=reports/financial" class="list-group-item list-group-item-action bg-dark text-white">
+            <a href="<?= BASE_URL_ADMIN ?>&action=reports/financial" class="list-group-item list-group-item-action bg-dark text-white">
                 <i class="fas fa-chart-line me-2"></i> Reports
             </a>
-            <a href="?action=logout" class="list-group-item list-group-item-action bg-dark text-white mt-3">
+            <a href="<?= BASE_URL_ADMIN ?>&action=logout" class="list-group-item list-group-item-action bg-dark text-white mt-3">
                 <i class="fas fa-sign-out-alt me-2"></i> Logout
             </a>
         </div>
