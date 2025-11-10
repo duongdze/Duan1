@@ -2,6 +2,12 @@
 
 session_start();
 
+// Development: show all errors so white pages reveal underlying PHP errors.
+// Remove or disable in production.
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 spl_autoload_register(function ($class) {    
     $fileName = "$class.php";
 

@@ -2,7 +2,7 @@
 
 class DashboardController
 {
-    public function index() 
+    public function index()
     {
         // Load models for dashboard stats
         require_once 'models/admin/Tour.php';

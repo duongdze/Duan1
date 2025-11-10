@@ -1,7 +1,8 @@
 <?php
 require_once 'models/BaseModel.php';
 
-class Booking extends BaseModel {
+class Booking extends BaseModel
+{
     protected $table = 'bookings';
     protected $columns = [
         'id',

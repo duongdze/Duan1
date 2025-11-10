@@ -1,14 +1,17 @@
 <?php
 require_once 'models/admin/TourVersion.php';
 
-class TourVersionController {
+class TourVersionController
+{
     protected $model;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->model = new TourVersion();
     }
-    
-    public function index() {
+
+    public function index()
+    {
         $versions = $this->model->select();
         require_once 'views/admin/tours/versions/index.php';
     }

@@ -1,31 +1,38 @@
 <?php
 require_once 'models/admin/Booking.php';
 
-class BookingController {
+class BookingController
+{
     protected $model;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->model = new Booking();
     }
-    
-    public function index() {
+
+    public function index()
+    {
         $bookings = $this->model->select();
         require_once 'views/admin/bookings/index.php';
     }
-    
-    public function create() {
+
+    public function create()
+    {
         require_once 'views/admin/bookings/create.php';
     }
-    
-    public function store() {
+
+    public function store()
+    {
         // Implementation
     }
-    
-    public function edit() {
+
+    public function edit()
+    {
         // Implementation
     }
-    
-    public function update() {
+
+    public function update()
+    {
         // Implementation
     }
 }
