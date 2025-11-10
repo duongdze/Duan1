@@ -7,4 +7,5 @@ match ($action){
 
     'login'                 => (new AuthorController)->login(),
     'loginProcess'          => (new AuthorController)->loginProcess(),
+    'logout'                => (new AuthorController)->logout(),
 };

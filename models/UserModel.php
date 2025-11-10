@@ -2,6 +2,13 @@
 class UserModel extends BaseModel{
     protected $table = 'users';
 
+    /**
+     * Kiểm tra đăng nhập cho admin.
+     * @param string $email
+     * @param string $password
+     * @return array|false
+     */
+
     public function checkLogin($email, $password)
     {
         $sql = "SELECT * FROM users WHERE email = :email AND role = 'admin' LIMIT 1";

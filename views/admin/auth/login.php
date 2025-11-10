@@ -23,11 +23,11 @@ $error = '';
             <form action="<?= BASE_URL_ADMIN ?>&action=loginProcess" method="POST">
                 <h2>Login</h2>
                 <div class="input-box">
-                    <input type="text" id="username" placeholder="Username" required />
+                    <input type="email" id="email" name="email" placeholder="Email" required />
                     <i class="ri-user-fill"></i>
                 </div>
                 <div class="input-box">
-                    <input type="password" id="password" placeholder="Password" required autocomplete="new-password" />
+                    <input type="password" id="password" name="password" placeholder="Password" required autocomplete="new-password" />
                     <i class="ri-eye-off-fill toggle-password" id="togglePassword"></i>
                 </div>
                 <div class="remember">
