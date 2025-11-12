@@ -1,7 +1,7 @@
 <?php
 
-define('BASE_URL', 'http://localhost:81/duanmau/MVC/');
-define('BASE_URL_ADMIN', 'http://localhost:81/duanmau/MVC/?mode=admin');
+define('BASE_URL', 'http://localhost/duanmau/MVC/');
+define('BASE_URL_ADMIN', 'http://localhost/duanmau/MVC/?mode=admin');
 
 define('PATH_ROOT',                 __DIR__ . '/../');
 
