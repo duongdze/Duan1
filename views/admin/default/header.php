@@ -18,36 +18,47 @@
         header('Location: ' . BASE_URL_ADMIN . '&action=login');
         exit;
     }
-    ?>
-    <!-- Page wrapper with sidebar -->
-    <div class="d-flex" id="wrapper">
-        <!-- Sidebar -->
-        <nav id="sidebar-wrapper" class="bg-dark text-white" style="width:250px; min-height:100vh;">
-            <div class="sidebar-heading p-3 border-bottom">
-                <strong>Admin Panel</strong>
-            </div>
-            <div class="list-group list-group-flush">
-                <a href="?action=/" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                </a>
-                <a href="?action=tours" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="fas fa-map-signs me-2"></i> Tours
-                </a>
-                <a href="?action=bookings" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="fas fa-book-open me-2"></i> Bookings
-                </a>
-                <a href="?action=guides" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="fas fa-user-tie me-2"></i> Guides
-                </a>
-                <a href="?action=suppliers" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="fas fa-handshake me-2"></i> Suppliers
-                </a>
-                <a href="?action=reports/financial" class="list-group-item list-group-item-action bg-dark text-white">
-                    <i class="fas fa-chart-line me-2"></i> Reports
-                </a>
-                <a href="?action=logout" class="list-group-item list-group-item-action bg-dark text-white mt-3">
-                    <i class="fas fa-sign-out-alt me-2"></i> Logout
-                </a>
+?>    
+<!-- Page wrapper with sidebar -->
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <nav id="sidebar-wrapper" class="bg-dark text-white" style="width:250px; min-height:100vh;">
+        <div class="sidebar-heading p-3 border-bottom">
+            <strong>Admin Panel</strong>
+        </div>
+        <div class="list-group list-group-flush">
+            <a href="<?= BASE_URL_ADMIN ?>" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+            </a>
+            <a href="<?= BASE_URL_ADMIN ?>&action=tours" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="fas fa-map-signs me-2"></i> Tours
+            </a>
+            <a href="<?= BASE_URL_ADMIN ?>&action=bookings" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="fas fa-book-open me-2"></i> Bookings
+            </a>
+            <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="fas fa-user-tie me-2"></i> Guides
+            </a>
+            <a href="<?= BASE_URL_ADMIN ?>&action=suppliers" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="fas fa-handshake me-2"></i> Suppliers
+            </a>
+            <a href="<?= BASE_URL_ADMIN ?>&action=reports/financial" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="fas fa-chart-line me-2"></i> Reports
+            </a>
+            <a href="<?= BASE_URL_ADMIN ?>&action=logout" class="list-group-item list-group-item-action bg-dark text-white mt-3">
+                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper" class="flex-fill">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <div class="container-fluid">
+                <button class="btn btn-sm btn-primary" id="menu-toggle">Toggle Menu</button>
+                <div class="ms-auto">
+                    <span class="me-3">Xin chào, <?php echo htmlspecialchars($_SESSION['user']['full_name'] ?? ($_SESSION['user']['username'] ?? 'Admin')); ?></span>
+                </div>
             </div>
         </nav>
 
