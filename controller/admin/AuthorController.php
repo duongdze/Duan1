@@ -62,5 +62,4 @@ class AuthorController
         header('location: ' . BASE_URL_ADMIN . '&action=login');
         exit;
     }
-    
 }

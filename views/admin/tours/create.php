@@ -24,7 +24,7 @@
                 <div class="col-12">
                     <?php if (isset($_SESSION['error'])): ?>
                         <div class="alert alert-danger">
-                            <?php 
+                            <?php
                             echo $_SESSION['error'];
                             unset($_SESSION['error']);
                             ?>
@@ -35,14 +35,14 @@
                         <div class="card-header">
                             <h3 class="card-title">Thông tin Tour</h3>
                         </div>
-                        
+
                         <form method="POST" action="?action=tours/store" enctype="multipart/form-data">
                             <div class="card-body">
                                 <div class="form-group">
                                     <label for="name">Tên tour</label>
                                     <input type="text" class="form-control" id="name" name="name" required>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="type">Loại tour</label>
                                     <select class="form-control" id="type" name="type" required>
@@ -52,17 +52,17 @@
                                         <option value="theo_yeu_cau">Tour theo yêu cầu</option>
                                     </select>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="description">Mô tả</label>
                                     <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="base_price">Giá cơ bản</label>
                                     <input type="number" class="form-control" id="base_price" name="base_price" required>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="image">Hình ảnh</label>
                                     <input type="file" class="form-control-file" id="image" name="image">
@@ -82,12 +82,12 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    // Initialize summernote for rich text editor
-    $('#description').summernote({
-        height: 200
+    $(document).ready(function() {
+        // Initialize summernote for rich text editor
+        $('#description').summernote({
+            height: 200
+        });
     });
-});
 </script>
 
 <?php require_once 'views/admin/default/footer.php'; ?>

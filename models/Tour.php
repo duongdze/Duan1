@@ -1,10 +1,19 @@
 <?php
 require_once 'models/BaseModel.php';
 
-class Tour extends BaseModel {
+class Tour extends BaseModel
+{
     protected $table = 'tours';
     protected $columns = [
-        'id', 'name', 'type', 'description', 'base_price', 'policy', 'supplier_id', 'created_at', 'updated_at'
+        'id',
+        'name',
+        'type',
+        'description',
+        'base_price',
+        'policy',
+        'supplier_id',
+        'created_at',
+        'updated_at'
     ];
 
     public function __construct()

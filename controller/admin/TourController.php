@@ -2,40 +2,45 @@
 require_once 'models/admin/Tour.php';
 require_once 'models/admin/Supplier.php';
 
-class TourController {
+class TourController
+{
     protected $model;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->model = new Tour();
     }
-    
-    public function index() {
+
+    public function index()
+    {
         $tours = $this->model->getAll();
         require_once 'views/admin/tours/index.php';
     }
-    
-    public function create() {
+
+    public function create()
+    {
         require_once 'views/admin/tours/create.php';
     }
-    
-    public function store() {
+
+    public function store()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return;
         }
-        
+
         // Validate input
         $name = $_POST['name'] ?? '';
         $type = $_POST['type'] ?? '';
         $description = $_POST['description'] ?? '';
         $base_price = $_POST['base_price'] ?? 0;
         $policy = $_POST['policy'] ?? '';
-        
+
         if (empty($name) || empty($type)) {
             $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
             header('Location: ?action=tours/create');
             return;
         }
-        
+
         try {
             $tourId = $this->model->create([
                 'name' => $name,
@@ -58,48 +63,50 @@ class TourController {
             header('Location: ?action=tours/create');
         }
     }
-    
-    public function edit() {
+
+    public function edit()
+    {
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: ?action=tours');
             return;
         }
-        
+
         $tour = $this->model->findById($id);
         if (!$tour) {
             $_SESSION['error'] = 'Không tìm thấy tour!';
             header('Location: ?action=tours');
             return;
         }
-        
+
         require_once 'views/admin/tours/edit.php';
     }
-    
-    public function update() {
+
+    public function update()
+    {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return;
         }
-        
+
         $id = $_POST['id'] ?? null;
         if (!$id) {
             header('Location: ?action=tours');
             return;
         }
-        
+
         // Validate input
         $name = $_POST['name'] ?? '';
         $type = $_POST['type'] ?? '';
         $description = $_POST['description'] ?? '';
         $base_price = $_POST['base_price'] ?? 0;
         $policy = $_POST['policy'] ?? '';
-        
+
         if (empty($name) || empty($type)) {
             $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
             header('Location: ?action=tours/edit&id=' . $id);
             return;
         }
-        
+
         try {
             $result = $this->model->updateById($id, [
                 'name' => $name,
@@ -121,14 +128,15 @@ class TourController {
             header('Location: ?action=tours/edit&id=' . $id);
         }
     }
-    
-    public function delete() {
+
+    public function delete()
+    {
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: ?action=tours');
             return;
         }
-        
+
         try {
             $result = $this->model->deleteById($id);
             if ($result) {
@@ -139,7 +147,7 @@ class TourController {
         } catch (Exception $e) {
             $_SESSION['error'] = 'Có lỗi xảy ra: ' . $e->getMessage();
         }
-        
+
         header('Location: ?action=tours');
     }
 }

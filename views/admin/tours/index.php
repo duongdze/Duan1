@@ -23,7 +23,7 @@
                 <div class="col-12">
                     <?php if (isset($_SESSION['success'])): ?>
                         <div class="alert alert-success">
-                            <?php 
+                            <?php
                             echo $_SESSION['success'];
                             unset($_SESSION['success']);
                             ?>
@@ -32,7 +32,7 @@
 
                     <?php if (isset($_SESSION['error'])): ?>
                         <div class="alert alert-danger">
-                            <?php 
+                            <?php
                             echo $_SESSION['error'];
                             unset($_SESSION['error']);
                             ?>
@@ -48,7 +48,7 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                         <div class="card-body">
                             <table id="tourTable" class="table table-bordered table-striped">
                                 <thead>
@@ -63,24 +63,24 @@
                                 </thead>
                                 <tbody>
                                     <?php foreach ($tours as $tour): ?>
-                                    <tr>
-                                        <td><?php echo $tour['id']; ?></td>
-                                        <td><?php echo $tour['name']; ?></td>
-                                        <td><?php echo $tour['type']; ?></td>
-                                        <td><?php echo number_format($tour['base_price']); ?> VNĐ</td>
-                                        <td><?php echo $tour['created_at']; ?></td>
-                                        <td>
-                                            <a href="?action=tours/edit&id=<?php echo $tour['id']; ?>" 
-                                               class="btn btn-info btn-sm">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="?action=tours/delete&id=<?php echo $tour['id']; ?>" 
-                                               class="btn btn-danger btn-sm"
-                                               onclick="return confirm('Bạn có chắc muốn xóa tour này?');">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
+                                        <tr>
+                                            <td><?php echo $tour['id']; ?></td>
+                                            <td><?php echo $tour['name']; ?></td>
+                                            <td><?php echo $tour['type']; ?></td>
+                                            <td><?php echo number_format($tour['base_price']); ?> VNĐ</td>
+                                            <td><?php echo $tour['created_at']; ?></td>
+                                            <td>
+                                                <a href="?action=tours/edit&id=<?php echo $tour['id']; ?>"
+                                                    class="btn btn-info btn-sm">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="?action=tours/delete&id=<?php echo $tour['id']; ?>"
+                                                    class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Bạn có chắc muốn xóa tour này?');">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
@@ -93,17 +93,17 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    $('#tourTable').DataTable({
-        "paging": true,
-        "lengthChange": true,
-        "searching": true,
-        "ordering": true,
-        "info": true,
-        "autoWidth": false,
-        "responsive": true
+    $(document).ready(function() {
+        $('#tourTable').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true
+        });
     });
-});
 </script>
 
 <?php require_once 'views/admin/default/footer.php'; ?>

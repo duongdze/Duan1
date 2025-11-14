@@ -24,7 +24,7 @@
                 <div class="col-12">
                     <?php if (isset($_SESSION['error'])): ?>
                         <div class="alert alert-danger">
-                            <?php 
+                            <?php
                             echo $_SESSION['error'];
                             unset($_SESSION['error']);
                             ?>
@@ -35,17 +35,17 @@
                         <div class="card-header">
                             <h3 class="card-title">Thông tin Tour</h3>
                         </div>
-                        
+
                         <form method="POST" action="?action=tours/update" enctype="multipart/form-data">
                             <input type="hidden" name="id" value="<?php echo $tour['id']; ?>">
-                            
+
                             <div class="card-body">
                                 <div class="form-group">
                                     <label for="name">Tên tour</label>
-                                    <input type="text" class="form-control" id="name" name="name" 
-                                           value="<?php echo $tour['name']; ?>" required>
+                                    <input type="text" class="form-control" id="name" name="name"
+                                        value="<?php echo $tour['name']; ?>" required>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="type">Loại tour</label>
                                     <select class="form-control" id="type" name="type" required>
@@ -61,29 +61,29 @@
                                         </option>
                                     </select>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="description">Mô tả</label>
                                     <textarea class="form-control" id="description" name="description" rows="3">
                                         <?php echo $tour['description']; ?>
                                     </textarea>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="base_price">Giá cơ bản</label>
                                     <input type="number" class="form-control" id="base_price" name="base_price"
-                                           value="<?php echo $tour['base_price']; ?>" required>
+                                        value="<?php echo $tour['base_price']; ?>" required>
                                 </div>
-                                
+
                                 <?php if ($tour['image']): ?>
-                                <div class="form-group">
-                                    <label>Hình ảnh hiện tại</label>
-                                    <div>
-                                        <img src="<?php echo $tour['image']; ?>" alt="Tour Image" style="max-width: 200px;">
+                                    <div class="form-group">
+                                        <label>Hình ảnh hiện tại</label>
+                                        <div>
+                                            <img src="<?php echo $tour['image']; ?>" alt="Tour Image" style="max-width: 200px;">
+                                        </div>
                                     </div>
-                                </div>
                                 <?php endif; ?>
-                                
+
                                 <div class="form-group">
                                     <label for="image">Thay đổi hình ảnh</label>
                                     <input type="file" class="form-control-file" id="image" name="image">
@@ -103,12 +103,12 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    // Initialize summernote for rich text editor
-    $('#description').summernote({
-        height: 200
+    $(document).ready(function() {
+        // Initialize summernote for rich text editor
+        $('#description').summernote({
+            height: 200
+        });
     });
-});
 </script>
 
 <?php require_once 'views/admin/default/footer.php'; ?>

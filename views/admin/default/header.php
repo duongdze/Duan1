@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,8 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
 </head>
+
 <body>
-<?php
+    <?php
     // Bảo vệ trang admin, yêu cầu đăng nhập
     if (empty($_SESSION['user'])) {
         header('Location: ' . BASE_URL_ADMIN . '&action=login');
@@ -59,3 +61,28 @@
                 </div>
             </div>
         </nav>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="flex-fill">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+                <div class="container-fluid">
+                    <button class="btn btn-sm btn-primary" id="menu-toggle">Toggle Menu</button>
+                    <div class="ms-auto d-flex align-items-center">
+                        <?php
+                            $userName = htmlspecialchars($_SESSION['user']['full_name'] ?? ($_SESSION['user']['username'] ?? 'Admin'));
+                            // Attempt to use an uploaded avatar if available, otherwise fallback to Gravatar/placeholder
+                            $avatarPath = '';
+                            if (!empty($_SESSION['user']['avatar'])) {
+                                $avatarPath = BASE_ASSETS_ADMIN . 'image/' . ltrim($_SESSION['user']['avatar'], '/');
+                            }
+                        ?>
+                        <div class="d-flex align-items-center">
+                            <img src="<?= $avatarPath ?: 'https://www.gravatar.com/avatar/?d=mp' ?>" alt="avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" onerror="this.src='https://www.gravatar.com/avatar/?d=mp'">
+                            <div class="ms-2 text-end">
+                                <div class="fw-semibold" style="line-height:1"><?= $userName ?></div>
+                                <a href="?action=logout" class="text-decoration-none small">Đăng xuất</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>

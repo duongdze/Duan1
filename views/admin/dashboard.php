@@ -84,7 +84,7 @@
                                             $tourModel = new Tour();
                                             $t = $tourModel->find('*', 'id = :id', ['id' => $b['tour_id']]);
                                             echo $t ? $t['name'] : '-';
-                                        ?></td>
+                                            ?></td>
                                         <td><?php echo $b['customer_id']; ?></td>
                                         <td><?php echo $b['booking_date']; ?></td>
                                         <td><?php echo number_format($b['total_price']); ?> VNĐ</td>
@@ -92,7 +92,9 @@
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="6" class="text-center">Chưa có đặt chỗ</td></tr>
+                                <tr>
+                                    <td colspan="6" class="text-center">Chưa có đặt chỗ</td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -127,32 +129,34 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Simple static demo data for revenue chart — you can replace with AJAX to fetch real data
-const ctx = document.getElementById('revenueChart').getContext('2d');
-const revenueChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6'],
-        datasets: [{
-            label: 'Doanh thu',
-            data: [12000000, 15000000, 10000000, 18000000, 22000000, <?php echo (int)$totalRevenue; ?>],
-            borderColor: 'rgba(54, 162, 235, 1)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            tension: 0.3,
-            fill: true
-        }]
-    },
-    options: {
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                ticks: {
-                    callback: function(value) { return value.toLocaleString() + ' VNĐ'; }
+    // Simple static demo data for revenue chart — you can replace with AJAX to fetch real data
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
+            datasets: [{
+                label: 'Doanh thu',
+                data: [12000000, 15000000, 10000000, 18000000, 22000000, <?php echo (int)$totalRevenue; ?>],
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' VNĐ';
+                        }
+                    }
                 }
             }
         }
-    }
-});
+    });
 </script>
 
 <?php require_once 'views/admin/default/footer.php'; ?>

@@ -2,15 +2,15 @@
 
 class DashboardController
 {
-    public function index() 
+    public function index()
     {
         // Kiểm tra quyền: chỉ admin và hdv (qtv) được truy cập
         check_role(['admin', 'hdv']);
 
         // Load models for dashboard stats
-        require_once 'models/admin/Tour.php';
-        require_once 'models/admin/Booking.php';
-        require_once 'models/admin/Guide.php';
+        require_once 'models/Tour.php';
+        require_once 'models/Booking.php';
+        require_once 'models/Guide.php';
 
         $tourModel = new Tour();
         $bookingModel = new Booking();
