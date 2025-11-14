@@ -70,7 +70,7 @@
                                         <td><?php echo number_format($tour['base_price']); ?> VNĐ</td>
                                         <td><?php echo $tour['created_at']; ?></td>
                                         <td>
-                                            <a href="?action=tours/edit&id=<?php echo $tour['id']; ?>" 
+                                            <a href="<?= BASE_URL_ADMIN ?>&action=tours/edit&id=<?php echo $tour['id']; ?>" 
                                                class="btn btn-info btn-sm">
                                                 <i class="fas fa-edit"></i>
                                             </a>

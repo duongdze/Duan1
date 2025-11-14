@@ -1,6 +1,6 @@
 <?php
-require_once 'models/admin/Tour.php';
-require_once 'models/admin/Supplier.php';
+// require_once 'models/Tour.php';
+// require_once 'models/Supplier.php';
 
 class TourController {
     protected $model;
@@ -11,11 +11,11 @@ class TourController {
     
     public function index() {
         $tours = $this->model->getAll();
-        require_once 'views/admin/tours/index.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours/index.php';
     }
     
     public function create() {
-        require_once 'views/admin/tours/create.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours/create.php';
     }
     
     public function store() {
@@ -62,7 +62,7 @@ class TourController {
     public function edit() {
         $id = $_GET['id'] ?? null;
         if (!$id) {
-            header('Location: ?action=tours');
+            header('Location:' . BASE_URL_ADMIN . '?action=tours');
             return;
         }
         
@@ -73,7 +73,7 @@ class TourController {
             return;
         }
         
-        require_once 'views/admin/tours/edit.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
     
     public function update() {
