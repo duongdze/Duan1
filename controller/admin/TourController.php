@@ -1,6 +1,6 @@
 <?php
-require_once 'models/Tour.php';
-require_once 'models/Supplier.php';
+// require_once 'models/Tour.php';
+// require_once 'models/Supplier.php';
 
 class TourController
 {
@@ -16,9 +16,8 @@ class TourController
         $tours = $this->model->getAll();
         require_once PATH_VIEW_ADMIN . 'pages/tours/index.php';
     }
-
-    public function create()
-    {
+    
+    public function create() {
         require_once PATH_VIEW_ADMIN . 'pages/tours/create.php';
     }
 
@@ -78,7 +77,7 @@ class TourController
             header('Location: ?action=tours');
             return;
         }
-
+        
         require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
 
