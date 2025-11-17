@@ -23,7 +23,7 @@
                 <div class="col-12">
                     <?php if (isset($_SESSION['success'])): ?>
                         <div class="alert alert-success">
-                            <?php 
+                            <?php
                             echo $_SESSION['success'];
                             unset($_SESSION['success']);
                             ?>
@@ -32,7 +32,7 @@
 
                     <?php if (isset($_SESSION['error'])): ?>
                         <div class="alert alert-danger">
-                            <?php 
+                            <?php
                             echo $_SESSION['error'];
                             unset($_SESSION['error']);
                             ?>
@@ -48,7 +48,7 @@
                                 </a>
                             </div>
                         </div>
-                        
+
                         <div class="card-body">
                             <table id="tourTable" class="table table-bordered table-striped">
                                 <thead>
@@ -93,17 +93,17 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    $('#tourTable').DataTable({
-        "paging": true,
-        "lengthChange": true,
-        "searching": true,
-        "ordering": true,
-        "info": true,
-        "autoWidth": false,
-        "responsive": true
+    $(document).ready(function() {
+        $('#tourTable').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true
+        });
     });
-});
 </script>
 
 <?php require_once 'views/admin/default/footer.php'; ?>

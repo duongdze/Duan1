@@ -1,7 +1,8 @@
 <?php
 require_once 'models/BaseModel.php';
 
-class TourVersion extends BaseModel {
+class TourVersion extends BaseModel
+{
     protected $table = 'tour_versions';
     protected $columns = [
         'id',

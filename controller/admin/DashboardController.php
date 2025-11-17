@@ -2,7 +2,7 @@
 
 class DashboardController
 {
-    public function index() 
+    public function index()
     {
         // Kiểm tra quyền: chỉ admin và hdv (qtv) được truy cập
         check_role(['admin', 'hdv']);
