@@ -3,117 +3,288 @@ include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 ?>
 
-<div class="content-wrapper">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Sửa Tour</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="?action=/">Trang chủ</a></li>
-                        <li class="breadcrumb-item"><a href="?action=tours">Tours</a></li>
-                        <li class="breadcrumb-item active">Sửa</li>
-                    </ol>
-                </div>
-            </div>
+<!-- Quill editor styles -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+<main class="wrapper">
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="h2">Sửa Tour</h1>
+            <p class="text-muted">Cập nhật thông tin tour chi tiết</p>
         </div>
-    </section>
 
-    <section class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <?php if (isset($_SESSION['error'])): ?>
-                        <div class="alert alert-danger">
-                            <?php
-                            echo $_SESSION['error'];
-                            unset($_SESSION['error']);
-                            ?>
+        <?php if (!empty($_SESSION['error'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?= htmlspecialchars($_SESSION['error']) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
+
+        <form method="POST" action="?action=tours/update" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="<?= htmlspecialchars($tour['id'] ?? '') ?>">
+
+            <div class="row g-3">
+                <!-- Left Column -->
+                <div class="col-lg-6">
+                    <!-- Thông tin cơ bản -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle"></i> Thông tin cơ bản
+                            </h5>
                         </div>
-                    <?php endif; ?>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="name" class="form-label fw-500">Tên tour</label>
+                                <input type="text" class="form-control" id="name" name="name" value="<?= htmlspecialchars($tour['name'] ?? '') ?>" required>
+                            </div>
 
+                            <div class="mb-3">
+                                <label for="type" class="form-label fw-500">Danh mục tour</label>
+                                <select class="form-select" id="type" name="type" required>
+                                    <option value="">Trong nước</option>
+                                    <option value="trong_nuoc" <?= (isset($tour['type']) && $tour['type'] === 'trong_nuoc') ? 'selected' : '' ?>>Tour trong nước</option>
+                                    <option value="quoc_te" <?= (isset($tour['type']) && $tour['type'] === 'quoc_te') ? 'selected' : '' ?>>Tour quốc tế</option>
+                                    <option value="theo_yeu_cau" <?= (isset($tour['type']) && $tour['type'] === 'theo_yeu_cau') ? 'selected' : '' ?>>Tour theo yêu cầu</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="supplier_id" class="form-label fw-500">Nhà cung cấp</label>
+                                <select class="form-select" id="supplier_id" name="supplier_id">
+                                    <option value="">Chọn nhà cung cấp</option>
+                                    <?php if (!empty($suppliers)): ?>
+                                        <?php foreach ($suppliers as $s): ?>
+                                            <option value="<?= htmlspecialchars($s['id']) ?>" <?= (isset($tour['supplier_id']) && $tour['supplier_id'] == $s['id']) ? 'selected' : '' ?>><?= htmlspecialchars($s['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="base_price" class="form-label fw-500">Giá cơ bản</label>
+                                <input type="number" class="form-control" id="base_price" name="base_price" value="<?= htmlspecialchars($tour['base_price'] ?? '') ?>" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin khác -->
                     <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Thông tin Tour</h3>
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-align-left"></i> Mô tả
+                            </h5>
                         </div>
+                        <div class="card-body">
+                            <label for="description" class="form-label fw-500">Nhập mô tả</label>
+                            <input type="hidden" id="input-description" name="description" value="<?= htmlspecialchars($tour['description'] ?? '') ?>">
+                            <div id="editor-description" class="quill-editor"><?= $tour['description'] ?? '' ?></div>
+                        </div>
+                    </div>
+                </div>
 
-                        <form method="POST" action="?action=tours/update" enctype="multipart/form-data">
-                            <input type="hidden" name="id" value="<?php echo $tour['id']; ?>">
-
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label for="name">Tên tour</label>
-                                    <input type="text" class="form-control" id="name" name="name"
-                                        value="<?php echo $tour['name']; ?>" required>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="type">Loại tour</label>
-                                    <select class="form-control" id="type" name="type" required>
-                                        <option value="">Chọn loại tour</option>
-                                        <option value="trong_nuoc" <?php echo $tour['type'] == 'trong_nuoc' ? 'selected' : ''; ?>>
-                                            Tour trong nước
-                                        </option>
-                                        <option value="quoc_te" <?php echo $tour['type'] == 'quoc_te' ? 'selected' : ''; ?>>
-                                            Tour quốc tế
-                                        </option>
-                                        <option value="theo_yeu_cau" <?php echo $tour['type'] == 'theo_yeu_cau' ? 'selected' : ''; ?>>
-                                            Tour theo yêu cầu
-                                        </option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="description">Mô tả</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3">
-                                        <?php echo $tour['description']; ?>
-                                    </textarea>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="base_price">Giá cơ bản</label>
-                                    <input type="number" class="form-control" id="base_price" name="base_price"
-                                        value="<?php echo $tour['base_price']; ?>" required>
-                                </div>
-
-                                <?php if ($tour['image']): ?>
-                                    <div class="form-group">
-                                        <label>Hình ảnh hiện tại</label>
-                                        <div>
-                                            <img src="<?php echo $tour['image']; ?>" alt="Tour Image" style="max-width: 200px;">
-                                        </div>
+                <!-- Right Column -->
+                <div class="col-lg-6">
+                    <!-- Lịch trình -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar"></i> Lịch trình
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-500">Số ngày</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">10</span>
+                                        <span class="input-group-text">ngày</span>
                                     </div>
-                                <?php endif; ?>
-
-                                <div class="form-group">
-                                    <label for="image">Thay đổi hình ảnh</label>
-                                    <input type="file" class="form-control-file" id="image" name="image">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-500">Số đêm</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">11</span>
+                                        <span class="input-group-text">đêm</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="card-footer">
-                                <button type="submit" class="btn btn-primary">Cập nhật</button>
-                                <a href="?action=tours" class="btn btn-default">Hủy</a>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-500">Ngày khởi hành</label>
+                                    <input type="date" class="form-control" placeholder="10 ngày">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-500">Ngày kết thúc</label>
+                                    <input type="date" class="form-control" placeholder="11 đêm">
+                                </div>
                             </div>
-                        </form>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-500">Lịch trình chi tiết</label>
+                                <textarea class="form-control" rows="6" placeholder="Hoạt động"></textarea>
+                            </div>
+
+                            <a href="?action=tours/itineraries&tour_id=<?= htmlspecialchars($tour['id'] ?? '') ?>" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-list"></i> Quản lý lịch trình
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Phiên bản tour -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-code-branch"></i> Phiên bản tour
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small">Quản lý các version khác nhau của tour</p>
+                            <a href="?action=tours/versions&tour_id=<?= htmlspecialchars($tour['id'] ?? '') ?>" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-code-branch"></i> Quản lý phiên bản
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Hình ảnh -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-image"></i> Hình ảnh
+                            </h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <?php if (!empty($tour['image'])): ?>
+                                <div class="mb-3">
+                                    <img src="<?= htmlspecialchars($tour['image']) ?>" alt="Tour Image" class="form-image-preview">
+                                </div>
+                            <?php else: ?>
+                                <div class="mb-3 p-4 bg-light rounded border border-dashed">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                    <p class="text-muted small mt-2">Chưa có hình ảnh</p>
+                                </div>
+                            <?php endif; ?>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-</div>
 
+            <!-- Chính sách & Actions -->
+            <div class="card mt-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt"></i> Chính sách
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <label for="policy" class="form-label fw-500">Nhập chính sách</label>
+                    <input type="hidden" id="input-policy" name="policy" value="<?= htmlspecialchars($tour['policy'] ?? '') ?>">
+                    <div id="editor-policy" class="quill-editor"><?= $tour['policy'] ?? '' ?></div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="mt-3 d-flex gap-2 mb-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Cập nhật
+                </button>
+                <a href="?action=tours" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Hủy
+                </a>
+            </div>
+        </form>
+</main>
+
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 <script>
-    $(document).ready(function() {
-        // Initialize summernote for rich text editor
-        $('#description').summernote({
-            height: 200
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Quill editors
+        var quillDesc = new Quill('#editor-description', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{
+                        'list': 'ordered'
+                    }, {
+                        'list': 'bullet'
+                    }],
+                    [{
+                        'size': ['small', false, 'large', 'huge']
+                    }],
+                    [{
+                        'header': [1, 2, 3, 4, 5, 6, false]
+                    }],
+                    ['link'],
+                    ['clean']
+                ]
+            }
         });
+
+        var quillPolicy = new Quill('#editor-policy', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{
+                        'list': 'ordered'
+                    }, {
+                        'list': 'bullet'
+                    }],
+                    [{
+                        'size': ['small', false, 'large', 'huge']
+                    }],
+                    [{
+                        'header': [1, 2, 3, 4, 5, 6, false]
+                    }],
+                    ['link'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Set initial contents from hidden inputs if present
+        var inputDesc = document.getElementById('input-description');
+        if (inputDesc && inputDesc.value) quillDesc.root.innerHTML = inputDesc.value;
+        var inputPolicy = document.getElementById('input-policy');
+        if (inputPolicy && inputPolicy.value) quillPolicy.root.innerHTML = inputPolicy.value;
+
+        var form = document.querySelector('form[action="?action=tours/update"]');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                document.getElementById('input-description').value = quillDesc.root.innerHTML;
+                document.getElementById('input-policy').value = quillPolicy.root.innerHTML;
+            });
+        }
+
+        // Image preview
+        var imageInput = document.getElementById('image');
+        if (imageInput) {
+            imageInput.addEventListener('change', function(e) {
+                var file = e.target.files[0];
+                if (file) {
+                    var reader = new FileReader();
+                    reader.onload = function(event) {
+                        var preview = document.createElement('img');
+                        preview.src = event.target.result;
+                        preview.className = 'form-image-preview';
+
+                        var previewContainer = document.querySelector('#image').previousElementSibling;
+                        if (previewContainer) {
+                            previewContainer.innerHTML = '';
+                            previewContainer.appendChild(preview);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
     });
 </script>
 
-<?php
-include_once PATH_VIEW_ADMIN . 'default/footer.php';
-?>
+<?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>
