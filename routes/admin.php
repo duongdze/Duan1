@@ -30,6 +30,14 @@ match ($action) {
     'tours/delete'          => (new TourController)->delete(),
     // 'tours/detail'            => (new TourController)->detail(),
     'tours/versions'        => (new TourVersionController)->index(),
+    'tours/versions/create' => (new TourVersionController)->create(),
+    'tours/versions/store'  => (new TourVersionController)->store(),
+    'tours/versions/delete' => (new TourVersionController)->delete(),
+
+    'tours/itineraries'     => (new ItineraryController)->index(),
+    'tours/itineraries/create' => (new ItineraryController)->create(),
+    'tours/itineraries/store'  => (new ItineraryController)->store(),
+    'tours/itineraries/delete' => (new ItineraryController)->delete(),
 
     // Bookings
     'bookings'             => (new BookingController)->index(),

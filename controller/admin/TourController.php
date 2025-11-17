@@ -19,6 +19,10 @@ class TourController
 
     public function create()
     {
+        // Load suppliers for supplier dropdown
+        $supplierModel = new Supplier();
+        $suppliers = $supplierModel->select();
+
         require_once PATH_VIEW_ADMIN . 'pages/tours/create.php';
     }
 
@@ -34,6 +38,7 @@ class TourController
         $description = $_POST['description'] ?? '';
         $base_price = $_POST['base_price'] ?? 0;
         $policy = $_POST['policy'] ?? '';
+        $supplier_id = !empty($_POST['supplier_id']) ? intval($_POST['supplier_id']) : null;
 
         if (empty($name) || empty($type)) {
             $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
@@ -42,12 +47,35 @@ class TourController
         }
 
         try {
+            // Handle image upload
+            $imagePath = null;
+            if (!empty($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = PATH_ROOT . 'assets/uploads/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+                $tmp = $_FILES['image']['tmp_name'];
+                $origName = $_FILES['image']['name'];
+                $ext = pathinfo($origName, PATHINFO_EXTENSION);
+                $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                if (!in_array(strtolower($ext), $allowed)) {
+                    throw new Exception('Định dạng ảnh không hợp lệ. Vui lòng tải lên jpg, png, gif hoặc webp.');
+                }
+                $newName = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $dest = $uploadDir . $newName;
+                if (!move_uploaded_file($tmp, $dest)) {
+                    throw new Exception('Không thể lưu ảnh. Vui lòng thử lại.');
+                }
+                $imagePath = BASE_ASSETS_UPLOADS . $newName;
+            }
+
             $tourId = $this->model->create([
                 'name' => $name,
                 'type' => $type,
                 'description' => $description,
                 'base_price' => $base_price,
                 'policy' => $policy,
+                'supplier_id' => $supplier_id,
+                'image' => $imagePath,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
             ]);
@@ -79,6 +107,10 @@ class TourController
             return;
         }
 
+        // Load suppliers for supplier dropdown
+        $supplierModel = new Supplier();
+        $suppliers = $supplierModel->select();
+
         require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
 
@@ -100,6 +132,7 @@ class TourController
         $description = $_POST['description'] ?? '';
         $base_price = $_POST['base_price'] ?? 0;
         $policy = $_POST['policy'] ?? '';
+        $supplier_id = !empty($_POST['supplier_id']) ? intval($_POST['supplier_id']) : null;
 
         if (empty($name) || empty($type)) {
             $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
@@ -108,14 +141,39 @@ class TourController
         }
 
         try {
-            $result = $this->model->updateById($id, [
+            // Handle image upload on update
+            $imagePath = null;
+            if (!empty($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $uploadDir = PATH_ROOT . 'assets/uploads/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+                $tmp = $_FILES['image']['tmp_name'];
+                $origName = $_FILES['image']['name'];
+                $ext = pathinfo($origName, PATHINFO_EXTENSION);
+                $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                if (!in_array(strtolower($ext), $allowed)) {
+                    throw new Exception('Định dạng ảnh không hợp lệ. Vui lòng tải lên jpg, png, gif hoặc webp.');
+                }
+                $newName = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $dest = $uploadDir . $newName;
+                if (!move_uploaded_file($tmp, $dest)) {
+                    throw new Exception('Không thể lưu ảnh. Vui lòng thử lại.');
+                }
+                $imagePath = BASE_ASSETS_UPLOADS . $newName;
+            }
+
+            $updateData = [
                 'name' => $name,
                 'type' => $type,
                 'description' => $description,
                 'base_price' => $base_price,
                 'policy' => $policy,
+                'supplier_id' => $supplier_id,
                 'updated_at' => date('Y-m-d H:i:s')
-            ]);
+            ];
+            if (!empty($imagePath)) $updateData['image'] = $imagePath;
+
+            $result = $this->model->updateById($id, $updateData);
 
             if ($result) {
                 $_SESSION['success'] = 'Cập nhật tour thành công!';
