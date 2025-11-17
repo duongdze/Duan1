@@ -19,6 +19,7 @@ match ($action) {
     'login'                 => (new AuthorController)->login(),
     'loginProcess'          => (new AuthorController)->loginProcess(),
     'logout'                => (new AuthorController)->logout(),
+    'account'               => (new AuthorController)->accountInfo(),
 
     // Tours Management 
     'tours'                 => (new TourController)->index(),
@@ -27,6 +28,7 @@ match ($action) {
     'tours/edit'            => (new TourController)->edit(),
     'tours/update'          => (new TourController)->update(),
     'tours/delete'          => (new TourController)->delete(),
+    // 'tours/detail'            => (new TourController)->detail(),
     'tours/versions'        => (new TourVersionController)->index(),
 
     // Bookings

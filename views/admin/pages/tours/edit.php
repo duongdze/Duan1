@@ -1,4 +1,7 @@
-<?php require_once 'views/admin/default/header.php'; ?>
+<?php
+include_once PATH_VIEW_ADMIN . 'default/header.php';
+include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
+?>
 
 <div class="content-wrapper">
     <section class="content-header">
@@ -111,4 +114,6 @@
     });
 </script>
 
-<?php require_once 'views/admin/default/footer.php'; ?>
+<?php
+include_once PATH_VIEW_ADMIN . 'default/footer.php';
+?>
