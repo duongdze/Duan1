@@ -1,6 +1,6 @@
 <?php
-require_once 'models/Tour.php';
-require_once 'models/Supplier.php';
+// require_once 'models/Tour.php';
+// require_once 'models/Supplier.php';
 
 class TourController
 {
