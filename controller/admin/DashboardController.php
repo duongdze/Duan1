@@ -28,6 +28,9 @@ class DashboardController
         // Recent bookings
         $recentBookings = $bookingModel->select('*', null, [], 'booking_date DESC', 5);
 
+        require_once PATH_VIEW_ADMIN . 'default/header.php';
+        require_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         require_once PATH_VIEW_ADMIN . 'dashboard.php';
+        require_once PATH_VIEW_ADMIN . 'default/footer.php';
     }
 }

@@ -1,24 +1,8 @@
-</div> <!-- /#page-content-wrapper -->
-</div> <!-- /#wrapper -->
+        </main>
+    </div>
 
-<script>
-    // Toggle sidebar
-    document.addEventListener('DOMContentLoaded', function() {
-        var toggle = document.getElementById('menu-toggle');
-        if (toggle) {
-            toggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                var sidebar = document.getElementById('sidebar-wrapper');
-                if (sidebar.style.display === 'none') {
-                    sidebar.style.display = '';
-                } else {
-                    sidebar.style.display = 'none';
-                }
-            });
-        }
-    });
-</script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/Duan1/assets/admin/js/admin-dashboard.js"></script>
 </body>
-
 </html>

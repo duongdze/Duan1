@@ -2,76 +2,72 @@
     <div class="main-content">
         <div class="page-header d-flex justify-content-between align-items-center">
             <div>
-                <h1 class="h2">Quản lý Tour</h1>
-                <p class="text-muted">Toàn bộ các tour đang được quản lý trên hệ thống.</p>
+                <h1 class="h2">Quản lý Hướng dẫn viên</h1>
+                <p class="text-muted">Danh sách các hướng dẫn viên trong công ty.</p>
             </div>
-            <a href="/Duan1/admin/tours/create" class="btn btn-primary"><i class="fas fa-plus"></i> Tạo tour mới</a>
+            <button class="btn btn-primary"><i class="fas fa-user-plus"></i> Thêm HDV mới</button>
         </div>
 
         <div class="card">
             <div class="card-header">
-                Danh sách Tour
+                Danh sách HDV
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>Tên Tour</th>
-                                <th>Loại Tour</th>
-                                <th>Ngày tạo</th>
-                                <th>Giá</th>
+                                <th>Họ và tên</th>
+                                <th>Email</th>
+                                <th>Số điện thoại</th>
+                                <th>Chuyên tuyến</th>
                                 <th>Trạng thái</th>
                                 <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Khám phá Đà Nẵng - Hội An</td>
-                                <td>Trong nước</td>
-                                <td>01/10/2025</td>
-                                <td>5,000,000 ₫</td>
-                                <td><span class="badge bg-success">Đang mở bán</span></td>
+                                <td>Nguyễn Minh Tuấn</td>
+                                <td>tuan.nm@example.com</td>
+                                <td>0987654321</td>
+                                <td>Nội địa, Đông Nam Á</td>
+                                <td><span class="badge bg-success">Sẵn sàng</span></td>
                                 <td>
                                     <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
                                     <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
-                                    <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                 </td>
                             </tr>
                             <tr>
-                                <td>Du lịch Mộc Châu - Mùa hoa cải</td>
-                                <td>Trong nước</td>
-                                <td>15/09/2025</td>
-                                <td>2,800,000 ₫</td>
-                                <td><span class="badge bg-success">Đang mở bán</span></td>
+                                <td>Lê Thị Thu Hà</td>
+                                <td>ha.ltt@example.com</td>
+                                <td>0912345678</td>
+                                <td>Châu Âu</td>
+                                <td><span class="badge bg-info">Đang đi tour</span></td>
                                 <td>
                                     <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
                                     <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
-                                    <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                 </td>
                             </tr>
                              <tr>
-                                <td>Chinh phục Fansipan</td>
-                                <td>Trong nước</td>
-                                <td>05/09/2025</td>
-                                <td>3,500,000 ₫</td>
-                                <td><span class="badge bg-secondary">Đã đóng</span></td>
+                                <td>Trần Văn Mạnh</td>
+                                <td>manh.tv@example.com</td>
+                                <td>0905112233</td>
+                                <td>Nội địa</td>
+                                <td><span class="badge bg-success">Sẵn sàng</span></td>
                                 <td>
                                     <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
                                     <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
-                                    <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                 </td>
                             </tr>
                             <tr>
-                                <td>Khám phá Châu Âu 5 nước</td>
-                                <td>Quốc tế</td>
-                                <td>20/08/2025</td>
-                                <td>55,000,000 ₫</td>
-                                <td><span class="badge bg-success">Đang mở bán</span></td>
+                                <td>Phạm Quỳnh Anh</td>
+                                <td>anh.pq@example.com</td>
+                                <td>0933445566</td>
+                                <td>Nhật Bản, Hàn Quốc</td>
+                                <td><span class="badge bg-secondary">Nghỉ phép</span></td>
                                 <td>
                                     <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
                                     <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
-                                    <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
                                 </td>
                             </tr>
                         </tbody>
