@@ -14,7 +14,7 @@ class TourController
     public function index()
     {
         $tours = $this->model->getAll();
-        require_once 'views/admin/tours/index.php';
+        require_once PATH_VIEW_ADMIN . 'tours/index.php';
     }
 
     public function create()
@@ -68,7 +68,7 @@ class TourController
     {
         $id = $_GET['id'] ?? null;
         if (!$id) {
-            header('Location: ?action=tours');
+            header('Location:' . BASE_URL_ADMIN . '?action=tours');
             return;
         }
 
@@ -79,7 +79,7 @@ class TourController
             return;
         }
 
-        require_once 'views/admin/tours/edit.php';
+        require_once PATH_VIEW_ADMIN . 'tours/edit.php';
     }
 
     public function update()

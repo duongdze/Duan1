@@ -1,25 +1,25 @@
 <aside class="sidebar vh-100 border-end bg-light">
     <div class="p-3">
-        <h4 class="fw-bold text-center">TourAdmin</h4>
+        <h4 class="fw-bold text-center">Tour Admin</h4>
     </div>
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a class="nav-link active" href="/Duan1/admin/">
+            <a class="nav-link active" href="<?= BASE_URL_ADMIN ?>">
                 <i class="fas fa-tachometer-alt fa-fw me-2"></i>Tổng quan
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="/Duan1/admin/tours">
+            <a class="nav-link" href="<?= BASE_URL_ADMIN ?>&action=tours">
                 <i class="fas fa-map-signs fa-fw me-2"></i>Quản lý Tour
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="/Duan1/admin/bookings">
+            <a class="nav-link" href="<?= BASE_URL_ADMIN ?>&action=bookings">
                 <i class="fas fa-calendar-check fa-fw me-2"></i>Quản lý Booking
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="/Duan1/admin/guides">
+            <a class="nav-link" href="<?= BASE_URL_ADMIN ?>&action=guides">
                 <i class="fas fa-user-tie fa-fw me-2"></i>Quản lý HDV
             </a>
         </li>

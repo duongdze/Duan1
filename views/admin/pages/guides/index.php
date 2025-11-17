@@ -1,3 +1,7 @@
+<?php
+include_once PATH_VIEW_ADMIN . 'default/header.php';
+include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
+?>
 <main class="wrapper">
     <div class="main-content">
         <div class="page-header d-flex justify-content-between align-items-center">
@@ -48,7 +52,7 @@
                                     <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
                                 </td>
                             </tr>
-                             <tr>
+                            <tr>
                                 <td>Trần Văn Mạnh</td>
                                 <td>manh.tv@example.com</td>
                                 <td>0905112233</td>
@@ -77,3 +81,6 @@
         </div>
     </div>
 </main>
+<?php
+include_once PATH_VIEW_ADMIN . 'default/footer.php';
+?>

@@ -1,8 +1,7 @@
 <?php
-include_once 'c:/laragon/www/Duan1/views/admin/default/header.php';
-include_once 'c:/laragon/www/Duan1/views/admin/default/sidebar.php';
+include_once PATH_VIEW_ADMIN . 'default/header.php';
+include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 ?>
-
 <main class="wrapper">
     <div class="main-content">
         <div class="page-header d-flex justify-content-between align-items-center">
@@ -87,7 +86,6 @@ include_once 'c:/laragon/www/Duan1/views/admin/default/sidebar.php';
         </div>
     </div>
 </main>
-
 <?php
-include_once 'c:/laragon/www/Duan1/views/admin/default/footer.php';
+include_once PATH_VIEW_ADMIN . 'default/footer.php';
 ?>

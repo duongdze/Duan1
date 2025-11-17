@@ -27,6 +27,7 @@ match ($action) {
     'tours/edit'            => (new TourController)->edit(),
     'tours/update'          => (new TourController)->update(),
     'tours/delete'          => (new TourController)->delete(),
+    // 'tours/detail'            => (new TourController)->detail(),
     'tours/versions'        => (new TourVersionController)->index(),
 
     // Bookings

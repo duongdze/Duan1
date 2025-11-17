@@ -27,7 +27,12 @@ class Tour extends BaseModel
      */
     public function getAll()
     {
-        return $this->select();
+        $sql = "SELECT t.*, s.id AS supplier_id, s.name AS supplier_name
+                FROM {$this->table} AS t
+                INNER JOIN `suppliers` AS s ON t.supplier_id = s.id";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
