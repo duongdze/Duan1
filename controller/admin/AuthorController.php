@@ -62,4 +62,17 @@ class AuthorController
         header('location: ' . BASE_URL_ADMIN . '&action=login');
         exit;
     }
+
+    public function accountInfo()
+    {
+        $user = $_SESSION['user'] ?? null;
+        if (!$user) {
+            header('Location: ' . BASE_URL_ADMIN . '&action=login');
+            exit;
+        }
+
+        $title = 'Thông tin tài khoản';
+        $view = 'pages/account/index';
+        require_once PATH_VIEW_ADMIN_MAIN;
+    }
 }

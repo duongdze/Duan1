@@ -20,7 +20,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div>
                             <div class="kpi-label">Doanh thu tháng</div>
-                            <div class="kpi-value">1.280M ₫</div>
+                            <div class="kpi-value"><?= $monthlyRevenue ?></div>
                         </div>
                     </div>
                 </div>
@@ -33,7 +33,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div>
                             <div class="kpi-label">Booking mới</div>
-                            <div class="kpi-value">42</div>
+                            <div class="kpi-value"><?= $newBookings ?></div>
                         </div>
                     </div>
                 </div>
@@ -46,7 +46,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div>
                             <div class="kpi-label">Tour đang chạy</div>
-                            <div class="kpi-value">8</div>
+                            <div class="kpi-value"><?= $ongoingTours ?></div>
                         </div>
                     </div>
                 </div>
@@ -59,7 +59,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div>
                             <div class="kpi-label">Khách hàng mới</div>
-                            <div class="kpi-value">15</div>
+                            <div class="kpi-value"><?= $newCustomers ?></div>
                         </div>
                     </div>
                 </div>

@@ -66,4 +66,16 @@ class Tour extends BaseModel
     {
         return $this->delete('id = :id', ['id' => $id]);
     }
+
+    public function getOngoingTours()
+    {
+        $today = date('Y-m-d');
+        $sql = "SELECT COUNT(DISTINCT t.id) as count FROM {$this->table} t
+                INNER JOIN tour_versions tv ON t.id = tv.tour_id
+                WHERE tv.start_date <= :today AND tv.end_date >= :today";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['today' => $today]);
+        $data = $stmt->fetch();
+        return $data['count'] ?? 0;
+    }
 }

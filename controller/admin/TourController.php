@@ -14,12 +14,12 @@ class TourController
     public function index()
     {
         $tours = $this->model->getAll();
-        require_once PATH_VIEW_ADMIN . 'tours/index.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours/index.php';
     }
 
     public function create()
     {
-        require_once 'views/admin/tours/create.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours/create.php';
     }
 
     public function store()
@@ -79,7 +79,7 @@ class TourController
             return;
         }
 
-        require_once PATH_VIEW_ADMIN . 'tours/edit.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
 
     public function update()
