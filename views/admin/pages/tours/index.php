@@ -1,17 +1,81 @@
-<?php require_once 'views/admin/default/header.php'; ?>
+<main class="wrapper">
+    <div class="main-content">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h2">Quản lý Tour</h1>
+                <p class="text-muted">Toàn bộ các tour đang được quản lý trên hệ thống.</p>
+            </div>
+            <a href="/Duan1/admin/tours/create" class="btn btn-primary"><i class="fas fa-plus"></i> Tạo tour mới</a>
+        </div>
 
-<div class="content-wrapper">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Quản lý Tour</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="?action=/">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Tours</li>
-                    </ol>
+        <div class="card">
+            <div class="card-header">
+                Danh sách Tour
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tên Tour</th>
+                                <th>Loại Tour</th>
+                                <th>Ngày tạo</th>
+                                <th>Giá</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Khám phá Đà Nẵng - Hội An</td>
+                                <td>Trong nước</td>
+                                <td>01/10/2025</td>
+                                <td>5,000,000 ₫</td>
+                                <td><span class="badge bg-success">Đang mở bán</span></td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
+                                    <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                                    <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Du lịch Mộc Châu - Mùa hoa cải</td>
+                                <td>Trong nước</td>
+                                <td>15/09/2025</td>
+                                <td>2,800,000 ₫</td>
+                                <td><span class="badge bg-success">Đang mở bán</span></td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
+                                    <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                                    <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td>Chinh phục Fansipan</td>
+                                <td>Trong nước</td>
+                                <td>05/09/2025</td>
+                                <td>3,500,000 ₫</td>
+                                <td><span class="badge bg-secondary">Đã đóng</span></td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
+                                    <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                                    <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Khám phá Châu Âu 5 nước</td>
+                                <td>Quốc tế</td>
+                                <td>20/08/2025</td>
+                                <td>55,000,000 ₫</td>
+                                <td><span class="badge bg-success">Đang mở bán</span></td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
+                                    <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                                    <a href="#" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -2,6 +2,9 @@
 
 session_start();
 
+require_once './configs/env.php';
+require_once './configs/helper.php';
+
 // Development: show all errors so white pages reveal underlying PHP errors.
 // Remove or disable in production.
 ini_set('display_errors', '1');
@@ -25,9 +28,6 @@ spl_autoload_register(function ($class) {
         require_once $fileControllerAdmin;
     }
 });
-
-require_once './configs/env.php';
-require_once './configs/helper.php';
 
 // Điều hướng
 $mode = $_GET['mode'] ?? 'client';
