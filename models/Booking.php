@@ -1,5 +1,5 @@
 <?php
-require_once 'models/BaseModel.php';
+// require_once 'models/BaseModel.php';
 
 class Booking extends BaseModel
 {

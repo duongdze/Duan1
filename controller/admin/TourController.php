@@ -42,7 +42,7 @@ class TourController
 
         if (empty($name) || empty($type)) {
             $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
-            header('Location: ?action=tours/create');
+            header('Location:' . BASE_URL_ADMIN . '&action=tours/create');
             return;
         }
 
@@ -82,13 +82,13 @@ class TourController
 
             if ($tourId) {
                 $_SESSION['success'] = 'Thêm tour thành công!';
-                header('Location: ?action=tours');
+                header('Location:' . BASE_URL_ADMIN . '&action=tours');
             } else {
                 throw new Exception('Không thể thêm tour');
             }
         } catch (Exception $e) {
             $_SESSION['error'] = 'Có lỗi xảy ra: ' . $e->getMessage();
-            header('Location: ?action=tours/create');
+            header('Location:' . BASE_URL_ADMIN . '&action=tours/create');
         }
     }
 
@@ -96,14 +96,14 @@ class TourController
     {
         $id = $_GET['id'] ?? null;
         if (!$id) {
-            header('Location:' . BASE_URL_ADMIN . '?action=tours');
+            header('Location:' . BASE_URL_ADMIN . '&action=tours');
             return;
         }
 
         $tour = $this->model->findById($id);
         if (!$tour) {
             $_SESSION['error'] = 'Không tìm thấy tour!';
-            header('Location: ?action=tours');
+            header('Location:' . BASE_URL_ADMIN . '&action=tours');
             return;
         }
 
@@ -122,7 +122,7 @@ class TourController
 
         $id = $_POST['id'] ?? null;
         if (!$id) {
-            header('Location: ?action=tours');
+            header('Location:' . BASE_URL_ADMIN . '&action=tours');
             return;
         }
 
@@ -136,7 +136,7 @@ class TourController
 
         if (empty($name) || empty($type)) {
             $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
-            header('Location: ?action=tours/edit&id=' . $id);
+            header('Location:' . BASE_URL_ADMIN . '&action=tours/edit&id=' . $id);
             return;
         }
 
@@ -177,13 +177,13 @@ class TourController
 
             if ($result) {
                 $_SESSION['success'] = 'Cập nhật tour thành công!';
-                header('Location: ?action=tours');
+                header('Location:' . BASE_URL_ADMIN . '&action=tours');
             } else {
                 throw new Exception('Không thể cập nhật tour');
             }
         } catch (Exception $e) {
             $_SESSION['error'] = 'Có lỗi xảy ra: ' . $e->getMessage();
-            header('Location: ?action=tours/edit&id=' . $id);
+            header('Location:' . BASE_URL_ADMIN . '&action=tours/edit&id=' . $id);
         }
     }
 
@@ -191,7 +191,7 @@ class TourController
     {
         $id = $_GET['id'] ?? null;
         if (!$id) {
-            header('Location: ?action=tours');
+            header('Location:' . BASE_URL_ADMIN . '&action=tours');
             return;
         }
 
@@ -206,7 +206,7 @@ class TourController
             $_SESSION['error'] = 'Có lỗi xảy ra: ' . $e->getMessage();
         }
 
-        header('Location: ?action=tours');
+        header('Location:' . BASE_URL_ADMIN . '&action=tours');
     }
     public function detail() {
         $id = $_GET['id'] ?? null;
