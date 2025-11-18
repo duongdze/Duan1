@@ -21,7 +21,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
-        <form method="POST" action="?action=tours/store" enctype="multipart/form-data">
+        <form method="POST" action="?action=tours/store" enctype="multipart/form-data" class="tour-form">
             <div class="row g-3">
                 <!-- Left Column -->
                 <div class="col-lg-6">
@@ -41,7 +41,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             <div class="mb-3">
                                 <label for="type" class="form-label fw-500">Danh mục tour</label>
                                 <select class="form-select" id="type" name="type" required>
-                                    <option value="">Trong nước</option>
+                                    <option value="">Chọn danh mục tour</option>
                                     <option value="trong_nuoc">Tour trong nước</option>
                                     <option value="quoc_te">Tour quốc tế</option>
                                     <option value="theo_yeu_cau">Tour theo yêu cầu</option>
@@ -62,13 +62,14 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                             <div class="mb-3">
                                 <label for="base_price" class="form-label fw-500">Giá cơ bản</label>
-                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="1000000" required>
+                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="1.500.000" min="0" step="50000" required>
+                                <small class="text-muted">Đơn giá mặc định áp dụng khi không có gói riêng.</small>
                             </div>
                         </div>
                     </div>
 
                     <!-- Thông tin khác -->
-                    <div class="card">
+                    <div class="card mb-3">
                         <div class="card-header bg-light">
                             <h5 class="mb-0">
                                 <i class="fas fa-align-left"></i> Mô tả
@@ -78,6 +79,41 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             <label for="description" class="form-label fw-500">Nhập mô tả</label>
                             <input type="hidden" id="input-description" name="description">
                             <div id="editor-description" class="quill-editor"></div>
+                        </div>
+                    </div>
+
+                    <!-- Gói giá & dịch vụ -->
+                    <div class="card">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tags"></i> Giá theo đối tượng / gói dịch vụ
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="add-pricing-tier">
+                                <i class="fas fa-plus"></i> Thêm gói
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Ghi rõ tên nhóm khách (VD: Người lớn, Trẻ em, Dịp lễ), giá áp dụng và ghi chú kèm dịch vụ.</p>
+                            <div id="pricing-tier-list" class="d-flex flex-column gap-3" data-initial="[]"></div>
+                            <template id="pricing-tier-template">
+                                <div class="pricing-tier-item border rounded p-3 bg-light-subtle position-relative">
+                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-pricing-tier" aria-label="Xóa"></button>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Nhóm khách / Gói</label>
+                                            <input type="text" class="form-control" name="pricing_label[]" data-field="label" placeholder="Người lớn" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Giá áp dụng</label>
+                                            <input type="number" class="form-control" name="pricing_price[]" data-field="price" placeholder="1500000" min="0" required>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-500">Ghi chú dịch vụ</label>
+                                            <textarea class="form-control" rows="2" name="pricing_description[]" data-field="description" placeholder="Bao gồm ăn sáng, xe đưa đón sân bay"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -92,58 +128,114 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             </h5>
                         </div>
                         <div class="card-body">
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label fw-500">Số ngày</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">10</span>
-                                        <span class="input-group-text">ngày</span>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label fw-500">Số đêm</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">11</span>
-                                        <span class="input-group-text">đêm</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label fw-500">Ngày khởi hành</label>
-                                    <input type="date" class="form-control" placeholder="10 ngày">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label fw-500">Ngày kết thúc</label>
-                                    <input type="date" class="form-control" placeholder="11 đêm">
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-500">Lịch trình chi tiết</label>
-                                <textarea class="form-control" rows="6" placeholder="Hoạt động"></textarea>
-                            </div>
-
-                            <button type="button" class="btn btn-outline-primary btn-sm w-100">
-                                <i class="fas fa-list"></i> Thêm lịch trình
+                            <p class="text-muted small">Thêm từng ngày/hoạt động cụ thể để khách dễ theo dõi.</p>
+                            <div id="itinerary-list" class="d-flex flex-column gap-3" data-initial="[]"></div>
+                            <button type="button" class="btn btn-outline-primary w-100" id="add-itinerary-item">
+                                <i class="fas fa-plus"></i> Thêm ngày / hoạt động
                             </button>
+                            <template id="itinerary-item-template">
+                                <div class="itinerary-item border rounded p-3 position-relative bg-light-subtle">
+                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-itinerary-item" aria-label="Xóa"></button>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-500">Ngày / Chặng</label>
+                                            <input type="text" name="itinerary_day[]" data-field="day" class="form-control" placeholder="Ngày 1" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-500">Giờ bắt đầu</label>
+                                            <input type="time" name="itinerary_time_start[]" data-field="time_start" class="form-control">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-500">Giờ kết thúc</label>
+                                            <input type="time" name="itinerary_time_end[]" data-field="time_end" class="form-control">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-500">Tiêu đề hoạt động</label>
+                                            <input type="text" name="itinerary_title[]" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội" required>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-500">Chi tiết</label>
+                                            <textarea name="itinerary_description[]" data-field="description" class="form-control" rows="3" placeholder="Tham quan, ăn uống, trải nghiệm..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
                     <!-- Hình ảnh -->
-                    <div class="card">
+                    <div class="card mb-3">
                         <div class="card-header bg-light">
                             <h5 class="mb-0">
                                 <i class="fas fa-image"></i> Hình ảnh
                             </h5>
                         </div>
                         <div class="card-body text-center">
-                            <div class="mb-3 p-4 bg-light rounded border border-dashed" id="image-preview">
-                                <i class="fas fa-image fa-3x text-muted"></i>
-                                <p class="text-muted small mt-2">Chưa có hình ảnh</p>
+                            <div class="mb-3">
+                                <label class="form-label fw-500 d-flex align-items-center justify-content-between">
+                                    Ảnh đại diện
+                                    <small class="text-muted">Tỷ lệ khuyến nghị 4:3</small>
+                                </label>
+                                <div class="p-4 bg-light rounded border border-dashed" id="image-preview">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                    <p class="text-muted small mt-2 mb-0">Chưa có hình ảnh</p>
+                                </div>
+                                <input type="file" class="form-control mt-2" id="image" name="image" accept="image/*">
                             </div>
-                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+
+                            <div>
+                                <label class="form-label fw-500">Bộ sưu tập hình ảnh</label>
+                                <div class="p-3 border rounded bg-light mb-2">
+                                    <input type="file" class="form-control" id="gallery" name="gallery_images[]" accept="image/*" multiple>
+                                    <small class="text-muted d-block mt-2">Tối đa 10 ảnh, hỗ trợ jpg, png, webp.</small>
+                                </div>
+                                <div id="gallery-preview" class="row g-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Đối tác cung ứng -->
+                    <div class="card">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-handshake"></i> Nhà cung cấp dịch vụ kèm theo
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="add-partner-item">
+                                <i class="fas fa-plus"></i> Thêm đối tác
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Liệt kê các dịch vụ: Khách sạn, xe, nhà hàng, vé tham quan,... để đội vận hành dễ theo dõi.</p>
+                            <div id="partner-list" class="d-flex flex-column gap-3" data-initial="[]"></div>
+                            <template id="partner-item-template">
+                                <div class="partner-item border rounded p-3 bg-light-subtle position-relative">
+                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-partner-item" aria-label="Xóa"></button>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-500">Loại dịch vụ</label>
+                                            <select class="form-select" name="partner_service[]" data-field="service_type">
+                                                <option value="hotel">Khách sạn</option>
+                                                <option value="transport">Vận chuyển</option>
+                                                <option value="restaurant">Nhà hàng</option>
+                                                <option value="ticket">Vé tham quan</option>
+                                                <option value="other">Khác</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-500">Đối tác</label>
+                                            <input type="text" class="form-control" name="partner_name[]" data-field="name" placeholder="The Cliff Resort" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-500">Liên hệ</label>
+                                            <input type="text" class="form-control" name="partner_contact[]" data-field="contact" placeholder="Mr A - 098xxx">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-500">Ghi chú</label>
+                                            <textarea class="form-control" rows="2" name="partner_notes[]" data-field="notes" placeholder="Yêu cầu đặt trước 3 ngày..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -174,89 +266,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             </div>
         </form>
 </main>
-
-<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Quill editors
-        var quillDesc = new Quill('#editor-description', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline', 'strike'],
-                    ['blockquote', 'code-block'],
-                    [{
-                        'list': 'ordered'
-                    }, {
-                        'list': 'bullet'
-                    }],
-                    [{
-                        'size': ['small', false, 'large', 'huge']
-                    }],
-                    [{
-                        'header': [1, 2, 3, 4, 5, 6, false]
-                    }],
-                    ['link'],
-                    ['clean']
-                ]
-            }
-        });
-
-        var quillPolicy = new Quill('#editor-policy', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline', 'strike'],
-                    ['blockquote', 'code-block'],
-                    [{
-                        'list': 'ordered'
-                    }, {
-                        'list': 'bullet'
-                    }],
-                    [{
-                        'size': ['small', false, 'large', 'huge']
-                    }],
-                    [{
-                        'header': [1, 2, 3, 4, 5, 6, false]
-                    }],
-                    ['link'],
-                    ['clean']
-                ]
-            }
-        });
-
-        var form = document.querySelector('form[action="?action=tours/store"]');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                document.getElementById('input-description').value = quillDesc.root.innerHTML;
-                document.getElementById('input-policy').value = quillPolicy.root.innerHTML;
-            });
-        }
-
-        // Image preview
-        var imageInput = document.getElementById('image');
-        if (imageInput) {
-            imageInput.addEventListener('change', function(e) {
-                var file = e.target.files[0];
-                if (file) {
-                    var reader = new FileReader();
-                    reader.onload = function(event) {
-                        var preview = document.createElement('img');
-                        preview.src = event.target.result;
-                        preview.className = 'form-image-preview';
-
-                        var previewContainer = document.getElementById('image-preview');
-                        if (previewContainer) {
-                            previewContainer.innerHTML = '';
-                            previewContainer.appendChild(preview);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-    });
-</script>
 
 <?php
 include_once PATH_VIEW_ADMIN . 'default/footer.php';
