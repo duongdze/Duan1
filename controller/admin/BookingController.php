@@ -11,7 +11,7 @@ class BookingController
     public function index()
     {
         $bookings = $this->model->select();
-        require_once 'views/admin/bookings/index.php';
+        require_once PATH_VIEW_ADMIN . 'pages/bookings/index.php';
     }
 
     public function create()

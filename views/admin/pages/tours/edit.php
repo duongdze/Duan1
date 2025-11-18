@@ -21,7 +21,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
-        <form method="POST" action="?action=tours/update" enctype="multipart/form-data">
+        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=tours/update" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?= htmlspecialchars($tour['id'] ?? '') ?>">
 
             <div class="row g-3">
