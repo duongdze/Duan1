@@ -9,7 +9,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 <h1 class="h2">Quản lý Tour</h1>
                 <p class="text-muted">Toàn bộ các tour đang được quản lý trên hệ thống.</p>
             </div>
-            <a href="/Duan1/admin/tours/create" class="btn btn-primary"><i class="fas fa-plus"></i> Tạo tour mới</a>
+            <a href="<?= BASE_URL_ADMIN . '&action=tours/create'?>" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm Tour Mới</a>
         </div>
 
         <div class="card">

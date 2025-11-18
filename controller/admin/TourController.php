@@ -208,4 +208,18 @@ class TourController
 
         header('Location: ?action=tours');
     }
+    public function detail() {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            header('Location: ?action=tours');
+            return;
+        }
+        $tour = $this->model->findById($id);
+        if(!$tour) {
+            $_SESSION['error'] = 'Không tìm thấy tour!';
+            header('Location: ?action=tours');
+            return;
+        }
+        require_once PATH_VIEW_ADMIN .'pages/tours/detail.php';
+    }
 }
