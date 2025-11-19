@@ -1,7 +1,8 @@
 <?php
 require_once 'models/BaseModel.php';
 
-class Guide extends BaseModel {
+class Guide extends BaseModel
+{
     protected $table = 'guides';
     protected $columns = [
         'id',
