@@ -13,11 +13,19 @@ document.addEventListener("DOMContentLoaded", function () {
           "Tháng 5",
           "Tháng 6",
           "Tháng 7",
+          "Tháng 8",
+          "Tháng 9",
+          "Tháng 10",
+          "Tháng 11",
+          "Tháng 12",
         ],
         datasets: [
           {
             label: "Doanh thu",
-            data: [65000, 59000, 80000, 81000, 56000, 55000, 90000],
+            data: [
+              65000, 59000, 80000, 81000, 56000, 55000, 90000, 90000, 90000,
+              90000, 90000, 90000,
+            ],
             fill: false,
             borderColor: "rgb(75, 192, 192)",
             tension: 0.1,

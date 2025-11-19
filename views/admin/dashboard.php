@@ -71,7 +71,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <div class="col-lg-7 mb-4">
                 <div class="card h-100">
                     <div class="card-header">
-                        Biểu đồ doanh thu (7 tháng gần nhất)
+                        Biểu đồ doanh thu (12 tháng gần nhất)
                     </div>
                     <div class="card-body" style="height: 350px;">
                         <canvas id="revenueChart"></canvas>

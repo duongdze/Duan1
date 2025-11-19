@@ -27,7 +27,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 <h1 class="h2">Quản lý Tour</h1>
                 <p class="text-muted">Toàn bộ các tour đang được quản lý trên hệ thống.</p>
             </div>
-            <a href="<?= BASE_URL_ADMIN . '&action=tours/create'?>" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm Tour Mới</a>
+            <a href="<?= BASE_URL_ADMIN . '&action=tours/create' ?>" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm Tour Mới</a>
         </div>
 
         <div class="card mb-3">
@@ -184,14 +184,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <?php foreach ($tours as $tour) :
                                     $supplierName = $tour['supplier_name'] ?? '';
                                     $createdTimestamp = strtotime($tour['created_at']);
-                                    ?>
+                                ?>
                                     <tr
                                         data-sort-name="<?= htmlspecialchars($normalizeValue($tour['name'] ?? '')) ?>"
                                         data-sort-type="<?= htmlspecialchars($normalizeValue($tour['type'] ?? '')) ?>"
                                         data-sort-supplier="<?= htmlspecialchars($normalizeValue($supplierName ?? '')) ?>"
                                         data-sort-created_at="<?= $createdTimestamp ?>"
-                                        data-sort-base_price="<?= (float)$tour['base_price'] ?>"
-                                    >
+                                        data-sort-base_price="<?= (float)$tour['base_price'] ?>">
                                         <td class="fw-500" data-col="name"><?= htmlspecialchars($tour['name']) ?></td>
                                         <td>
                                             <span class="badge bg-light text-dark border">
@@ -200,7 +199,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </td>
                                         <td data-col="supplier"><?= htmlspecialchars($supplierName ?: '---') ?></td>
                                         <td data-col="created_at"><?= date('d/m/Y', $createdTimestamp) ?></td>
-                                        <td data-col="base_price"><?= number_format((float)$tour['base_price'], 0, ',', '.') ?> đ</td>
+                                        <td data-col="base_price"><?= number_format((float)$tour['base_price'], 0, ',', '.') ?> VNĐ</td>
                                         <td class="d-flex gap-1">
                                             <a href="<?= BASE_URL_ADMIN . '&action=tours/detail&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
                                             <a href="<?= BASE_URL_ADMIN . '&action=tours/edit&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
@@ -220,27 +219,29 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                 <?php if (($pagination['total_pages'] ?? 1) > 1): ?>
                     <?php
-                        $filterParams = array_filter([
-                            'keyword' => $filters['keyword'] ?? '',
-                            'type' => $filters['type'] ?? '',
-                            'supplier_id' => $filters['supplier_id'] ?? '',
-                            'date_from' => $filters['date_from'] ?? '',
-                            'date_to' => $filters['date_to'] ?? '',
-                            'per_page' => $pagination['per_page'] ?? null,
-                        ], function($value) { return $value !== null && $value !== '' && $value !== 0; });
+                    $filterParams = array_filter([
+                        'keyword' => $filters['keyword'] ?? '',
+                        'type' => $filters['type'] ?? '',
+                        'supplier_id' => $filters['supplier_id'] ?? '',
+                        'date_from' => $filters['date_from'] ?? '',
+                        'date_to' => $filters['date_to'] ?? '',
+                        'per_page' => $pagination['per_page'] ?? null,
+                    ], function ($value) {
+                        return $value !== null && $value !== '' && $value !== 0;
+                    });
 
-                        $queryStringBase = '';
-                        if (!empty($filterParams)) {
-                            $queryStringBase = '&' . http_build_query($filterParams);
-                        }
+                    $queryStringBase = '';
+                    if (!empty($filterParams)) {
+                        $queryStringBase = '&' . http_build_query($filterParams);
+                    }
                     ?>
                     <nav class="mt-3">
                         <ul class="pagination justify-content-end">
                             <?php
-                                $currentPage = $pagination['page'];
-                                $totalPages = $pagination['total_pages'];
-                                $prevPage = max(1, $currentPage - 1);
-                                $nextPage = min($totalPages, $currentPage + 1);
+                            $currentPage = $pagination['page'];
+                            $totalPages = $pagination['total_pages'];
+                            $prevPage = max(1, $currentPage - 1);
+                            $nextPage = min($totalPages, $currentPage + 1);
                             ?>
                             <li class="page-item <?= $currentPage <= 1 ? 'disabled' : '' ?>">
                                 <a class="page-link" href="<?= BASE_URL_ADMIN . '&action=tours&page=' . $prevPage . $queryStringBase ?>">

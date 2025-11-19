@@ -10,7 +10,7 @@ class BookingController
 
     public function index()
     {
-        $bookings = $this->model->select();
+        $bookings = $this->model->getAll();
         require_once PATH_VIEW_ADMIN . 'pages/bookings/index.php';
     }
 
