@@ -330,7 +330,7 @@ body {
 }
 
 .table-responsive {
-  max-height: 300px;
+  max-height: auto;
 }
 
 .table .badge {
