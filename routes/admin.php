@@ -55,7 +55,6 @@ match ($action) {
     'suppliers'            => (new SupplierController)->index(),
     'suppliers/create'     => (new SupplierController)->create(),
     'suppliers/store'      => (new SupplierController)->store(),
-
     // Reports
     'reports/financial'    => (new ReportController)->financial(),
     'reports/bookings'     => (new ReportController)->bookings(),
