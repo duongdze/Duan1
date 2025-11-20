@@ -257,7 +257,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             </div>
         </div>
     </div>
-    <script src="<?= BASE_ASSETS_ADMIN ?>js/tours-index.js"></script>
+    <script src="<?= BASE_ASSETS_ADMIN ?>js/tours.js"></script>
 </main>
 <?php
 include_once PATH_VIEW_ADMIN . 'default/footer.php';
