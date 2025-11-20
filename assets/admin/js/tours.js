@@ -1,91 +1,115 @@
 document.addEventListener("DOMContentLoaded", function () {
   const editors = {};
 
-  // Initialize CKEditor 5 instances
-  async function initCKEditor(selector, inputId) {
-    const element = document.querySelector(selector);
-    if (!element) {
-      console.warn("Element not found:", selector);
-      return null;
-    }
+  // Debug: Check if CKEDITOR loaded
+  console.log("DOMContentLoaded fired");
+  console.log(
+    "CKEDITOR available:",
+    typeof CKEDITOR !== "undefined" ? CKEDITOR : "NOT FOUND"
+  );
 
-    try {
-      const editor = await ClassicEditor.create(element, {
-        toolbar: {
-          items: [
-            "undo",
-            "redo",
-            "|",
-            "heading",
-            "|",
-            "bold",
-            "italic",
-            "underline",
-            "strikethrough",
-            "|",
-            "bulletedList",
-            "numberedList",
-            "|",
-            "outdent",
-            "indent",
-            "|",
-            "link",
-            "blockQuote",
-            "codeBlock",
-            "|",
-            "insertTable",
-            "mediaEmbed",
-            "|",
-            "fontColor",
-            "fontBackgroundColor",
-            "|",
-            "removeFormat",
-          ],
-        },
-        table: {
-          contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"],
-        },
-        language: "en",
-      });
-
-      const hiddenInput = document.getElementById(inputId);
-      if (hiddenInput && hiddenInput.value) {
-        editor.setData(hiddenInput.value);
+  // Wait for CKEDITOR to be loaded from CDN
+  function initCKEditor(selector, inputId) {
+    return new Promise((resolve, reject) => {
+      const element = document.querySelector(selector);
+      if (!element) {
+        console.warn("Element not found:", selector);
+        resolve(null);
+        return;
       }
 
-      editors[inputId] = {
-        instance: editor,
-        sync: function () {
-          if (hiddenInput) {
-            hiddenInput.value = editor.getData();
-          }
-        },
-      };
+      // Kiểm tra xem CKEDITOR có được load không
+      if (typeof CKEDITOR === "undefined") {
+        console.error("CKEDITOR not loaded from CDN");
+        reject(new Error("CKEDITOR not loaded"));
+        return;
+      }
 
-      return editors[inputId];
-    } catch (error) {
-      console.error("CKEditor initialization error:", error);
-      return null;
-    }
+      console.log("Initializing CKEditor for:", selector);
+
+      try {
+        // Remove # from selector để CKEDITOR.replace có thể nhận ID
+        const elementId = selector.replace("#", "");
+
+        // Thay thế element bằng CKEditor instance
+        CKEDITOR.replace(elementId, {
+          toolbar: [
+            {
+              name: "basicstyles",
+              items: ["Bold", "Italic", "Underline", "Strike", "RemoveFormat"],
+            },
+            {
+              name: "paragraph",
+              items: [
+                "NumberedList",
+                "BulletedList",
+                "-",
+                "Outdent",
+                "Indent",
+                "-",
+                "Blockquote",
+                "CreateDiv",
+              ],
+            },
+            { name: "links", items: ["Link", "Unlink"] },
+            { name: "insert", items: ["Image", "Table", "HorizontalRule"] },
+            { name: "styles", items: ["Styles", "Format", "Font", "FontSize"] },
+            { name: "colors", items: ["TextColor", "BGColor"] },
+          ],
+          height: "300px",
+          contentsCss:
+            "body { font-family: Arial, sans-serif; font-size: 14px; }",
+        });
+
+        // Lưu reference tới editor
+        CKEDITOR.instances[elementId].on("instanceReady", function (evt) {
+          const editor = evt.editor;
+          const hiddenInput = document.getElementById(inputId);
+
+          if (hiddenInput && hiddenInput.value) {
+            editor.setData(hiddenInput.value);
+          }
+
+          editors[inputId] = {
+            instance: editor,
+            sync: function () {
+              if (hiddenInput) {
+                hiddenInput.value = editor.getData();
+              }
+            },
+          };
+
+          resolve(editors[inputId]);
+        });
+      } catch (error) {
+        console.error("CKEditor initialization error:", error);
+        reject(error);
+      }
+    });
   }
 
   // Initialize both editors
   Promise.all([
     initCKEditor("#editor-description", "input-description"),
     initCKEditor("#editor-policy", "input-policy"),
-  ]).then(() => {
-    // After editors are initialized, attach form submit handler
-    const tourForms = document.querySelectorAll("form.tour-form");
-    tourForms.forEach(function (form) {
-      form.addEventListener("submit", function () {
-        Object.values(editors).forEach((editor) => {
-          if (editor) {
-            editor.sync();
-          }
+  ])
+    .then((results) => {
+      console.log("CKEditor instances initialized:", results);
+      // After editors are initialized, attach form submit handler
+      const tourForms = document.querySelectorAll("form.tour-form");
+      tourForms.forEach(function (form) {
+        form.addEventListener("submit", function (e) {
+          Object.values(editors).forEach((editor) => {
+            if (editor) {
+              editor.sync();
+            }
+          });
         });
       });
+    })
+    .catch((error) => {
+      console.error("Error initializing CKEditor:", error);
     });
-  });
 
   function setupDynamicSection(config) {
     var listEl = document.getElementById(config.listId);

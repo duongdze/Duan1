@@ -20,8 +20,21 @@ if (empty($partnerServices)) {
 }
 ?>
 
-<!-- CKEditor 5 -->
-<script src="https://cdn.ckeditor.com/ckeditor5/47.2.0/ckeditor5.umd.js"></script>
+<style>
+    .cke {
+        width: 100% !important;
+    }
+
+    .cke_top {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .cke_bottom {
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+</style>
 <main class="wrapper">
     <div class="main-content">
         <div class="page-header">
@@ -386,8 +399,6 @@ if (empty($partnerServices)) {
         </form>
     </div>
 </main>
-
-<script src="<?= BASE_ASSETS_ADMIN ?>js/tours.js"></script>
 
 <?php
 include_once PATH_VIEW_ADMIN . 'default/footer.php';
