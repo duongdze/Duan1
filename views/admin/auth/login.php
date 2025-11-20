@@ -14,30 +14,30 @@ $error = '';
 </head>
 
 <body>
-    <div class="body-login">
-        <div class="login-content">
+    <div class="login-wrapper">
+        <div class="login-container">
             <!-- Nếu nhập sai sẽ hiện thông báo error -->
             <?php if (!empty($error)) : ?>
-                <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+                <div class="login-alert alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
-            <form action="<?= BASE_URL_ADMIN ?>&action=loginProcess" method="POST">
-                <h2>Login</h2>
-                <div class="input-box">
-                    <input type="email" id="email" name="email" placeholder="Email" required />
-                    <i class="ri-user-fill"></i>
+            <form action="<?= BASE_URL_ADMIN ?>&action=loginProcess" method="POST" class="login-form">
+                <h2 class="login-title">Login</h2>
+                <div class="login-input-group">
+                    <input type="email" id="email" name="email" placeholder="Email" required class="login-input" />
+                    <i class="ri-user-fill login-input__icon"></i>
                 </div>
-                <div class="input-box">
-                    <input type="password" id="password" name="password" placeholder="Password" required autocomplete="new-password" />
-                    <i class="ri-eye-off-fill toggle-password" id="togglePassword"></i>
+                <div class="login-input-group">
+                    <input type="password" id="password" name="password" placeholder="Password" required autocomplete="new-password" class="login-input" />
+                    <i class="ri-eye-off-fill login-input__icon login-input__toggle-password" id="togglePassword"></i>
                 </div>
-                <div class="remember">
-                    <label><input type="checkbox" />Remember me/</label>
-                    <a href="#">Forgot Password?</a>
+                <div class="login-remember">
+                    <label class="login-remember__label"><input type="checkbox" class="login-remember__checkbox" />Remember me/</label>
+                    <a href="#" class="login-remember__link">Forgot Password?</a>
                 </div>
-                <button type="submit" class="btn-login">Login</button>
-                <div class="button">
-                    <a href="#"> <i class="ri-google-fill"></i> Google </a>--<a href="#">
-                        <i class="ri-facebook-fill"></i> Facebook
+                <button type="submit" class="login-submit">Login</button>
+                <div class="login-social">
+                    <a href="#" class="login-social__link"> <i class="ri-google-fill login-social__icon"></i> Google </a>--<a href="#" class="login-social__link">
+                        <i class="ri-facebook-fill login-social__icon"></i> Facebook
                     </a>
                 </div>
             </form>

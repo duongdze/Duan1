@@ -15,6 +15,25 @@ class Booking extends BaseModel
         'notes'
     ];
 
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    public function getAll()
+    {
+        $sql = "SELECT 
+                    B.*, 
+                    T.name AS tour_name, 
+                    BC.name AS customer_name
+                FROM bookings AS B 
+                LEFT JOIN tours AS T ON B.tour_id = T.id
+                LEFT JOIN booking_customers AS BC ON B.customer_id = BC.id";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getMonthlyRevenue($month, $year)
     {
         $sql = "SELECT SUM(total_price) as revenue FROM {$this->table} WHERE MONTH(booking_date) = :month AND YEAR(booking_date) = :year AND status = 'completed'";
