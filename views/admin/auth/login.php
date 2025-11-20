@@ -9,7 +9,7 @@ $error = '';
     <title>Login Form</title>
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css'>
     <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&amp;display=swap'>
-    <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/style.css">
+    <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/login.css">
 
 </head>
 
