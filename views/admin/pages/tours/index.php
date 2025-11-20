@@ -44,11 +44,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div class="col-md-2">
                             <label class="form-label fw-500">Loại tour</label>
-                            <select class="form-select" name="type">
+                            <select class="form-select" name="category_id">
                                 <option value="">Tất cả</option>
-                                <option value="trong_nuoc" <?= ($filters['type'] ?? '') === 'trong_nuoc' ? 'selected' : '' ?>>Trong nước</option>
-                                <option value="quoc_te" <?= ($filters['type'] ?? '') === 'quoc_te' ? 'selected' : '' ?>>Quốc tế</option>
-                                <option value="theo_yeu_cau" <?= ($filters['type'] ?? '') === 'theo_yeu_cau' ? 'selected' : '' ?>>Theo yêu cầu</option>
+                                <?php foreach (($categories ?? []) as $category) : ?>
+                                    <option value="<?= htmlspecialchars($category['id']) ?>" <?= (($filters['category_id'] ?? '') == $category['id']) ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($category['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -77,7 +79,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <option value="created_at" <?= ($filters['sort_by'] ?? 'created_at') === 'created_at' ? 'selected' : '' ?>>Ngày tạo</option>
                                 <option value="name" <?= ($filters['sort_by'] ?? '') === 'name' ? 'selected' : '' ?>>Tên Tour</option>
                                 <option value="base_price" <?= ($filters['sort_by'] ?? '') === 'base_price' ? 'selected' : '' ?>>Giá cơ bản</option>
-                                <option value="type" <?= ($filters['sort_by'] ?? '') === 'type' ? 'selected' : '' ?>>Loại Tour</option>
+                                <option value="category_name" <?= ($filters['sort_by'] ?? '') === 'category_name' ? 'selected' : '' ?>>Loại Tour</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -141,7 +143,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                             <td class="fw-500" data-col="name"><?= htmlspecialchars($tour['name']) ?></td>
                                             <td>
                                                 <span class="badge bg-light text-dark border">
-                                                    <span data-col="type"><?= htmlspecialchars($tour['type']) ?></span>
+                                                    <span data-col="type"><?= htmlspecialchars($tour['category_name']) ?></span>
                                                 </span>
                                             </td>
                                             <td data-col="supplier"><?= htmlspecialchars($supplierName ?: '---') ?></td>
@@ -159,7 +161,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                     <?php else : ?>
                         <div class="text-center py-5">
-                            <img src="https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/airbnb.svg" alt="" width="48">
                             <p class="mt-3 mb-0 text-muted">Không tìm thấy tour phù hợp với bộ lọc hiện tại.</p>
                         </div>
                     <?php endif; ?>
@@ -172,7 +173,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                             'keyword' => $filters['keyword'] ?? '',
 
-                            'type' => $filters['type'] ?? '',
+                            'category_id' => $filters['category_id'] ?? '',
 
                             'supplier_id' => $filters['supplier_id'] ?? '',
 

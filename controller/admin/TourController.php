@@ -1,4 +1,5 @@
 <?php
+require_once 'models/TourCategory.php';
 // require_once 'models/Tour.php';
 // require_once 'models/Supplier.php';
 
@@ -15,7 +16,7 @@ class TourController
     {
         $filters = [
             'keyword' => trim($_GET['keyword'] ?? ''),
-            'type' => $_GET['type'] ?? '',
+            'category_id' => $_GET['category_id'] ?? '',
             'supplier_id' => $_GET['supplier_id'] ?? '',
             'date_from' => $_GET['date_from'] ?? '',
             'date_to' => $_GET['date_to'] ?? '',
@@ -25,7 +26,7 @@ class TourController
 
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
         $perPage = isset($_GET['per_page']) ? max(5, min(50, (int)$_GET['per_page'])) : 10;
-        
+
         $sortBy = $filters['sort_by'];
         $sortOrder = $filters['sort_dir'];
 
@@ -41,7 +42,11 @@ class TourController
         $supplierModel = new Supplier();
         $suppliers = $supplierModel->select();
 
+        $categoryModel = new TourCategory();
+        $categories = $categoryModel->select();
+
         $filters['supplier_id'] = $filters['supplier_id'] !== '' ? (int)$filters['supplier_id'] : '';
+        $filters['category_id'] = $filters['category_id'] !== '' ? (int)$filters['category_id'] : '';
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/index.php';
     }
@@ -51,6 +56,10 @@ class TourController
         // Load suppliers for supplier dropdown
         $supplierModel = new Supplier();
         $suppliers = $supplierModel->select();
+
+        // Load categories for category dropdown
+        $categoryModel = new TourCategory();
+        $categories = $categoryModel->select();
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/create.php';
     }
@@ -63,13 +72,13 @@ class TourController
 
         // Validate input
         $name = $_POST['name'] ?? '';
-        $type = $_POST['type'] ?? '';
+        $category_id = $_POST['category_id'] ?? '';
         $description = $_POST['description'] ?? '';
         $base_price = $_POST['base_price'] ?? 0;
         $policy = $_POST['policy'] ?? '';
         $supplier_id = !empty($_POST['supplier_id']) ? intval($_POST['supplier_id']) : null;
 
-        if (empty($name) || empty($type)) {
+        if (empty($name) || empty($category_id)) {
             $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
             header('Location:' . BASE_URL_ADMIN . '&action=tours/create');
             return;
@@ -84,18 +93,16 @@ class TourController
 
             $tourId = $this->model->create([
                 'name' => $name,
-                'type' => $type,
+                'category_id' => $category_id,
                 'description' => $description,
                 'base_price' => $base_price,
                 'policy' => $policy,
                 'supplier_id' => $supplier_id,
-                'image' => $imagePath,
-                'pricing_options' => !empty($pricingOptions) ? json_encode($pricingOptions, JSON_UNESCAPED_UNICODE) : null,
-                'itinerary_schedule' => !empty($itinerarySchedule) ? json_encode($itinerarySchedule, JSON_UNESCAPED_UNICODE) : null,
-                'partner_services' => !empty($partnerServices) ? json_encode($partnerServices, JSON_UNESCAPED_UNICODE) : null,
-                'gallery_images' => !empty($galleryImages) ? json_encode($galleryImages, JSON_UNESCAPED_UNICODE) : null,
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s')
+                'picture' => $imagePath,
+                'pricing_options' => $pricingOptions,
+                'itineraries' => $itinerarySchedule,
+                'partner_services' => $partnerServices,
+                'gallery_images' => $galleryImages,
             ]);
 
             if ($tourId) {
@@ -129,18 +136,14 @@ class TourController
         $supplierModel = new Supplier();
         $suppliers = $supplierModel->select();
 
-        $pricingOptions = !empty($tour['pricing_options'])
-            ? json_decode($tour['pricing_options'], true)
-            : [];
-        $itinerarySchedule = !empty($tour['itinerary_schedule'])
-            ? json_decode($tour['itinerary_schedule'], true)
-            : [];
-        $partnerServices = !empty($tour['partner_services'])
-            ? json_decode($tour['partner_services'], true)
-            : [];
-        $galleryImages = !empty($tour['gallery_images'])
-            ? json_decode($tour['gallery_images'], true)
-            : [];
+        // Load categories for category dropdown
+        $categoryModel = new TourCategory();
+        $categories = $categoryModel->select();
+
+        $pricingOptions = $tour['pricing_options'] ?? [];
+        $itinerarySchedule = $tour['itineraries'] ?? [];
+        $partnerServices = $tour['partner_services'] ?? [];
+        $galleryImages = $tour['gallery_images'] ?? [];
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
@@ -159,13 +162,13 @@ class TourController
 
         // Validate input
         $name = $_POST['name'] ?? '';
-        $type = $_POST['type'] ?? '';
+        $category_id = $_POST['category_id'] ?? '';
         $description = $_POST['description'] ?? '';
         $base_price = $_POST['base_price'] ?? 0;
         $policy = $_POST['policy'] ?? '';
         $supplier_id = !empty($_POST['supplier_id']) ? intval($_POST['supplier_id']) : null;
 
-        if (empty($name) || empty($type)) {
+        if (empty($name) || empty($category_id)) {
             $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
             header('Location:' . BASE_URL_ADMIN . '&action=tours/edit&id=' . $id);
             return;
@@ -174,40 +177,25 @@ class TourController
         try {
             $imagePath = $this->storeUploadedFile($_FILES['image'] ?? null);
             $galleryImages = $this->handleGalleryUploads($_FILES['gallery_images'] ?? null);
+            $pricingOptions = $this->buildPricingPayload($_POST);
+            $itinerarySchedule = $this->buildItineraryPayload($_POST);
+            $partnerServices = $this->buildPartnerPayload($_POST);
 
             $updateData = [
                 'name' => $name,
-                'type' => $type,
+                'category_id' => $category_id,
                 'description' => $description,
                 'base_price' => $base_price,
                 'policy' => $policy,
                 'supplier_id' => $supplier_id,
-                'updated_at' => date('Y-m-d H:i:s')
+                'picture' => $imagePath,
+                'pricing_options' => $pricingOptions,
+                'itineraries' => $itinerarySchedule,
+                'partner_services' => $partnerServices,
+                'gallery_images' => $galleryImages,
             ];
-            if (!empty($imagePath)) $updateData['image'] = $imagePath;
-            if (!empty($galleryImages)) {
-                $updateData['gallery_images'] = json_encode($galleryImages, JSON_UNESCAPED_UNICODE);
-            }
-            if (isset($_POST['pricing_label'])) {
-                $pricingOptions = $this->buildPricingPayload($_POST);
-                $updateData['pricing_options'] = !empty($pricingOptions)
-                    ? json_encode($pricingOptions, JSON_UNESCAPED_UNICODE)
-                    : null;
-            }
-            if (isset($_POST['itinerary_day'])) {
-                $itinerarySchedule = $this->buildItineraryPayload($_POST);
-                $updateData['itinerary_schedule'] = !empty($itinerarySchedule)
-                    ? json_encode($itinerarySchedule, JSON_UNESCAPED_UNICODE)
-                    : null;
-            }
-            if (isset($_POST['partner_service'])) {
-                $partnerServices = $this->buildPartnerPayload($_POST);
-                $updateData['partner_services'] = !empty($partnerServices)
-                    ? json_encode($partnerServices, JSON_UNESCAPED_UNICODE)
-                    : null;
-            }
 
-            $result = $this->model->updateById($id, $updateData);
+            $result = $this->model->updateTour($id, $updateData);
 
             if ($result) {
                 $_SESSION['success'] = 'Cập nhật tour thành công!';
@@ -242,19 +230,20 @@ class TourController
 
         header('Location:' . BASE_URL_ADMIN . '&action=tours');
     }
-    public function detail() {
+    public function detail()
+    {
         $id = $_GET['id'] ?? null;
         if (!$id) {
             header('Location: ?action=tours');
             return;
         }
         $tour = $this->model->findById($id);
-        if(!$tour) {
+        if (!$tour) {
             $_SESSION['error'] = 'Không tìm thấy tour!';
             header('Location: ?action=tours');
             return;
         }
-        require_once PATH_VIEW_ADMIN .'pages/tours/detail.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
     }
 
     private function storeUploadedFile(?array $file): ?string

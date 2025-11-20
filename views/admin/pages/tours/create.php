@@ -3,9 +3,6 @@ include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 ?>
 
-<!-- Quill editor styles -->
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-
 <main class="wrapper">
     <div class="main-content">
         <div class="page-header">
@@ -34,24 +31,26 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label for="name" class="form-label fw-500">Tên tour</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Tour du lịch Quảng Bình" required>
+                                <label for="name" class="form-label fw-500">Tên Tour</label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Nhập tên tour">
                             </div>
 
                             <div class="mb-3">
-                                <label for="type" class="form-label fw-500">Danh mục tour</label>
-                                <select class="form-select" id="type" name="type" required>
-                                    <option value="">Chọn danh mục tour</option>
-                                    <option value="trong_nuoc">Tour trong nước</option>
-                                    <option value="quoc_te">Tour quốc tế</option>
-                                    <option value="theo_yeu_cau">Tour theo yêu cầu</option>
+                                <label for="category_id" class="form-label fw-500">Danh Mục Tour</label>
+                                <select class="form-select" id="category_id" name="category_id">
+                                    <option value="">-- Chọn Danh Mục Tour --</option>
+                                    <?php if (!empty($categories)): ?>
+                                        <?php foreach ($categories as $category): ?>
+                                            <option value="<?= htmlspecialchars($category['id']) ?>"><?= htmlspecialchars($category['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
                             <div class="mb-3">
-                                <label for="supplier_id" class="form-label fw-500">Nhà cung cấp</label>
+                                <label for="supplier_id" class="form-label fw-500">Nhà Cung Cấp</label>
                                 <select class="form-select" id="supplier_id" name="supplier_id">
-                                    <option value="">Chọn nhà cung cấp</option>
+                                    <option value="">-- Chọn Nhà Cung Cấp --</option>
                                     <?php if (!empty($suppliers)): ?>
                                         <?php foreach ($suppliers as $s): ?>
                                             <option value="<?= htmlspecialchars($s['id']) ?>"><?= htmlspecialchars($s['name']) ?></option>
@@ -61,8 +60,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             </div>
 
                             <div class="mb-3">
-                                <label for="base_price" class="form-label fw-500">Giá cơ bản</label>
-                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="1.500.000" min="0" step="50000" required>
+                                <label for="base_price" class="form-label fw-500">Giá Cơ Bản</label>
+                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="50000">
                                 <small class="text-muted">Đơn giá mặc định áp dụng khi không có gói riêng.</small>
                             </div>
                         </div>
@@ -101,11 +100,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="row g-2">
                                         <div class="col-md-6">
                                             <label class="form-label fw-500">Nhóm khách / Gói</label>
-                                            <input type="text" class="form-control" name="pricing_label[]" data-field="label" placeholder="Người lớn" required>
+                                            <input type="text" class="form-control" name="pricing_label[]" data-field="label" placeholder="Người lớn">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-500">Giá áp dụng</label>
-                                            <input type="number" class="form-control" name="pricing_price[]" data-field="price" placeholder="1500000" min="0" required>
+                                            <input type="number" class="form-control" name="pricing_price[]" data-field="price" placeholder="1500000" min="0">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Ghi chú dịch vụ</label>
@@ -139,7 +138,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="row g-2">
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Ngày / Chặng</label>
-                                            <input type="text" name="itinerary_day[]" data-field="day" class="form-control" placeholder="Ngày 1" required>
+                                            <input type="text" name="itinerary_day[]" data-field="day" class="form-control" placeholder="Ngày 1">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Giờ bắt đầu</label>
@@ -151,7 +150,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Tiêu đề hoạt động</label>
-                                            <input type="text" name="itinerary_title[]" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội" required>
+                                            <input type="text" name="itinerary_title[]" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Chi tiết</label>
@@ -214,7 +213,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Đối tác</label>
-                                            <input type="text" class="form-control" name="partner_name[]" data-field="name" placeholder="The Cliff Resort" required>
+                                            <input type="text" class="form-control" name="partner_name[]" data-field="name" placeholder="The Cliff Resort">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Liên hệ</label>
@@ -336,146 +335,152 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const dropZone = document.getElementById('image-drop-zone');
-    const fileInput = document.getElementById('file-input-handler');
-    const previewContainer = document.getElementById('image-preview-container');
-    
-    const mainImageInput = document.getElementById('main-image-input');
-    const galleryImagesInput = document.getElementById('gallery-images-input');
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropZone = document.getElementById('image-drop-zone');
+        const fileInput = document.getElementById('file-input-handler');
+        const previewContainer = document.getElementById('image-preview-container');
 
-    const modal = document.getElementById('image-viewer-modal');
-    const modalImg = document.getElementById('modal-image');
-    const closeModal = document.querySelector('.close-viewer');
+        const mainImageInput = document.getElementById('main-image-input');
+        const galleryImagesInput = document.getElementById('gallery-images-input');
 
-    let selectedFiles = [];
+        const modal = document.getElementById('image-viewer-modal');
+        const modalImg = document.getElementById('modal-image');
+        const closeModal = document.querySelector('.close-viewer');
 
-    // --- Event Listeners ---
-    dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-primary'); });
-    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-primary'); });
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('border-primary');
-        const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
-        handleFiles(files);
-    });
-    fileInput.addEventListener('change', (e) => {
-        const files = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
-        handleFiles(files);
-        fileInput.value = '';
-    });
-    closeModal.addEventListener('click', () => modal.style.display = "none");
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-        }
-    });
+        let selectedFiles = [];
 
-    // --- File Handling Functions ---
-    function handleFiles(files) {
-        const newFiles = files.slice(0, 10 - selectedFiles.length);
-        selectedFiles = [...selectedFiles, ...newFiles];
-        updatePreviews();
-        updateFileInputs();
-    }
-
-    function updatePreviews() {
-        previewContainer.innerHTML = '';
-        selectedFiles.forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const imgSrc = e.target.result;
-                const previewWrapper = document.createElement('div');
-                previewWrapper.className = 'col-6 col-md-4 col-lg-3';
-                
-                const card = document.createElement('div');
-                card.className = 'card h-100 image-preview-card';
-                
-                const img = document.createElement('img');
-                img.src = imgSrc;
-                img.className = 'card-img-top object-fit-cover';
-                img.style.height = '120px';
-
-                // --- Actions Overlay ---
-                const overlay = document.createElement('div');
-                overlay.className = 'actions-overlay';
-
-                // View button
-                const viewBtn = document.createElement('i');
-                viewBtn.className = 'fas fa-eye action-btn';
-                viewBtn.title = 'Xem ảnh';
-                viewBtn.onclick = () => {
-                    modalImg.src = imgSrc;
-                    modal.style.display = "block";
-                };
-                overlay.appendChild(viewBtn);
-
-                // Set as primary button (only for non-primary images)
-                if (index > 0) {
-                    const primaryBtn = document.createElement('i');
-                    primaryBtn.className = 'fas fa-star action-btn';
-                    primaryBtn.title = 'Chọn làm ảnh đại diện';
-                    primaryBtn.onclick = () => setAsPrimary(index);
-                    overlay.appendChild(primaryBtn);
-                }
-
-                // Delete button
-                const removeBtn = document.createElement('i');
-                removeBtn.className = 'fas fa-trash-alt action-btn text-danger';
-                removeBtn.title = 'Xóa ảnh';
-                removeBtn.onclick = () => removeFile(index);
-                overlay.appendChild(removeBtn);
-                
-                card.appendChild(img);
-                card.appendChild(overlay);
-
-                // Add primary image badge
-                if (index === 0) {
-                    const badge = document.createElement('span');
-                    badge.className = 'badge bg-primary position-absolute top-0 start-0 m-1';
-                    badge.textContent = 'Ảnh đại diện';
-                    card.appendChild(badge);
-                }
-
-                previewWrapper.appendChild(card);
-                previewContainer.appendChild(previewWrapper);
-            };
-            reader.readAsDataURL(file);
+        // --- Event Listeners ---
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-primary');
         });
-    }
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary');
+            const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+            handleFiles(files);
+        });
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
+            handleFiles(files);
+            fileInput.value = '';
+        });
+        closeModal.addEventListener('click', () => modal.style.display = "none");
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = "none";
+            }
+        });
 
-    function removeFile(indexToRemove) {
-        selectedFiles.splice(indexToRemove, 1);
-        updatePreviews();
-        updateFileInputs();
-    }
-
-    function setAsPrimary(indexToMakePrimary) {
-        if (indexToMakePrimary > 0 && indexToMakePrimary < selectedFiles.length) {
-            const item = selectedFiles.splice(indexToMakePrimary, 1)[0];
-            selectedFiles.unshift(item);
+        // --- File Handling Functions ---
+        function handleFiles(files) {
+            const newFiles = files.slice(0, 10 - selectedFiles.length);
+            selectedFiles = [...selectedFiles, ...newFiles];
             updatePreviews();
             updateFileInputs();
         }
-    }
 
-    function updateFileInputs() {
-        const mainImageFiles = new DataTransfer();
-        const galleryImageFiles = new DataTransfer();
+        function updatePreviews() {
+            previewContainer.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imgSrc = e.target.result;
+                    const previewWrapper = document.createElement('div');
+                    previewWrapper.className = 'col-6 col-md-4 col-lg-3';
 
-        if (selectedFiles.length > 0) {
-            mainImageFiles.items.add(selectedFiles[0]);
+                    const card = document.createElement('div');
+                    card.className = 'card h-100 image-preview-card';
+
+                    const img = document.createElement('img');
+                    img.src = imgSrc;
+                    img.className = 'card-img-top object-fit-cover';
+                    img.style.height = '120px';
+
+                    // --- Actions Overlay ---
+                    const overlay = document.createElement('div');
+                    overlay.className = 'actions-overlay';
+
+                    // View button
+                    const viewBtn = document.createElement('i');
+                    viewBtn.className = 'fas fa-eye action-btn';
+                    viewBtn.title = 'Xem ảnh';
+                    viewBtn.onclick = () => {
+                        modalImg.src = imgSrc;
+                        modal.style.display = "block";
+                    };
+                    overlay.appendChild(viewBtn);
+
+                    // Set as primary button (only for non-primary images)
+                    if (index > 0) {
+                        const primaryBtn = document.createElement('i');
+                        primaryBtn.className = 'fas fa-star action-btn';
+                        primaryBtn.title = 'Chọn làm ảnh đại diện';
+                        primaryBtn.onclick = () => setAsPrimary(index);
+                        overlay.appendChild(primaryBtn);
+                    }
+
+                    // Delete button
+                    const removeBtn = document.createElement('i');
+                    removeBtn.className = 'fas fa-trash-alt action-btn text-danger';
+                    removeBtn.title = 'Xóa ảnh';
+                    removeBtn.onclick = () => removeFile(index);
+                    overlay.appendChild(removeBtn);
+
+                    card.appendChild(img);
+                    card.appendChild(overlay);
+
+                    // Add primary image badge
+                    if (index === 0) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-primary position-absolute top-0 start-0 m-1';
+                        badge.textContent = 'Ảnh đại diện';
+                        card.appendChild(badge);
+                    }
+
+                    previewWrapper.appendChild(card);
+                    previewContainer.appendChild(previewWrapper);
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
-        if (selectedFiles.length > 1) {
-            selectedFiles.slice(1).forEach(file => galleryImageFiles.items.add(file));
+        function removeFile(indexToRemove) {
+            selectedFiles.splice(indexToRemove, 1);
+            updatePreviews();
+            updateFileInputs();
         }
 
-        mainImageInput.files = mainImageFiles.files;
-        galleryImagesInput.files = galleryImageFiles.files;
-    }
-});
+        function setAsPrimary(indexToMakePrimary) {
+            if (indexToMakePrimary > 0 && indexToMakePrimary < selectedFiles.length) {
+                const item = selectedFiles.splice(indexToMakePrimary, 1)[0];
+                selectedFiles.unshift(item);
+                updatePreviews();
+                updateFileInputs();
+            }
+        }
+
+        function updateFileInputs() {
+            const mainImageFiles = new DataTransfer();
+            const galleryImageFiles = new DataTransfer();
+
+            if (selectedFiles.length > 0) {
+                mainImageFiles.items.add(selectedFiles[0]);
+            }
+
+            if (selectedFiles.length > 1) {
+                selectedFiles.slice(1).forEach(file => galleryImageFiles.items.add(file));
+            }
+
+            mainImageInput.files = mainImageFiles.files;
+            galleryImagesInput.files = galleryImageFiles.files;
+        }
+    });
 </script>
 
 <?php
