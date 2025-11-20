@@ -59,4 +59,11 @@ match ($action) {
     'reports/financial'    => (new ReportController)->financial(),
     'reports/bookings'     => (new ReportController)->bookings(),
     'reports/feedback'     => (new ReportController)->feedback(),
+    // 📝 Tour Logs (Nhật ký Tour)
+    'tour_logs'        => (new TourLogController)->index(),
+    'tour_logs/create' => (new TourLogController)->create(),
+    'tour_logs/store'  => (new TourLogController)->store(),
+    'tour_logs/edit'   => (new TourLogController)->edit(),
+    'tour_logs/update' => (new TourLogController)->update(),
+    'tour_logs/delete' => (new TourLogController)->delete(),
 };
