@@ -20,9 +20,8 @@ if (empty($partnerServices)) {
 }
 ?>
 
-<!-- Quill editor styles -->
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-
+<!-- CKEditor 5 -->
+<script src="https://cdn.ckeditor.com/ckeditor5/47.2.0/ckeditor5.umd.js"></script>
 <main class="wrapper">
     <div class="main-content">
         <div class="page-header">
@@ -106,7 +105,7 @@ if (empty($partnerServices)) {
                         <div class="card-body">
                             <label for="description" class="form-label fw-500">Nhập mô tả</label>
                             <input type="hidden" id="input-description" name="description" value='<?= htmlspecialchars($tour['description'] ?? '', ENT_QUOTES) ?>'>
-                            <div id="editor-description" class="quill-editor"></div>
+                            <div id="editor-description"></div>
                         </div>
                     </div>
 
@@ -181,12 +180,12 @@ if (empty($partnerServices)) {
                                 <?php foreach ($itinerarySchedule as $item): ?>
                                     <div class="itinerary-item border rounded p-3 position-relative bg-light-subtle">
                                         <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-itinerary-item" aria-label="Xóa"></button>
-                                    <div class="row g-2">
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-500">Ngày / Chặng</label>
-                                            <input type="text" name="itinerary_day[]" data-field="day" class="form-control" value="<?= htmlspecialchars($item['day'] ?? '') ?>" placeholder="Ngày 1">
+                                        <div class="row g-2">
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-500">Ngày / Chặng</label>
+                                                <input type="text" name="itinerary_day[]" data-field="day" class="form-control" value="<?= htmlspecialchars($item['day'] ?? '') ?>" placeholder="Ngày 1">
                                             </div>
-                        <div class="col-md-4">
+                                            <div class="col-md-4">
                                                 <label class="form-label fw-500">Giờ bắt đầu</label>
                                                 <input type="time" name="itinerary_time_start[]" data-field="time_start" class="form-control" value="<?= htmlspecialchars($item['time_start'] ?? '') ?>">
                                             </div>
@@ -371,7 +370,7 @@ if (empty($partnerServices)) {
                 <div class="card-body">
                     <label for="policy" class="form-label fw-500">Nhập chính sách</label>
                     <input type="hidden" id="input-policy" name="policy" value='<?= htmlspecialchars($tour['policy'] ?? '', ENT_QUOTES) ?>'>
-                    <div id="editor-policy" class="quill-editor"></div>
+                    <div id="editor-policy"></div>
                 </div>
             </div>
 
@@ -388,7 +387,8 @@ if (empty($partnerServices)) {
     </div>
 </main>
 
+<script src="<?= BASE_ASSETS_ADMIN ?>js/tours.js"></script>
+
 <?php
 include_once PATH_VIEW_ADMIN . 'default/footer.php';
 ?>
-

@@ -1,123 +1,124 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const table = document.getElementById('tour-table');
-    if (!table) return;
+document.addEventListener("DOMContentLoaded", function () {
+  const filterForm = document.getElementById("filter-form");
+  const applyBtn = document.getElementById("apply-btn");
+  const resetBtn = document.getElementById("reset-btn");
+  const tourListContainer = document.getElementById("tour-list-container");
+  const baseUrl = `${window.location.pathname}?action=tours`;
 
-    const tbody = table.querySelector('tbody');
-    const originalOrder = Array.from(tbody.querySelectorAll('tr'));
+  if (!filterForm || !tourListContainer) {
+    return;
+  }
 
-    const rulesContainer = document.getElementById('sort-rules');
-    const ruleTemplate = document.getElementById('sort-rule-template');
-    const addRuleBtn = document.getElementById('add-sort-rule');
-    const clearRuleBtn = document.getElementById('clear-sort');
-    const applySortBtn = document.getElementById('apply-sort');
+  const showLoading = () => {
+    tourListContainer.style.opacity = "0.5";
+    tourListContainer.style.pointerEvents = "none";
+  };
 
-    const MAX_RULES = 3;
-    const columnTypes = {
-        name: 'text',
-        type: 'text',
-        supplier: 'text',
-        created_at: 'number',
-        base_price: 'number',
-    };
+  const hideLoading = () => {
+    tourListContainer.style.opacity = "1";
+    tourListContainer.style.pointerEvents = "auto";
+  };
 
-    function addRule(defaults = { column: 'created_at', direction: 'desc' }) {
-        if (!rulesContainer || !ruleTemplate) return;
-        if (rulesContainer.children.length >= MAX_RULES) return;
+  const loadTours = async (url) => {
+    showLoading();
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
+      const html = await response.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const newContent = doc.getElementById("tour-list-container");
 
-        const clone = ruleTemplate.content.cloneNode(true);
-        const ruleEl = clone.querySelector('.sort-rule');
-        const columnSelect = ruleEl.querySelector('[data-field="column"]');
-        const directionSelect = ruleEl.querySelector('[data-field="direction"]');
+      if (newContent) {
+        tourListContainer.innerHTML = newContent.innerHTML;
+        // Re-attach event listeners after content update
+        attachPaginationListeners();
+      } else {
+        console.error("Failed to parse response");
+        alert("Đã có lỗi xảy ra. Vui lòng tải lại trang.");
+      }
 
-        if (defaults.column) columnSelect.value = defaults.column;
-        if (defaults.direction) directionSelect.value = defaults.direction;
-
-        rulesContainer.appendChild(ruleEl);
+      history.pushState({ path: url }, "", url);
+    } catch (error) {
+      console.error("Failed to load tours:", error);
+      alert("Đã có lỗi xảy ra. Vui lòng tải lại trang.");
+    } finally {
+      hideLoading();
     }
+  };
 
-    function getRules() {
-        if (!rulesContainer) return [];
-        return Array.from(rulesContainer.querySelectorAll('.sort-rule')).map((rule) => {
-            const column = rule.querySelector('[data-field="column"]')?.value;
-            const direction = rule.querySelector('[data-field="direction"]')?.value;
-            return column ? { column, direction: direction || 'asc' } : null;
-        }).filter(Boolean);
-    }
-
-    function updateIndicators(rules) {
-        const indicators = table.querySelectorAll('.sort-indicator');
-        indicators.forEach((indicator) => {
-            indicator.classList.remove('active');
-            indicator.textContent = '';
-        });
-
-        rules.forEach((rule, index) => {
-            const indicator = table.querySelector(`.sort-indicator[data-col="${rule.column}"]`);
-            if (!indicator) return;
-            indicator.classList.add('active');
-            indicator.innerHTML = `<i class="fas fa-sort-${rule.direction === 'asc' ? 'up' : 'down'} me-1"></i>${index + 1}`;
-        });
-    }
-
-    function sortRows() {
-        const rules = getRules();
-        if (!rules.length) {
-            updateIndicators([]);
-            return;
+  const attachPaginationListeners = () => {
+    const ajaxLinks = tourListContainer.querySelectorAll("a.ajax-link");
+    ajaxLinks.forEach((link) => {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        const url = this.getAttribute("href");
+        if (url) {
+          loadTours(url);
         }
+      });
+    });
+  };
 
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        const sortedRows = rows.sort((rowA, rowB) => {
-            for (const rule of rules) {
-                const type = columnTypes[rule.column] || 'text';
-                const valueA = rowA.getAttribute(`data-sort-${rule.column}`) ?? '';
-                const valueB = rowB.getAttribute(`data-sort-${rule.column}`) ?? '';
+  // Handle apply button click - collect filters and load without page reload
+  if (applyBtn) {
+    applyBtn.addEventListener("click", function (e) {
+      e.preventDefault();
 
-                let comparison = 0;
-                if (type === 'number') {
-                    comparison = (parseFloat(valueA) || 0) - (parseFloat(valueB) || 0);
-                } else {
-                    comparison = valueA.localeCompare(valueB, 'vi', { sensitivity: 'base', numeric: true });
-                }
+      // Get current filter values
+      const keyword = document.querySelector('input[name="keyword"]').value;
+      const type = document.querySelector('select[name="type"]').value;
+      const supplierId = document.querySelector(
+        'select[name="supplier_id"]'
+      ).value;
+      const perPage = document.querySelector('select[name="per_page"]').value;
+      const sortBy = document.querySelector('select[name="sort_by"]').value;
+      const sortDir = document.querySelector('select[name="sort_dir"]').value;
 
-                if (comparison !== 0) {
-                    return rule.direction === 'asc' ? comparison : -comparison;
-                }
-            }
-            return 0;
-        });
+      // Build URL with filter parameters
+      const params = new URLSearchParams();
+      if (keyword) params.append("keyword", keyword);
+      if (type) params.append("type", type);
+      if (supplierId) params.append("supplier_id", supplierId);
+      if (perPage) params.append("per_page", perPage);
+      if (sortBy) params.append("sort_by", sortBy);
+      if (sortDir) params.append("sort_dir", sortDir);
 
-        const fragment = document.createDocumentFragment();
-        sortedRows.forEach((row) => fragment.appendChild(row));
-        tbody.appendChild(fragment);
-        updateIndicators(rules);
+      const url = `${baseUrl}&${params.toString()}`;
+      loadTours(url);
+    });
+  }
+
+  // Handle reset button - clear filters and reload default view
+  if (resetBtn) {
+    resetBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      // Clear all filter inputs
+      document.querySelector('input[name="keyword"]').value = "";
+      document.querySelector('select[name="type"]').value = "";
+      document.querySelector('select[name="supplier_id"]').value = "";
+      document.querySelector('select[name="per_page"]').value = "10";
+      document.querySelector('select[name="sort_by"]').value = "created_at";
+      document.querySelector('select[name="sort_dir"]').value = "desc";
+
+      // Load default view without filters
+      loadTours(baseUrl);
+    });
+  }
+
+  // Initial pagination listeners
+  attachPaginationListeners();
+
+  // Handle back/forward browser buttons
+  window.addEventListener("popstate", function (e) {
+    if (e.state && e.state.path) {
+      loadTours(e.state.path);
+    } else {
+      loadTours(baseUrl);
     }
-
-    addRuleBtn?.addEventListener('click', function () {
-        addRule();
-    });
-
-    clearRuleBtn?.addEventListener('click', function () {
-        if (!rulesContainer) return;
-        rulesContainer.innerHTML = '';
-        const fragment = document.createDocumentFragment();
-        originalOrder.forEach((row) => fragment.appendChild(row));
-        tbody.appendChild(fragment);
-        updateIndicators([]);
-    });
-
-    applySortBtn?.addEventListener('click', function () {
-        sortRows();
-    });
-
-    rulesContainer?.addEventListener('click', function (event) {
-        const removeBtn = event.target.closest('.remove-sort-rule');
-        if (!removeBtn) return;
-        removeBtn.closest('.sort-rule')?.remove();
-    });
-
-    // Initialize with a default rule
-    addRule({ column: 'created_at', direction: 'desc' });
-    updateIndicators([]);
+  });
 });
-

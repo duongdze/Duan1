@@ -1,69 +1,89 @@
 document.addEventListener("DOMContentLoaded", function () {
-  function initQuillEditor(selector, inputId) {
-    var element = document.querySelector(selector);
-    if (!element || typeof Quill === "undefined") {
+  const editors = {};
+
+  // Initialize CKEditor 5 instances
+  async function initCKEditor(selector, inputId) {
+    const element = document.querySelector(selector);
+    if (!element) {
+      console.warn("Element not found:", selector);
       return null;
     }
-    var editor = new Quill(selector, {
-      theme: "snow",
-      modules: {
-        toolbar: [
-          ["bold", "italic", "underline", "strike"],
-          ["blockquote", "code-block"],
-          [
-            {
-              list: "ordered",
-            },
-            {
-              list: "bullet",
-            },
-          ],
-          [
-            {
-              size: ["small", false, "large", "huge"],
-            },
-          ],
-          [
-            {
-              header: [1, 2, 3, 4, 5, 6],
-            },
-          ],
-          ["link"],
-          ["clean"],
-        ],
-      },
-    });
 
-    var hiddenInput = document.getElementById(inputId);
-    if (hiddenInput && hiddenInput.value) {
-      editor.root.innerHTML = hiddenInput.value;
+    try {
+      const editor = await ClassicEditor.create(element, {
+        toolbar: {
+          items: [
+            "undo",
+            "redo",
+            "|",
+            "heading",
+            "|",
+            "bold",
+            "italic",
+            "underline",
+            "strikethrough",
+            "|",
+            "bulletedList",
+            "numberedList",
+            "|",
+            "outdent",
+            "indent",
+            "|",
+            "link",
+            "blockQuote",
+            "codeBlock",
+            "|",
+            "insertTable",
+            "mediaEmbed",
+            "|",
+            "fontColor",
+            "fontBackgroundColor",
+            "|",
+            "removeFormat",
+          ],
+        },
+        table: {
+          contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"],
+        },
+        language: "en",
+      });
+
+      const hiddenInput = document.getElementById(inputId);
+      if (hiddenInput && hiddenInput.value) {
+        editor.setData(hiddenInput.value);
+      }
+
+      editors[inputId] = {
+        instance: editor,
+        sync: function () {
+          if (hiddenInput) {
+            hiddenInput.value = editor.getData();
+          }
+        },
+      };
+
+      return editors[inputId];
+    } catch (error) {
+      console.error("CKEditor initialization error:", error);
+      return null;
     }
-
-    return {
-      instance: editor,
-      sync: function () {
-        if (hiddenInput) {
-          hiddenInput.value = editor.root.innerHTML;
-        }
-      },
-    };
   }
 
-  var descriptionEditor = initQuillEditor(
-    "#editor-description",
-    "input-description"
-  );
-  var policyEditor = initQuillEditor("#editor-policy", "input-policy");
-
-  var tourForms = document.querySelectorAll("form.tour-form");
-  tourForms.forEach(function (form) {
-    form.addEventListener("submit", function () {
-      if (descriptionEditor) {
-        descriptionEditor.sync();
-      }
-      if (policyEditor) {
-        policyEditor.sync();
-      }
+  // Initialize both editors
+  Promise.all([
+    initCKEditor("#editor-description", "input-description"),
+    initCKEditor("#editor-policy", "input-policy"),
+  ]).then(() => {
+    // After editors are initialized, attach form submit handler
+    const tourForms = document.querySelectorAll("form.tour-form");
+    tourForms.forEach(function (form) {
+      form.addEventListener("submit", function () {
+        Object.values(editors).forEach((editor) => {
+          if (editor) {
+            editor.sync();
+          }
+        });
+      });
     });
   });
 

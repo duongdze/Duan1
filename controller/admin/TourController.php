@@ -19,12 +19,15 @@ class TourController
             'supplier_id' => $_GET['supplier_id'] ?? '',
             'date_from' => $_GET['date_from'] ?? '',
             'date_to' => $_GET['date_to'] ?? '',
+            'sort_by' => $_GET['sort_by'] ?? 'created_at',
+            'sort_dir' => $_GET['sort_dir'] ?? 'desc',
         ];
 
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
         $perPage = isset($_GET['per_page']) ? max(5, min(50, (int)$_GET['per_page'])) : 10;
-        $sortBy = 'created_at';
-        $sortOrder = 'DESC';
+        
+        $sortBy = $filters['sort_by'];
+        $sortOrder = $filters['sort_dir'];
 
         $result = $this->model->getFilteredTours($filters, $page, $perPage, $sortBy, $sortOrder);
         $tours = $result['data'];

@@ -16,7 +16,7 @@ class BookingController
 
     public function create()
     {
-        require_once 'views/admin/bookings/create.php';
+        require_once PATH_VIEW_ADMIN . 'pages/bookings/create.php';
     }
 
     public function store()

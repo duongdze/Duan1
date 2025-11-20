@@ -9,7 +9,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 <h1 class="h2">Quản lý Booking</h1>
                 <p class="text-muted">Danh sách tất cả các booking trong hệ thống.</p>
             </div>
-            <button class="btn btn-primary"><i class="fas fa-plus"></i> Tạo booking mới</button>
+            <a href="<?= BASE_URL_ADMIN . '&action=bookings/create' ?>"><button class="btn btn-primary"><i class="fas fa-plus"></i> Tạo booking mới</button></a>
         </div>
 
         <div class="card">
