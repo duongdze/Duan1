@@ -167,30 +167,21 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     <div class="card mb-3">
                         <div class="card-header bg-light">
                             <h5 class="mb-0">
-                                <i class="fas fa-image"></i> Hình ảnh
+                                <i class="fas fa-images"></i> Hình ảnh
                             </h5>
                         </div>
-                        <div class="card-body text-center">
-                            <div class="mb-3">
-                                <label class="form-label fw-500 d-flex align-items-center justify-content-between">
-                                    Ảnh đại diện
-                                    <small class="text-muted">Tỷ lệ khuyến nghị 4:3</small>
-                                </label>
-                                <div class="p-4 bg-light rounded border border-dashed" id="image-preview">
-                                    <i class="fas fa-image fa-3x text-muted"></i>
-                                    <p class="text-muted small mt-2 mb-0">Chưa có hình ảnh</p>
-                                </div>
-                                <input type="file" class="form-control mt-2" id="image" name="image" accept="image/*">
+                        <div class="card-body">
+                            <div id="image-drop-zone" class="p-4 bg-light rounded border-dashed text-center" style="cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
+                                <p class="text-muted small mt-2 mb-0">Kéo và thả ảnh vào đây, hoặc nhấp để chọn</p>
+                                <p class="text-muted small">Ảnh đầu tiên sẽ là ảnh đại diện. Tối đa 10 ảnh.</p>
                             </div>
+                            <!-- Hidden file inputs to store files for submission -->
+                            <input type="file" id="file-input-handler" class="d-none" multiple accept="image/*">
+                            <input type="file" name="image" id="main-image-input" class="d-none">
+                            <input type="file" name="gallery_images[]" id="gallery-images-input" class="d-none" multiple>
 
-                            <div>
-                                <label class="form-label fw-500">Bộ sưu tập hình ảnh</label>
-                                <div class="p-3 border rounded bg-light mb-2">
-                                    <input type="file" class="form-control" id="gallery" name="gallery_images[]" accept="image/*" multiple>
-                                    <small class="text-muted d-block mt-2">Tối đa 10 ảnh, hỗ trợ jpg, png, webp.</small>
-                                </div>
-                                <div id="gallery-preview" class="row g-2"></div>
-                            </div>
+                            <div id="image-preview-container" class="row g-2 mt-3"></div>
                         </div>
                     </div>
 
@@ -266,6 +257,226 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             </div>
         </form>
 </main>
+
+<!-- Image Viewer Modal -->
+<div id="image-viewer-modal" class="modal-viewer" style="display:none;">
+    <span class="close-viewer">&times;</span>
+    <img class="modal-viewer-content" id="modal-image">
+</div>
+
+<style>
+    .image-preview-card {
+        position: relative;
+    }
+
+    .image-preview-card .actions-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .image-preview-card:hover .actions-overlay {
+        opacity: 1;
+    }
+
+    .actions-overlay .action-btn {
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transition: background 0.2s;
+    }
+
+    .actions-overlay .action-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Modal Styles */
+    .modal-viewer {
+        position: fixed;
+        z-index: 9999;
+        padding-top: 50px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.9);
+    }
+
+    .modal-viewer-content {
+        margin: auto;
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+    .close-viewer {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dropZone = document.getElementById('image-drop-zone');
+    const fileInput = document.getElementById('file-input-handler');
+    const previewContainer = document.getElementById('image-preview-container');
+    
+    const mainImageInput = document.getElementById('main-image-input');
+    const galleryImagesInput = document.getElementById('gallery-images-input');
+
+    const modal = document.getElementById('image-viewer-modal');
+    const modalImg = document.getElementById('modal-image');
+    const closeModal = document.querySelector('.close-viewer');
+
+    let selectedFiles = [];
+
+    // --- Event Listeners ---
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-primary'); });
+    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-primary'); });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-primary');
+        const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+        handleFiles(files);
+    });
+    fileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
+        handleFiles(files);
+        fileInput.value = '';
+    });
+    closeModal.addEventListener('click', () => modal.style.display = "none");
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
+    // --- File Handling Functions ---
+    function handleFiles(files) {
+        const newFiles = files.slice(0, 10 - selectedFiles.length);
+        selectedFiles = [...selectedFiles, ...newFiles];
+        updatePreviews();
+        updateFileInputs();
+    }
+
+    function updatePreviews() {
+        previewContainer.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imgSrc = e.target.result;
+                const previewWrapper = document.createElement('div');
+                previewWrapper.className = 'col-6 col-md-4 col-lg-3';
+                
+                const card = document.createElement('div');
+                card.className = 'card h-100 image-preview-card';
+                
+                const img = document.createElement('img');
+                img.src = imgSrc;
+                img.className = 'card-img-top object-fit-cover';
+                img.style.height = '120px';
+
+                // --- Actions Overlay ---
+                const overlay = document.createElement('div');
+                overlay.className = 'actions-overlay';
+
+                // View button
+                const viewBtn = document.createElement('i');
+                viewBtn.className = 'fas fa-eye action-btn';
+                viewBtn.title = 'Xem ảnh';
+                viewBtn.onclick = () => {
+                    modalImg.src = imgSrc;
+                    modal.style.display = "block";
+                };
+                overlay.appendChild(viewBtn);
+
+                // Set as primary button (only for non-primary images)
+                if (index > 0) {
+                    const primaryBtn = document.createElement('i');
+                    primaryBtn.className = 'fas fa-star action-btn';
+                    primaryBtn.title = 'Chọn làm ảnh đại diện';
+                    primaryBtn.onclick = () => setAsPrimary(index);
+                    overlay.appendChild(primaryBtn);
+                }
+
+                // Delete button
+                const removeBtn = document.createElement('i');
+                removeBtn.className = 'fas fa-trash-alt action-btn text-danger';
+                removeBtn.title = 'Xóa ảnh';
+                removeBtn.onclick = () => removeFile(index);
+                overlay.appendChild(removeBtn);
+                
+                card.appendChild(img);
+                card.appendChild(overlay);
+
+                // Add primary image badge
+                if (index === 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-primary position-absolute top-0 start-0 m-1';
+                    badge.textContent = 'Ảnh đại diện';
+                    card.appendChild(badge);
+                }
+
+                previewWrapper.appendChild(card);
+                previewContainer.appendChild(previewWrapper);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function removeFile(indexToRemove) {
+        selectedFiles.splice(indexToRemove, 1);
+        updatePreviews();
+        updateFileInputs();
+    }
+
+    function setAsPrimary(indexToMakePrimary) {
+        if (indexToMakePrimary > 0 && indexToMakePrimary < selectedFiles.length) {
+            const item = selectedFiles.splice(indexToMakePrimary, 1)[0];
+            selectedFiles.unshift(item);
+            updatePreviews();
+            updateFileInputs();
+        }
+    }
+
+    function updateFileInputs() {
+        const mainImageFiles = new DataTransfer();
+        const galleryImageFiles = new DataTransfer();
+
+        if (selectedFiles.length > 0) {
+            mainImageFiles.items.add(selectedFiles[0]);
+        }
+
+        if (selectedFiles.length > 1) {
+            selectedFiles.slice(1).forEach(file => galleryImageFiles.items.add(file));
+        }
+
+        mainImageInput.files = mainImageFiles.files;
+        galleryImagesInput.files = galleryImageFiles.files;
+    }
+});
+</script>
 
 <?php
 include_once PATH_VIEW_ADMIN . 'default/footer.php';
