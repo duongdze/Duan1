@@ -120,12 +120,12 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                 <td>
                                                     <?php
                                                     $statusText = 'Chờ Xác Nhận';
-                                                    if ($booking['status'] === 'Hoàn Tất') {
+                                                    if ($booking['status'] === 'hoan_tat') {
                                                         $statusText = 'Hoàn Tất';
-                                                    } elseif ($booking['status'] === 'Đã Cọc') {
+                                                    } elseif ($booking['status'] === 'da_coc') {
                                                         $statusText = 'Đã Cọc';
-                                                    } elseif ($booking['status'] === 'Hoàn Tất') {
-                                                        $statusText = 'Hoàn Tất';
+                                                    } elseif ($booking['status'] === 'da_huy') {
+                                                        $statusText = 'Đã Hủy';
                                                     }
                                                     ?>
                                                     <span class="badge bg-warning text-dark"><?= $statusText ?></span>
