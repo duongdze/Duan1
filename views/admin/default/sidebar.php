@@ -1,12 +1,14 @@
 <?php
 // Hàm helper để kiểm tra active
-function isActive($action) {
+function isActive($action)
+{
     $currentAction = $_GET['action'] ?? '';
     return ($currentAction == $action) ? 'active' : '';
 }
 
 // Hàm kiểm tra menu cha có active không (kiểm tra các menu con)
-function isParentActive($prefix) {
+function isParentActive($prefix)
+{
     $currentAction = $_GET['action'] ?? '';
     return (strpos($currentAction, $prefix) === 0) ? 'show' : '';
 }
@@ -25,15 +27,15 @@ $currentAction = $_GET['action'] ?? '';
                 <i class="fas fa-tachometer-alt fa-fw me-2"></i> Tổng quan
             </a>
         </li>
-        
+
         <!-- Phần Tour -->
         <li class="nav-item">
-            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('tours') ? 'active' : '' ?>" 
-               href="#" role="button" 
-               aria-expanded="<?= isParentActive('tours') ? 'true' : 'false' ?>" 
-               aria-controls="tourMenu" 
-               data-menu-key="tours" 
-               data-collapse-id="tourMenu">
+            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('tours') ? 'active' : '' ?>"
+                href="#" role="button"
+                aria-expanded="<?= isParentActive('tours') ? 'true' : 'false' ?>"
+                aria-controls="tourMenu"
+                data-menu-key="tours"
+                data-collapse-id="tourMenu">
                 <span><i class="fas fa-map-signs fa-fw me-2"></i>Tour</span>
                 <i class="fas fa-chevron-down fa-xs"></i>
             </a>
@@ -45,22 +47,27 @@ $currentAction = $_GET['action'] ?? '';
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link <?= isActive('tours') ?>" href="<?= BASE_URL_ADMIN ?>&action=tour_category">
+                            <i class="fas fa-list fa-fw me-2"></i> Danh mục Tour
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link <?= isActive('tours/create') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours/create">
-                            <i class="fas fa-clock-history fa-fw me-2"></i> Lịch sử Tour
+                            <i class="fas fa-clock-history fa-fw me-2"></i> Nhật ký Tour
                         </a>
                     </li>
                 </ul>
             </div>
         </li>
-        
+
         <!-- Phần Booking -->
         <li class="nav-item">
-            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('bookings') ? 'active' : '' ?>" 
-               href="#" role="button" 
-               aria-expanded="<?= isParentActive('bookings') ? 'true' : 'false' ?>" 
-               aria-controls="bookingMenu" 
-               data-menu-key="bookings" 
-               data-collapse-id="bookingMenu">
+            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('bookings') ? 'active' : '' ?>"
+                href="#" role="button"
+                aria-expanded="<?= isParentActive('bookings') ? 'true' : 'false' ?>"
+                aria-controls="bookingMenu"
+                data-menu-key="bookings"
+                data-collapse-id="bookingMenu">
                 <span><i class="fas fa-calendar-check fa-fw me-2"></i> Quản lý Booking</span>
                 <i class="fas fa-chevron-down fa-xs"></i>
             </a>
@@ -79,26 +86,26 @@ $currentAction = $_GET['action'] ?? '';
                 </ul>
             </div>
         </li>
-        
+
         <!-- Phần HDV -->
         <li class="nav-item">
             <a class="nav-link <?= isActive('guides') ?>" href="<?= BASE_URL_ADMIN ?>&action=guides">
                 <i class="fas fa-user-tie fa-fw me-2"></i> Quản lý HDV
             </a>
         </li>
-        
+
         <li class="nav-item">
             <a class="nav-link <?= isActive('schedules') ?>" href="<?= BASE_URL_ADMIN ?>&action=schedules">
                 <i class="fas fa-calendar-alt fa-fw me-2"></i> Lịch khởi hành
             </a>
         </li>
-        
+
         <li class="nav-item">
             <a class="nav-link <?= isActive('reports') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports">
                 <i class="fas fa-chart-line fa-fw me-2"></i> Báo cáo
             </a>
         </li>
-        
+
         <li class="nav-item">
             <a class="nav-link <?= isActive('settings') ?>" href="<?= BASE_URL_ADMIN ?>&action=settings">
                 <i class="fas fa-cogs fa-fw me-2"></i> Cài đặt
