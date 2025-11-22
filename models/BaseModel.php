@@ -43,11 +43,6 @@ class BaseModel
         self::$pdo->rollBack();
     }
 
-    public static function getPdo()
-    {
-        return self::$pdo;
-    }
-
     /**
      * Hàm lấy danh sách
      * 
@@ -186,11 +181,11 @@ class BaseModel
         $placeholders = ':' . implode(', :', $keys);
 
         $sql = "INSERT INTO {$this->table} ($columns) VALUES ($placeholders)";
-
+        
         $stmt = self::$pdo->prepare($sql);
 
         $stmt->execute($data);
-
+        
         return self::$pdo->lastInsertId();
     }
 

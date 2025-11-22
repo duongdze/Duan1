@@ -61,7 +61,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                             <div class="mb-3">
                                 <label for="base_price" class="form-label fw-500">Giá Cơ Bản</label>
-                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản">
+                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="50000">
                                 <small class="text-muted">Đơn giá mặc định áp dụng khi không có gói riêng.</small>
                             </div>
                         </div>
@@ -100,15 +100,15 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="row g-2">
                                         <div class="col-md-6">
                                             <label class="form-label fw-500">Nhóm khách / Gói</label>
-                                            <input type="text" class="form-control" name="tour_pricing_options_label" data-field="label" placeholder="Người lớn">
+                                            <input type="text" class="form-control" name="pricing_label[]" data-field="label" placeholder="Người lớn">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-500">Giá áp dụng</label>
-                                            <input type="number" class="form-control" name="tour_pricing_options_price" data-field="price" placeholder="1500000" min="0">
+                                            <input type="number" class="form-control" name="pricing_price[]" data-field="price" placeholder="1500000" min="0">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Ghi chú dịch vụ</label>
-                                            <textarea class="form-control" rows="2" name="tour_pricing_options_description" data-field="description" placeholder="Bao gồm ăn sáng, xe đưa đón sân bay"></textarea>
+                                            <textarea class="form-control" rows="2" name="pricing_description[]" data-field="description" placeholder="Bao gồm ăn sáng, xe đưa đón sân bay"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -138,23 +138,23 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="row g-2">
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Ngày / Chặng</label>
-                                            <input type="text" name="tour_itinerary_day" data-field="day" class="form-control" placeholder="Ngày 1">
+                                            <input type="text" name="itinerary_day[]" data-field="day" class="form-control" placeholder="Ngày 1">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Giờ bắt đầu</label>
-                                            <input type="time" name="tour_itinerary_time_start" data-field="time_start" class="form-control">
+                                            <input type="time" name="itinerary_time_start[]" data-field="time_start" class="form-control">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Giờ kết thúc</label>
-                                            <input type="time" name="tour_itinerary_time_end[]" data-field="time_end" class="form-control">
+                                            <input type="time" name="itinerary_time_end[]" data-field="time_end" class="form-control">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Tiêu đề hoạt động</label>
-                                            <input type="text" name="tour_itinerary_title" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội">
+                                            <input type="text" name="itinerary_title[]" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Chi tiết</label>
-                                            <textarea name="tour_itinerary_description" data-field="description" class="form-control" rows="3" placeholder="Tham quan, ăn uống, trải nghiệm..."></textarea>
+                                            <textarea name="itinerary_description[]" data-field="description" class="form-control" rows="3" placeholder="Tham quan, ăn uống, trải nghiệm..."></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -177,7 +177,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             </div>
                             <!-- Hidden file inputs to store files for submission -->
                             <input type="file" id="file-input-handler" class="d-none" multiple accept="image/*">
-                            <input type="file" name="image_url" id="gallery-images-input" class="d-none" multiple>
+                            <input type="file" name="image" id="main-image-input" class="d-none">
+                            <input type="file" name="gallery_images[]" id="gallery-images-input" class="d-none" multiple>
 
                             <div id="image-preview-container" class="row g-2 mt-3"></div>
                         </div>
@@ -202,7 +203,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="row g-2">
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Loại dịch vụ</label>
-                                            <select class="form-select" name="service_type" data-field="service_type">
+                                            <select class="form-select" name="partner_service[]" data-field="service_type">
                                                 <option value="hotel">Khách sạn</option>
                                                 <option value="transport">Vận chuyển</option>
                                                 <option value="restaurant">Nhà hàng</option>
@@ -212,15 +213,15 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Đối tác</label>
-                                            <input type="text" class="form-control" name="tour_partners_name" data-field="name" placeholder="The Cliff Resort">
+                                            <input type="text" class="form-control" name="partner_name[]" data-field="name" placeholder="The Cliff Resort">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Liên hệ</label>
-                                            <input type="text" class="form-control" name="tour_partners_contract" data-field="contact" placeholder="Mr A - 098xxx">
+                                            <input type="text" class="form-control" name="partner_contact[]" data-field="contact" placeholder="Mr A - 098xxx">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Ghi chú</label>
-                                            <textarea class="form-control" rows="2" name="tour_partners_notes" data-field="notes" placeholder="Yêu cầu đặt trước 3 ngày..."></textarea>
+                                            <textarea class="form-control" rows="2" name="partner_notes[]" data-field="notes" placeholder="Yêu cầu đặt trước 3 ngày..."></textarea>
                                         </div>
                                     </div>
                                 </div>

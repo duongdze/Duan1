@@ -2,6 +2,20 @@
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
+// Prepare a unified list of images for the new handler
+$allImages = [];
+if (!empty($tour['picture'])) {
+    // The main image is always first and marked as primary
+    $allImages[] = ['url' => $tour['picture'], 'is_primary' => true];
+}
+if (!empty($galleryImages)) {
+    foreach ($galleryImages as $img) {
+        // Ensure we don't add a duplicate if the main image is also in the gallery
+        if ($img['image_url'] !== $tour['picture']) {
+            $allImages[] = ['url' => $img['image_url'], 'is_primary' => false];
+        }
+    }
+}
 ?>
 
 <main class="wrapper">
