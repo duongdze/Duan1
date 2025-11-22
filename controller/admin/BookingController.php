@@ -1,5 +1,4 @@
 <?php
-
 class BookingController
 {
     protected $model;

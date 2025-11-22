@@ -74,7 +74,7 @@ class Booking extends BaseModel
                 FROM {$this->table} AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
                 LEFT JOIN booking_customers AS BC ON B.customer_id = BC.id
-                WHERE B.status = 'cho_xac_nhan'
+                WHERE B.status = 'Chờ xác nhận'
                 ORDER BY B.booking_date DESC, B.id DESC
                 LIMIT " . (int)$limit;
         $stmt = self::$pdo->prepare($sql);
