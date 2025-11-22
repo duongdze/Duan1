@@ -61,14 +61,14 @@ $currentAction = $_GET['action'] ?? '';
                aria-controls="bookingMenu" 
                data-menu-key="bookings" 
                data-collapse-id="bookingMenu">
-                <span><i class="fas fa-calendar-check fa-fw me-2"></i> Quản lý Booking</span>
+                <span><i class="fas fa-calendar-check fa-fw me-2"></i>Booking</span>
                 <i class="fas fa-chevron-down fa-xs"></i>
             </a>
             <div class="collapse <?= isParentActive('bookings') ?>" id="bookingMenu">
                 <ul class="nav flex-column ms-3">
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('bookings') ?>" href="<?= BASE_URL_ADMIN ?>&action=bookings">
-                            <i class="fas fa-list fa-fw me-2"></i> Danh sách Booking
+                            <i class="fas fa-list fa-fw me-2"></i> Quản lý Booking
                         </a>
                     </li>
                     <li class="nav-item">
