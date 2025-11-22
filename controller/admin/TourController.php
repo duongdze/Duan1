@@ -1,7 +1,11 @@
 <?php
+require_once 'models/Tour.php';
+require_once 'models/TourPricing.php';
+require_once 'models/TourItinerary.php';
+require_once 'models/TourPartner.php';
+require_once 'models/TourImage.php';
 require_once 'models/TourCategory.php';
-// require_once 'models/Tour.php';
-// require_once 'models/Supplier.php';
+require_once 'models/Supplier.php';
 
 class TourController
 {
@@ -14,23 +18,55 @@ class TourController
 
     public function index()
     {
-        $filters = [
-            'keyword' => trim($_GET['keyword'] ?? ''),
-            'category_id' => $_GET['category_id'] ?? '',
-            'supplier_id' => $_GET['supplier_id'] ?? '',
-            'date_from' => $_GET['date_from'] ?? '',
-            'date_to' => $_GET['date_to'] ?? '',
-            'sort_by' => $_GET['sort_by'] ?? 'created_at',
-            'sort_dir' => $_GET['sort_dir'] ?? 'desc',
-        ];
-
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-        $perPage = isset($_GET['per_page']) ? max(5, min(50, (int)$_GET['per_page'])) : 10;
+        $perPage = isset($_GET['per_page']) ? max(5, min(50, (int)$_GET['per_page'])) : 12;
 
-        $sortBy = $filters['sort_by'];
-        $sortOrder = $filters['sort_dir'];
+        // Build filters from GET parameters
+        $filters = [];
 
-        $result = $this->model->getFilteredTours($filters, $page, $perPage, $sortBy, $sortOrder);
+        // Search keyword
+        if (!empty($_GET['keyword'])) {
+            $filters['keyword'] = trim($_GET['keyword']);
+        }
+
+        // Category filter
+        if (!empty($_GET['category_id'])) {
+            $filters['category_id'] = (int)$_GET['category_id'];
+        }
+
+        // Supplier filter
+        if (!empty($_GET['supplier_id'])) {
+            $filters['supplier_id'] = (int)$_GET['supplier_id'];
+        }
+
+        // Date range filters
+        if (!empty($_GET['date_from'])) {
+            $filters['date_from'] = $_GET['date_from'];
+        }
+        if (!empty($_GET['date_to'])) {
+            $filters['date_to'] = $_GET['date_to'];
+        }
+
+        // Price range filters
+        if (!empty($_GET['price_min'])) {
+            $filters['price_min'] = (float)$_GET['price_min'];
+        }
+        if (!empty($_GET['price_max'])) {
+            $filters['price_max'] = (float)$_GET['price_max'];
+        }
+
+        // Rating filter
+        if (!empty($_GET['rating_min'])) {
+            $filters['rating_min'] = (float)$_GET['rating_min'];
+        }
+
+        // Sorting
+        if (!empty($_GET['sort_by'])) {
+            $filters['sort_by'] = $_GET['sort_by'];
+            $filters['sort_dir'] = $_GET['sort_dir'] ?? 'DESC';
+        }
+
+        $result = $this->model->getAllTours($page, $perPage, $filters);
         $tours = $result['data'];
         $pagination = [
             'total' => $result['total'],
@@ -39,20 +75,48 @@ class TourController
             'total_pages' => $result['total_pages'],
         ];
 
-        $supplierModel = new Supplier();
-        $suppliers = $supplierModel->select();
-
+        // Get filter options for dropdowns
         $categoryModel = new TourCategory();
         $categories = $categoryModel->select();
 
-        $filters['supplier_id'] = $filters['supplier_id'] !== '' ? (int)$filters['supplier_id'] : '';
-        $filters['category_id'] = $filters['category_id'] !== '' ? (int)$filters['category_id'] : '';
+        $supplierModel = new Supplier();
+        $suppliers = $supplierModel->select();
+
+        // Get statistics for header
+        $stats = $this->getTourStatistics();
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/index.php';
     }
 
+    private function getTourStatistics()
+    {
+        // Total tours
+        $totalTours = $this->model->count();
+
+        // Active tours (ongoing)
+        $activeTours = $this->model->getOngoingTours();
+
+        // Total bookings
+        $bookingModel = new Booking();
+        $totalBookings = $bookingModel->count();
+
+        // Average rating
+        $avgRatingSql = "SELECT ROUND(AVG(rating), 1) as avg_rating FROM tour_feedbacks";
+        $stmt = BaseModel::getPdo()->prepare($avgRatingSql);
+        $stmt->execute();
+        $avgRating = $stmt->fetch()['avg_rating'] ?? 0;
+
+        return [
+            'total_tours' => $totalTours,
+            'active_tours' => $activeTours,
+            'total_bookings' => $totalBookings,
+            'avg_rating' => $avgRating
+        ];
+    }
     public function create()
     {
+
+
         // Load suppliers for supplier dropdown
         $supplierModel = new Supplier();
         $suppliers = $supplierModel->select();
@@ -60,154 +124,84 @@ class TourController
         // Load categories for category dropdown
         $categoryModel = new TourCategory();
         $categories = $categoryModel->select();
+
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/create.php';
     }
 
     public function store()
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return;
-        }
-
-        // Validate input
-        $name = $_POST['name'] ?? '';
-        $category_id = $_POST['category_id'] ?? '';
-        $description = $_POST['description'] ?? '';
-        $base_price = $_POST['base_price'] ?? 0;
-        $policy = $_POST['policy'] ?? '';
-        $supplier_id = !empty($_POST['supplier_id']) ? intval($_POST['supplier_id']) : null;
-
-        if (empty($name) || empty($category_id)) {
-            $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
-            header('Location:' . BASE_URL_ADMIN . '&action=tours/create');
-            return;
+        // Validate required fields
+        $requiredFields = ['name', 'category_id', 'supplier_id', 'base_price'];
+        foreach ($requiredFields as $field) {
+            if (empty($_POST[$field])) {
+                $_SESSION['error'] = "Trường {$field} là bắt buộc.";
+                header('Location: ' . BASE_URL_ADMIN . '&action=tours/create');
+                return;
+            }
         }
 
         try {
-            $imagePath = $this->storeUploadedFile($_FILES['image'] ?? null);
-            $galleryImages = $this->handleGalleryUploads($_FILES['gallery_images'] ?? null);
-            $pricingOptions = $this->buildPricingPayload($_POST);
-            $itinerarySchedule = $this->buildItineraryPayload($_POST);
-            $partnerServices = $this->buildPartnerPayload($_POST);
+            // Prepare tour basic data
+            $tourData = [
+                'name' => trim($_POST['name']),
+                'category_id' => (int)$_POST['category_id'],
+                'supplier_id' => (int)$_POST['supplier_id'],
+                'description' => $_POST['description'] ?? '',
+                'base_price' => (float)$_POST['base_price'],
+                'policy' => $_POST['policy'] ?? '',
+            ];
 
-            $tourId = $this->model->create([
-                'name' => $name,
-                'category_id' => $category_id,
-                'description' => $description,
-                'base_price' => $base_price,
-                'policy' => $policy,
-                'supplier_id' => $supplier_id,
-                'picture' => $imagePath,
-                'pricing_options' => $pricingOptions,
-                'itineraries' => $itinerarySchedule,
-                'partner_services' => $partnerServices,
-                'gallery_images' => $galleryImages,
-            ]);
+            // Handle image uploads
+            $uploadedImages = [];
+            if (!empty($_FILES['image_url']['name'][0])) {
+                $uploadDir = PATH_ROOT . 'assets/uploads/tours/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
 
-            if ($tourId) {
-                $_SESSION['success'] = 'Thêm tour thành công!';
-                header('Location:' . BASE_URL_ADMIN . '&action=tours');
-            } else {
-                throw new Exception('Không thể thêm tour');
+                foreach ($_FILES['image_url']['tmp_name'] as $index => $tmpName) {
+                    if (!empty($tmpName)) {
+                        $originalName = $_FILES['image_url']['name'][$index];
+                        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                        $newName = uniqid('tour_') . '.' . $extension;
+                        $filePath = $uploadDir . $newName;
+
+                        if (move_uploaded_file($tmpName, $filePath)) {
+                            $uploadedImages[] = [
+                                'path' => 'assets/uploads/tours/' . $newName,
+                                'is_main' => ($index === 0) ? true : false
+                            ];
+                        }
+                    }
+                }
             }
+
+            // Parse JSON data from form
+            $pricingOptions = json_decode($_POST['tour_pricing_options'] ?? '[]', true);
+            $itineraries = json_decode($_POST['tour_itinerary'] ?? '[]', true);
+            $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
+
+            // Create tour with all related data
+            $tourId = $this->model->createTour($tourData, $pricingOptions, $itineraries, $partners, $uploadedImages);
+
+            $_SESSION['success'] = 'Tour đã được tạo thành công!';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            exit;
         } catch (Exception $e) {
-            $_SESSION['error'] = 'Có lỗi xảy ra: ' . $e->getMessage();
-            header('Location:' . BASE_URL_ADMIN . '&action=tours/create');
+            $_SESSION['error'] = 'Có lỗi xảy ra khi tạo tour: ' . $e->getMessage();
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours/create');
+            exit;
         }
     }
 
     public function edit()
     {
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
-            header('Location:' . BASE_URL_ADMIN . '&action=tours');
-            return;
-        }
-
-        $tour = $this->model->findById($id);
-        if (!$tour) {
-            $_SESSION['error'] = 'Không tìm thấy tour!';
-            header('Location:' . BASE_URL_ADMIN . '&action=tours');
-            return;
-        }
-
-        // Load suppliers for supplier dropdown
-        $supplierModel = new Supplier();
-        $suppliers = $supplierModel->select();
-
-        // Load categories for category dropdown
-        $categoryModel = new TourCategory();
-        $categories = $categoryModel->select();
-
-        $pricingOptions = $tour['pricing_options'] ?? [];
-        $itinerarySchedule = $tour['itineraries'] ?? [];
-        $partnerServices = $tour['partner_services'] ?? [];
-        $galleryImages = $tour['gallery_images'] ?? [];
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
 
-    public function update()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            return;
-        }
-
-        $id = $_POST['id'] ?? null;
-        if (!$id) {
-            header('Location:' . BASE_URL_ADMIN . '&action=tours');
-            return;
-        }
-
-        // Validate input
-        $name = $_POST['name'] ?? '';
-        $category_id = $_POST['category_id'] ?? '';
-        $description = $_POST['description'] ?? '';
-        $base_price = $_POST['base_price'] ?? 0;
-        $policy = $_POST['policy'] ?? '';
-        $supplier_id = !empty($_POST['supplier_id']) ? intval($_POST['supplier_id']) : null;
-
-        if (empty($name) || empty($category_id)) {
-            $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin!';
-            header('Location:' . BASE_URL_ADMIN . '&action=tours/edit&id=' . $id);
-            return;
-        }
-
-        try {
-            $imagePath = $this->storeUploadedFile($_FILES['image'] ?? null);
-            $galleryImages = $this->handleGalleryUploads($_FILES['gallery_images'] ?? null);
-            $pricingOptions = $this->buildPricingPayload($_POST);
-            $itinerarySchedule = $this->buildItineraryPayload($_POST);
-            $partnerServices = $this->buildPartnerPayload($_POST);
-
-            $updateData = [
-                'name' => $name,
-                'category_id' => $category_id,
-                'description' => $description,
-                'base_price' => $base_price,
-                'policy' => $policy,
-                'supplier_id' => $supplier_id,
-                'picture' => $imagePath,
-                'pricing_options' => $pricingOptions,
-                'itineraries' => $itinerarySchedule,
-                'partner_services' => $partnerServices,
-                'gallery_images' => $galleryImages,
-            ];
-
-            $result = $this->model->updateTour($id, $updateData);
-
-            if ($result) {
-                $_SESSION['success'] = 'Cập nhật tour thành công!';
-                header('Location:' . BASE_URL_ADMIN . '&action=tours');
-            } else {
-                throw new Exception('Không thể cập nhật tour');
-            }
-        } catch (Exception $e) {
-            $_SESSION['error'] = 'Có lỗi xảy ra: ' . $e->getMessage();
-            header('Location:' . BASE_URL_ADMIN . '&action=tours/edit&id=' . $id);
-        }
-    }
+    public function update() {}
 
     public function delete()
     {
@@ -232,171 +226,6 @@ class TourController
     }
     public function detail()
     {
-        $id = $_GET['id'] ?? null;
-        if (!$id) {
-            header('Location: ?action=tours');
-            return;
-        }
-        $tour = $this->model->findById($id);
-        if (!$tour) {
-            $_SESSION['error'] = 'Không tìm thấy tour!';
-            header('Location: ?action=tours');
-            return;
-        }
         require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
-    }
-
-    private function storeUploadedFile(?array $file): ?string
-    {
-        if (empty($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-            return null;
-        }
-
-        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        $origName = $file['name'] ?? '';
-        $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
-        if (empty($ext) || !in_array($ext, $allowed, true)) {
-            throw new Exception('Định dạng ảnh không hợp lệ. Vui lòng tải lên jpg, png, gif hoặc webp.');
-        }
-
-        $uploadDir = PATH_ROOT . 'assets/uploads/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        $newName = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-        $dest = $uploadDir . $newName;
-        if (!move_uploaded_file($file['tmp_name'], $dest)) {
-            throw new Exception('Không thể lưu ảnh. Vui lòng thử lại.');
-        }
-
-        return BASE_ASSETS_UPLOADS . $newName;
-    }
-
-    private function handleGalleryUploads(?array $files): array
-    {
-        if (empty($files) || empty($files['name']) || !is_array($files['name'])) {
-            return [];
-        }
-
-        $images = [];
-        foreach ($files['name'] as $index => $name) {
-            if (empty($name)) {
-                continue;
-            }
-            $singleFile = [
-                'name' => $name,
-                'type' => $files['type'][$index] ?? null,
-                'tmp_name' => $files['tmp_name'][$index] ?? null,
-                'error' => $files['error'][$index] ?? UPLOAD_ERR_NO_FILE,
-                'size' => $files['size'][$index] ?? 0
-            ];
-
-            $path = $this->storeUploadedFile($singleFile);
-            if ($path) {
-                $images[] = $path;
-            }
-        }
-
-        return $images;
-    }
-
-    private function buildPricingPayload(array $request): array
-    {
-        $labels = $request['pricing_label'] ?? [];
-        $prices = $request['pricing_price'] ?? [];
-        $descriptions = $request['pricing_description'] ?? [];
-
-        if (!is_array($labels)) {
-            return [];
-        }
-
-        $entries = [];
-        foreach ($labels as $index => $label) {
-            $label = trim((string) $label);
-            $price = $prices[$index] ?? null;
-            $desc = trim((string)($descriptions[$index] ?? ''));
-
-            if ($label === '' && ($price === null || $price === '')) {
-                continue;
-            }
-
-            $entries[] = [
-                'label' => $label,
-                'price' => is_numeric($price) ? (float)$price : null,
-                'description' => $desc
-            ];
-        }
-
-        return $entries;
-    }
-
-    private function buildItineraryPayload(array $request): array
-    {
-        $days = $request['itinerary_day'] ?? [];
-        $timeStarts = $request['itinerary_time_start'] ?? [];
-        $timeEnds = $request['itinerary_time_end'] ?? [];
-        $titles = $request['itinerary_title'] ?? [];
-        $descriptions = $request['itinerary_description'] ?? [];
-
-        if (!is_array($days)) {
-            return [];
-        }
-
-        $entries = [];
-        foreach ($days as $index => $day) {
-            $title = trim((string)($titles[$index] ?? ''));
-            $description = trim((string)($descriptions[$index] ?? ''));
-            $dayValue = trim((string)$day);
-            $timeStart = trim((string)($timeStarts[$index] ?? ''));
-            $timeEnd = trim((string)($timeEnds[$index] ?? ''));
-
-            if ($dayValue === '' && $title === '' && $description === '') {
-                continue;
-            }
-
-            $entries[] = [
-                'day' => $dayValue !== '' ? $dayValue : null,
-                'time_start' => $timeStart !== '' ? $timeStart : null,
-                'time_end' => $timeEnd !== '' ? $timeEnd : null,
-                'title' => $title,
-                'description' => $description
-            ];
-        }
-
-        return $entries;
-    }
-
-    private function buildPartnerPayload(array $request): array
-    {
-        $services = $request['partner_service'] ?? [];
-        $names = $request['partner_name'] ?? [];
-        $contacts = $request['partner_contact'] ?? [];
-        $notes = $request['partner_notes'] ?? [];
-
-        if (!is_array($services)) {
-            return [];
-        }
-
-        $entries = [];
-        foreach ($services as $index => $service) {
-            $name = trim((string)($names[$index] ?? ''));
-            $contact = trim((string)($contacts[$index] ?? ''));
-            $note = trim((string)($notes[$index] ?? ''));
-            $serviceType = trim((string)$service) ?: 'other';
-
-            if ($name === '' && $contact === '' && $note === '') {
-                continue;
-            }
-
-            $entries[] = [
-                'service_type' => $serviceType,
-                'name' => $name,
-                'contact' => $contact,
-                'notes' => $note
-            ];
-        }
-
-        return $entries;
     }
 }
