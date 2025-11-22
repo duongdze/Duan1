@@ -184,54 +184,93 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         <div class="tour-grid">
                             <?php foreach ($tours as $tour) : ?>
                                 <div class="tour-card">
-                                    <div class="tour-image">
-                                        <?php
-                                        $imageUrl = $tour['main_image'] ?: 'assets/admin/image/no-image.png';
-                                        $imagePath = PATH_ROOT . $imageUrl;
-                                        if (!file_exists($imagePath) || empty($tour['main_image'])) {
-                                            $imageUrl = 'assets/admin/image/no-image.png';
-                                        }
-                                        ?>
-                                        <img src="<?= BASE_URL . $imageUrl ?>" alt="<?= htmlspecialchars($tour['name']) ?>" class="img-fluid">
-                                        <div class="tour-overlay">
-                                            <div class="tour-actions">
-                                                <a href="<?= BASE_URL_ADMIN . '&action=tours/detail&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-light me-1" title="Xem chi tiết">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="<?= BASE_URL_ADMIN . '&action=tours/edit&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-light me-1" title="Chỉnh sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <a href="<?= BASE_URL_ADMIN . '&action=tours/delete&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-danger" title="Xóa" onclick="return confirm('Bạn có chắc muốn xóa tour này?')">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
-                                            </div>
+                                    <!-- Gallery Section -->
+                                    <div class="tour-gallery">
+                                        <!-- Main Large Image -->
+                                        <div class="tour-main-image">
+                                            <?php
+                                            $imageUrl = $tour['main_image'] ?: 'assets/admin/image/no-image.png';
+                                            $imagePath = PATH_ROOT . $imageUrl;
+                                            if (!file_exists($imagePath) || empty($tour['main_image'])) {
+                                                $imageUrl = 'assets/admin/image/no-image.png';
+                                            }
+                                            ?>
+                                            <img src="<?= BASE_URL . $imageUrl ?>" alt="<?= htmlspecialchars($tour['name']) ?>" class="img-fluid">
+                                        </div>
+                                        
+                                        <!-- Small Gallery Images -->
+                                        <div class="tour-gallery-images">
+                                            <?php
+                                            // Get gallery images (you can modify this to fetch from database)
+                                            $galleryImages = [];
+                                            if (!empty($tour['gallery_images'])) {
+                                                $galleryImages = is_array($tour['gallery_images']) 
+                                                    ? $tour['gallery_images'] 
+                                                    : json_decode($tour['gallery_images'], true);
+                                            }
+                                            
+                                            // If no gallery images, use placeholder images
+                                            if (empty($galleryImages)) {
+                                                $galleryImages = [
+                                                    $imageUrl,
+                                                    $imageUrl,
+                                                    $imageUrl
+                                                ];
+                                            }
+                                            
+                                            // Display up to 4 small images
+                                            $maxImages = min(4, count($galleryImages));
+                                            for ($i = 0; $i < $maxImages; $i++) :
+                                                $galleryImgUrl = $galleryImages[$i];
+                                                $galleryImgPath = PATH_ROOT . $galleryImgUrl;
+                                                if (!file_exists($galleryImgPath)) {
+                                                    $galleryImgUrl = 'assets/admin/image/no-image.png';
+                                                }
+                                            ?>
+                                                <div class="gallery-small-image">
+                                                    <img src="<?= BASE_URL . $galleryImgUrl ?>" alt="Gallery <?= $i + 1 ?>">
+                                                </div>
+                                            <?php endfor; ?>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Tour Information -->
                                     <div class="tour-content">
-                                        <h6 class="tour-title"><?= htmlspecialchars($tour['name']) ?></h6>
-                                        <div class="tour-meta">
-                                            <span class="badge bg-primary mb-2"><?= htmlspecialchars($tour['category_name']) ?></span>
-                                            <div class="tour-supplier">
-                                                <i class="fas fa-building me-1"></i>
-                                                <?= htmlspecialchars($tour['supplier_name'] ?: '---') ?>
+                                        <div class="tour-header">
+                                            <h6 class="tour-title">📍 <?= htmlspecialchars($tour['name']) ?></h6>
+                                            <span class="badge bg-primary">🏷️ <?= htmlspecialchars($tour['category_name']) ?></span>
+                                        </div>
+                                        
+                                        <div class="tour-rating">
+                                            <span class="rating-stars">⭐ <?= number_format($tour['avg_rating'], 1) ?></span>
+                                            <span class="rating-count">(<?= number_format($tour['booking_count']) ?> đánh giá)</span>
+                                        </div>
+                                        
+                                        <div class="tour-details">
+                                            <div class="detail-row">
+                                                <span class="tour-price">💰 <?= number_format($tour['base_price'], 0, ',', '.') ?> VNĐ</span>
+                                                <span class="tour-capacity">👥 <?= number_format($tour['availability_percentage'], 0) ?>% chỗ</span>
+                                            </div>
+                                            
+                                            <div class="detail-row">
+                                                <span class="tour-date">📅 <?= date('d/m/Y', strtotime($tour['created_at'] ?? 'now')) ?></span>
+                                            </div>
+                                            
+                                            <div class="detail-row">
+                                                <span class="tour-hotel">🏨 <?= htmlspecialchars($tour['supplier_name'] ?: 'Hotel Sun') ?></span>
                                             </div>
                                         </div>
-                                        <div class="tour-stats">
-                                            <div class="stat-item">
-                                                <i class="fas fa-star text-warning"></i>
-                                                <span><?= number_format($tour['avg_rating'], 1) ?></span>
-                                            </div>
-                                            <div class="stat-item">
-                                                <i class="fas fa-calendar-check text-info"></i>
-                                                <span><?= number_format($tour['booking_count']) ?></span>
-                                            </div>
-                                            <div class="stat-item">
-                                                <i class="fas fa-percentage text-success"></i>
-                                                <span><?= number_format($tour['availability_percentage'], 1) ?>%</span>
-                                            </div>
-                                        </div>
-                                        <div class="tour-price">
-                                            <strong><?= number_format($tour['base_price'], 0, ',', '.') ?> VNĐ</strong>
+                                        
+                                        <div class="tour-actions">
+                                            <a href="<?= BASE_URL_ADMIN . '&action=tours/detail&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                👁️ Xem
+                                            </a>
+                                            <a href="<?= BASE_URL_ADMIN . '&action=tours/edit&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-warning" title="Chỉnh sửa">
+                                                ✏️ Sửa
+                                            </a>
+                                            <a href="<?= BASE_URL_ADMIN . '&action=tours/delete&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-danger" title="Xóa" onclick="return confirm('Bạn có chắc muốn xóa tour này?')">
+                                                🗑️ Xóa
+                                            </a>
                                         </div>
                                     </div>
                                 </div>

@@ -26,7 +26,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
-        <form method="POST" action="?mode=admin&action=bookings/store" class="booking-form">
+        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=bookings/store" class="booking-form">
             <div class="row g-3">
                 <!-- Left Column -->
                 <div class="col-lg-6">

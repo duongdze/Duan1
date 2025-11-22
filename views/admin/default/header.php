@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/bootstrap.css">
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/admin-dashboard.css">
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/sidebar.css">
+    <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/tours.css">
     <!-- <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/style.css"> -->
 </head>
 

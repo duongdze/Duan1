@@ -47,7 +47,7 @@ $currentAction = $_GET['action'] ?? '';
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= isActive('tours') ?>" href="<?= BASE_URL_ADMIN ?>&action=tour_category">
+                        <a class="nav-link <?= isActive('tour_category') ?>" href="<?= BASE_URL_ADMIN ?>&action=tour_category">
                             <i class="fas fa-list fa-fw me-2"></i> Danh mục Tour
                         </a>
                     </li>

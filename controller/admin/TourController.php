@@ -1,12 +1,4 @@
 <?php
-require_once 'models/Tour.php';
-require_once 'models/TourPricing.php';
-require_once 'models/TourItinerary.php';
-require_once 'models/TourPartner.php';
-require_once 'models/TourImage.php';
-require_once 'models/TourCategory.php';
-require_once 'models/Supplier.php';
-
 class TourController
 {
     protected $model;
@@ -155,7 +147,8 @@ class TourController
             // Handle image uploads
             $uploadedImages = [];
             if (!empty($_FILES['image_url']['name'][0])) {
-                $uploadDir = PATH_ROOT . 'assets/uploads/tours/';
+                // Use PATH_ASSETS_UPLOADS for file system operations
+                $uploadDir = PATH_ASSETS_UPLOADS . 'tours/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
@@ -169,7 +162,9 @@ class TourController
 
                         if (move_uploaded_file($tmpName, $filePath)) {
                             $uploadedImages[] = [
-                                'path' => 'assets/uploads/tours/' . $newName,
+                                // Store only the relative path from uploads directory
+                                // BASE_ASSETS_UPLOADS will be prepended when displaying
+                                'path' => 'tours/' . $newName,
                                 'is_main' => ($index === 0) ? true : false
                             ];
                         }

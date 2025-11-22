@@ -15,7 +15,7 @@ define('BASE_ASSETS_ADMIN',         BASE_URL . 'assets/admin/');
 define('BASE_ASSETS_CLIENT',        BASE_URL . 'assets/client/');
 define('BASE_ASSETS_UPLOADS',       BASE_URL . 'assets/uploads/');
 
-define('PATH_ASSETS_UPLOADS',       BASE_URL . 'assets/uploads/');
+define('PATH_ASSETS_UPLOADS',       PATH_ROOT . 'assets/uploads/');
 
 define('PATH_CONTROLLER_ADMIN',     PATH_ROOT . 'controller/admin/');
 define('PATH_CONTROLLER_CLIENT',    PATH_ROOT . 'controller/client/');
