@@ -44,7 +44,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <option value="">-- Chọn khách hàng --</option>
                                     <?php if (!empty($customers)): ?>
                                         <?php foreach ($customers as $c): ?>
-                                            <option value="<?= htmlspecialchars($c['id']) ?>">
+                                            <option value="<?= htmlspecialchars($c['user_id']) ?>">
                                                 <?= htmlspecialchars($c['full_name']) ?> (<?= htmlspecialchars($c['email']) ?>)
                                             </option>
                                         <?php endforeach; ?>
