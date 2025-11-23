@@ -183,93 +183,89 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     <?php if (!empty($tours)) : ?>
                         <div class="tour-grid">
                             <?php foreach ($tours as $tour) : ?>
+                                <?php
+                                // Prepare images
+                                $galleryImages = [];
+                                if (!empty($tour['gallery_images'])) {
+                                    $galleryImages = array_values(array_filter(array_map('trim', explode(',', $tour['gallery_images']))));
+                                }
+                                if (empty($galleryImages) && !empty($tour['main_image'])) {
+                                    $galleryImages = [$tour['main_image']];
+                                }
+                                $mainImage = $galleryImages[0] ?? ($tour['main_image'] ?? null);
+                                $thumbs = array_slice($galleryImages, 1);
+                                $totalImages = count($galleryImages);
+                                $maxThumbs = 3;
+                                $thumbsToShow = array_slice($thumbs, 0, $maxThumbs);
+                                $remaining = max(0, $totalImages - 1 - count($thumbsToShow));
+                                ?>
+
                                 <div class="tour-card">
-                                    <!-- Gallery Section -->
-                                    <div class="tour-gallery">
-                                        <!-- Main Large Image -->
-                                        <div class="tour-main-image">
-                                            <?php
-                                            // Use main_image from tours table with BASE_ASSETS_UPLOADS
-                                            if (!empty($tour['main_image'])) {
-                                                $imageUrl = BASE_ASSETS_UPLOADS . $tour['main_image'];
-                                            } else {
-                                                $imageUrl = BASE_URL . 'assets/admin/image/no-image.png';
-                                            }
-                                            ?>
-                                            <img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($tour['name']) ?>" class="img-fluid">
-                                        </div>
-                                        
-                                        <!-- Small Gallery Images -->
-                                        <div class="tour-gallery-images">
-                                            <?php
-                                            // Get gallery images from tour_gallery_images (GROUP_CONCAT)
-                                            $galleryImages = [];
-                                            if (!empty($tour['gallery_images'])) {
-                                                $galleryImages = explode(',', $tour['gallery_images']);
-                                            }
-                                            
-                                            // If no gallery images, use main image as placeholders
-                                            if (empty($galleryImages)) {
-                                                $placeholderPath = !empty($tour['main_image']) ? $tour['main_image'] : '';
-                                                $galleryImages = array_fill(0, 3, $placeholderPath);
-                                            }
-                                            
-                                            // Display up to 4 small images
-                                            $maxImages = min(4, count($galleryImages));
-                                            for ($i = 0; $i < $maxImages; $i++) :
-                                                $imagePath = trim($galleryImages[$i]);
-                                                
-                                                // Use BASE_ASSETS_UPLOADS for gallery images
-                                                if (!empty($imagePath)) {
-                                                    $galleryImgUrl = BASE_ASSETS_UPLOADS . $imagePath;
+                                    <div class="tour-card-inner">
+                                        <div class="tour-gallery">
+                                            <div class="tour-main">
+                                                <?php if ($mainImage) :
+                                                    $mainUrl = BASE_ASSETS_UPLOADS . $mainImage;
+                                                else:
+                                                    $mainUrl = BASE_URL . 'assets/admin/image/no-image.png';
+                                                endif; ?>
+                                                <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name']) ?>">
+                                                <span class="badge-top"><?= htmlspecialchars($tour['category_name'] ?? '') ?></span>
+                                                <?php
+                                                $price = $tour['base_price'] ?? 0;
+                                                if ($price >= 1000000000) {
+                                                    $priceShort = round($price / 1000000000, ($price / 1000000000) >= 10 ? 0 : 1) . ' tỷ';
+                                                } elseif ($price >= 1000000) {
+                                                    $priceShort = round($price / 1000000, 1) . ' tr';
                                                 } else {
-                                                    $galleryImgUrl = BASE_URL . 'assets/admin/image/no-image.png';
+                                                    $priceShort = number_format($price, 0, ',', '.') . 'đ';
                                                 }
-                                            ?>
-                                                <div class="gallery-small-image">
-                                                    <img src="<?= $galleryImgUrl ?>" alt="Gallery <?= $i + 1 ?>">
+                                                ?>
+                                                <span class="price-badge"><?= $priceShort ?></span>
+                                            </div>
+
+                                            <?php if (!empty($thumbsToShow)) : ?>
+                                                <div class="tour-thumbs">
+                                                    <?php foreach ($thumbsToShow as $i => $timg):
+                                                        $turl = !empty($timg) ? BASE_ASSETS_UPLOADS . $timg : BASE_URL . 'assets/admin/image/no-image.png';
+                                                    ?>
+                                                        <div class="thumb-item">
+                                                            <img src="<?= $turl ?>" alt="thumb-<?= $i ?>">
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                    <?php if ($remaining > 0) : ?>
+                                                        <div class="thumb-item more">+<?= $remaining ?></div>
+                                                    <?php endif; ?>
                                                 </div>
-                                            <?php endfor; ?>
+                                            <?php endif; ?>
                                         </div>
-                                    </div>
-                                    
-                                    <!-- Tour Information -->
-                                    <div class="tour-content">
-                                        <div class="tour-header">
-                                            <h6 class="tour-title">📍 <?= htmlspecialchars($tour['name']) ?></h6>
-                                            <span class="badge bg-primary">🏷️ <?= htmlspecialchars($tour['category_name']) ?></span>
-                                        </div>
-                                        
-                                        <div class="tour-rating">
-                                            <span class="rating-stars">⭐ <?= number_format($tour['avg_rating'], 1) ?></span>
-                                            <span class="rating-count">(<?= number_format($tour['booking_count']) ?> đánh giá)</span>
-                                        </div>
-                                        
-                                        <div class="tour-details">
-                                            <div class="detail-row">
-                                                <span class="tour-price">💰 <?= number_format($tour['base_price'], 0, ',', '.') ?> VNĐ</span>
-                                                <span class="tour-capacity">👥 <?= number_format($tour['availability_percentage'], 0) ?>% chỗ</span>
+
+                                        <div class="tour-info">
+                                            <div class="title-row">
+                                                <h5 class="tour-title"><?= htmlspecialchars($tour['name']) ?></h5>
                                             </div>
-                                            
-                                            <div class="detail-row">
-                                                <span class="tour-date">📅 <?= date('d/m/Y', strtotime($tour['created_at'] ?? 'now')) ?></span>
+
+                                            <div class="meta-row">
+                                                <div class="rating"><i class="fas fa-star text-warning"></i> <?= number_format($tour['avg_rating'] ?? 0, 1) ?> <small class="text-muted">(<?= number_format($tour['booking_count'] ?? 0) ?>)</small></div>
+                                                <div class="tour-price"><?= number_format($tour['base_price'] ?? 0, 0, ',', '.') ?> VNĐ</div>
                                             </div>
-                                            
+
                                             <div class="detail-row">
-                                                <span class="tour-hotel">🏨 <?= htmlspecialchars($tour['supplier_name'] ?: 'Hotel Sun') ?></span>
+                                                <div class="tour-date">
+                                                    <i class="fas fa-calendar-alt icon-i" aria-hidden="true"></i>
+                                                    <?= date('d/m/Y', strtotime($tour['created_at'] ?? 'now')) ?>
+                                                </div>
+                                                <div class="tour-hotel">
+                                                    <i class="fas fa-building icon-i" aria-hidden="true"></i>
+                                                    <?= htmlspecialchars($tour['supplier_name'] ?? '') ?>
+                                                </div>
                                             </div>
-                                        </div>
-                                        
-                                        <div class="tour-actions">
-                                            <a href="<?= BASE_URL_ADMIN . '&action=tours/detail&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
-                                                👁️ Xem
-                                            </a>
-                                            <a href="<?= BASE_URL_ADMIN . '&action=tours/edit&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-warning" title="Chỉnh sửa">
-                                                ✏️ Sửa
-                                            </a>
-                                            <a href="<?= BASE_URL_ADMIN . '&action=tours/delete&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-danger" title="Xóa" onclick="return confirm('Bạn có chắc muốn xóa tour này?')">
-                                                🗑️ Xóa
-                                            </a>
+
+                                            <div class="tour-actions">
+                                                <a href="<?= BASE_URL_ADMIN . '&action=tours/detail&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-primary">Xem</a>
+                                                <a href="<?= BASE_URL_ADMIN . '&action=tours/edit&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-warning">Sửa</a>
+                                                <a href="<?= BASE_URL_ADMIN . '&action=tours/delete&id=' . $tour['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc muốn xóa tour này?')">Xóa</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

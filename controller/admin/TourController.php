@@ -180,28 +180,16 @@ class TourController
             // Create tour with all related data
             $tourId = $this->model->createTour($tourData, $pricingOptions, $itineraries, $partners, $uploadedImages);
 
-            // Save images to tours.main_image and tour_gallery_images table
+            // Update tours.main_image only (images were already inserted inside createTour)
             if (!empty($uploadedImages) && $tourId) {
-                $tourImageModel = new TourImage();
                 $mainImagePath = null;
-
-                foreach ($uploadedImages as $index => $image) {
-                    // Save to tour_gallery_images table
-                    $tourImageModel->insert([
-                        'tour_id' => $tourId,
-                        'image_url' => $image['path'],
-                        'caption' => '',
-                        'main_img' => $image['is_main'] ? 1 : 0,
-                        'sort_order' => $index + 1
-                    ]);
-
-                    // Store main image path for tours table
-                    if ($image['is_main']) {
+                foreach ($uploadedImages as $image) {
+                    if (!empty($image['is_main'])) {
                         $mainImagePath = $image['path'];
+                        break;
                     }
                 }
 
-                // Update tours.main_image with first image
                 if ($mainImagePath) {
                     $this->model->update(
                         ['main_image' => $mainImagePath],
@@ -238,7 +226,7 @@ class TourController
         }
 
         try {
-            $result = $this->model->deleteById($id);
+            $result = $this->model->removeTour($id);
             if ($result) {
                 $_SESSION['success'] = 'Xóa tour thành công!';
             } else {
