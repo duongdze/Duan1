@@ -32,6 +32,7 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('tours') ? 'active' : '' ?>"
                 href="#" role="button"
+                data-bs-toggle="collapse" data-bs-target="#tourMenu"
                 aria-expanded="<?= isParentActive('tours') ? 'true' : 'false' ?>"
                 aria-controls="tourMenu"
                 data-menu-key="tours"
@@ -47,13 +48,23 @@ $currentAction = $_GET['action'] ?? '';
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link <?= isActive('tours/logs') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours/logs">
+                            <i class="fas fa-book fa-fw me-2"></i> Nhật ký Tour
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('tours/history') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours/history">
+                            <i class="fas fa-history fa-fw me-2"></i> Lịch sử Tour
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link <?= isActive('tour_category') ?>" href="<?= BASE_URL_ADMIN ?>&action=tour_category">
                             <i class="fas fa-list fa-fw me-2"></i> Danh mục Tour
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('tours/create') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours/create">
-                            <i class="fas fa-clock-history fa-fw me-2"></i> Nhật ký Tour
+                            <i class="fas fa-plus-circle fa-fw me-2"></i> Thêm Tour
                         </a>
                     </li>
                 </ul>
@@ -62,12 +73,13 @@ $currentAction = $_GET['action'] ?? '';
 
         <!-- Phần Booking -->
         <li class="nav-item">
-            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('bookings') ? 'active' : '' ?>" 
-               href="#" role="button" 
-               aria-expanded="<?= isParentActive('bookings') ? 'true' : 'false' ?>" 
-               aria-controls="bookingMenu" 
-               data-menu-key="bookings" 
-               data-collapse-id="bookingMenu">
+            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('bookings') ? 'active' : '' ?>"
+                href="#" role="button"
+                data-bs-toggle="collapse" data-bs-target="#bookingMenu"
+                aria-expanded="<?= isParentActive('bookings') ? 'true' : 'false' ?>"
+                aria-controls="bookingMenu"
+                data-menu-key="bookings"
+                data-collapse-id="bookingMenu">
                 <span><i class="fas fa-calendar-check fa-fw me-2"></i>Booking</span>
                 <i class="fas fa-chevron-down fa-xs"></i>
             </a>

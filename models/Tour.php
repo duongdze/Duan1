@@ -12,7 +12,7 @@ class Tour extends BaseModel
         'base_price',
         'policy',
         'supplier_id',
-        'picture',
+        // 'picture' removed to match DB schema (use tour_gallery_images)
         'created_at',
         'updated_at'
     ];
@@ -90,6 +90,8 @@ class Tour extends BaseModel
         if (!empty($filters['sort_by'])) {
             $sortBy = $filters['sort_by'];
             $sortDir = strtoupper($filters['sort_dir'] ?? 'DESC');
+            // Sanitize sort direction to avoid SQL injection risk
+            $sortDir = in_array($sortDir, ['ASC', 'DESC']) ? $sortDir : 'DESC';
 
             switch ($sortBy) {
                 case 'name':
@@ -196,7 +198,7 @@ class Tour extends BaseModel
 
     public function createTour($tourData, $pricingOptions = [], $itineraries = [], $partners = [], $uploadedImages = [])
     {
-        self::$pdo->beginTransaction(); // BẮT ĐẦU TRANSACTION
+        $this->beginTransaction(); // BẮT ĐẦU TRANSACTION
         try {
             // 1. INSERT TOUR CƠ BẢN
             $tourId = $this->insert($tourData);
@@ -210,6 +212,7 @@ class Tour extends BaseModel
                         'label' => $option['label'] ?? '',
                         'price' => $option['price'] ?? 0,
                         'description' => $option['description'] ?? '',
+                        'created_at' => date('Y-m-d H:i:s'),
                     ]);
                 }
             }
@@ -262,14 +265,15 @@ class Tour extends BaseModel
                         'partner_name' => $partner['name'] ?? '',
                         'contact' => $partner['contact'] ?? '',
                         'notes' => $partner['notes'] ?? '',
+                        'created_at' => date('Y-m-d H:i:s'),
                     ]);
                 }
             }
 
-            self::$pdo->commit(); // COMMIT TRANSACTION
+            $this->commit(); // COMMIT TRANSACTION
             return $tourId;
         } catch (Exception $e) {
-            self::$pdo->rollBack(); // ROLLBACK NẾU CÓ LỖI
+            $this->rollBack(); // ROLLBACK NẾU CÓ LỖI
             throw $e;
         }
     }
@@ -278,6 +282,66 @@ class Tour extends BaseModel
     public function deleteById($id)
     {
         return $this->delete('id = :id', ['id' => $id]);
+    }
+
+    /**
+     * Remove a tour and all related data and files safely inside a transaction.
+     * Returns true on success, false otherwise.
+     */
+    public function removeTour($id)
+    {
+        $this->beginTransaction();
+        try {
+            // Load related models
+            $imageModel = new TourImage();
+            $pricingModel = new TourPricing();
+            $itineraryModel = new TourItinerary();
+            $partnerModel = new TourPartner();
+            $versionModel = new TourVersion();
+            $bookingModel = new Booking();
+            $bookingCustomerModel = new BookingCustomer();
+
+            // 1. Delete image files from disk
+            $images = $imageModel->getByTourId($id);
+            foreach ($images as $img) {
+                $path = PATH_ASSETS_UPLOADS . ($img['image_url'] ?? '');
+                if (!empty($img['image_url']) && file_exists($path)) {
+                    @unlink($path);
+                }
+            }
+
+            // also attempt to delete main_image file from tours table
+            $tour = $this->find('*', 'id = :id', ['id' => $id]);
+            if ($tour && !empty($tour['main_image'])) {
+                $mainPath = PATH_ASSETS_UPLOADS . $tour['main_image'];
+                if (file_exists($mainPath)) {
+                    @unlink($mainPath);
+                }
+            }
+
+            // 2. Delete DB records in dependent tables
+            $imageModel->deleteByTourId($id);
+            $pricingModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+            $itineraryModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+            $partnerModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+            $versionModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+
+            // 3. Delete bookings and their customers
+            $bookings = $bookingModel->select('*', 'tour_id = :tour_id', ['tour_id' => $id]);
+            foreach ($bookings as $b) {
+                $bookingCustomerModel->deleteByBooking($b['id']);
+                $bookingModel->delete('id = :id', ['id' => $b['id']]);
+            }
+
+            // 4. Finally delete the tour record itself
+            $this->delete('id = :id', ['id' => $id]);
+
+            $this->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->rollBack();
+            throw $e;
+        }
     }
 
     public function getOngoingTours()
