@@ -11,6 +11,7 @@
 <script src="<?= BASE_ASSETS_ADMIN ?>/js/sidebar.js"></script>
 <script src="<?= BASE_ASSETS_ADMIN ?>/js/main.js"></script>
 <script src="<?= BASE_ASSETS_ADMIN ?>/js/booking.js"></script>
+<script src="<?= BASE_ASSETS_ADMIN ?>/js/tours-create.js"></script>
 </body>
 
 </html>

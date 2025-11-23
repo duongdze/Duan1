@@ -52,7 +52,7 @@
 /* Small Gallery Images */
 .tour-gallery-images {
     display: grid;
-    grid-template-rows: repeat(auto-fit, minmax(0, 1fr));
+    grid-template-rows: repeat(3, 1fr);
     gap: 8px;
     height: 100%;
 }
@@ -186,7 +186,7 @@
     .tour-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .tour-gallery {
         height: 250px;
     }
@@ -198,7 +198,7 @@
         grid-template-rows: 200px auto;
         height: auto;
     }
-    
+
     .tour-gallery-images {
         grid-template-columns: repeat(4, 1fr);
         grid-template-rows: 60px;

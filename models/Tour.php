@@ -134,7 +134,8 @@ class Tour extends BaseModel
                     tc.name as category_name,
                     COALESCE(tf.avg_rating, 0) as avg_rating,
                     COALESCE(tb.booking_count, 0) as booking_count,
-                    COALESCE(ti.main_image, '') as main_image,
+                    t.main_image,
+                    GROUP_CONCAT(tgi.image_url ORDER BY tgi.sort_order SEPARATOR ',') as gallery_images,
                     0 as availability_percentage
                 FROM {$this->table} AS t
                 LEFT JOIN `suppliers` AS s ON t.supplier_id = s.id
@@ -149,13 +150,9 @@ class Tour extends BaseModel
                     FROM bookings
                     GROUP BY tour_id
                 ) tb ON t.id = tb.tour_id
-                LEFT JOIN (
-                    SELECT tour_id, MIN(image_url) as main_image
-                    FROM tour_gallery_images
-                    WHERE main_img = 1
-                    GROUP BY tour_id
-                ) ti ON t.id = ti.tour_id
+                LEFT JOIN `tour_gallery_images` tgi ON t.id = tgi.tour_id
                 $whereClause
+                GROUP BY t.id, s.id, s.name, tc.name, tf.avg_rating, tb.booking_count, t.main_image
                 ORDER BY $orderBy
                 LIMIT :limit OFFSET :offset";
 

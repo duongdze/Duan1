@@ -189,46 +189,45 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <!-- Main Large Image -->
                                         <div class="tour-main-image">
                                             <?php
-                                            $imageUrl = $tour['main_image'] ?: 'assets/admin/image/no-image.png';
-                                            $imagePath = PATH_ROOT . $imageUrl;
-                                            if (!file_exists($imagePath) || empty($tour['main_image'])) {
-                                                $imageUrl = 'assets/admin/image/no-image.png';
+                                            // Use main_image from tours table with BASE_ASSETS_UPLOADS
+                                            if (!empty($tour['main_image'])) {
+                                                $imageUrl = BASE_ASSETS_UPLOADS . $tour['main_image'];
+                                            } else {
+                                                $imageUrl = BASE_URL . 'assets/admin/image/no-image.png';
                                             }
                                             ?>
-                                            <img src="<?= BASE_URL . $imageUrl ?>" alt="<?= htmlspecialchars($tour['name']) ?>" class="img-fluid">
+                                            <img src="<?= $imageUrl ?>" alt="<?= htmlspecialchars($tour['name']) ?>" class="img-fluid">
                                         </div>
                                         
                                         <!-- Small Gallery Images -->
                                         <div class="tour-gallery-images">
                                             <?php
-                                            // Get gallery images (you can modify this to fetch from database)
+                                            // Get gallery images from tour_gallery_images (GROUP_CONCAT)
                                             $galleryImages = [];
                                             if (!empty($tour['gallery_images'])) {
-                                                $galleryImages = is_array($tour['gallery_images']) 
-                                                    ? $tour['gallery_images'] 
-                                                    : json_decode($tour['gallery_images'], true);
+                                                $galleryImages = explode(',', $tour['gallery_images']);
                                             }
                                             
-                                            // If no gallery images, use placeholder images
+                                            // If no gallery images, use main image as placeholders
                                             if (empty($galleryImages)) {
-                                                $galleryImages = [
-                                                    $imageUrl,
-                                                    $imageUrl,
-                                                    $imageUrl
-                                                ];
+                                                $placeholderPath = !empty($tour['main_image']) ? $tour['main_image'] : '';
+                                                $galleryImages = array_fill(0, 3, $placeholderPath);
                                             }
                                             
                                             // Display up to 4 small images
                                             $maxImages = min(4, count($galleryImages));
                                             for ($i = 0; $i < $maxImages; $i++) :
-                                                $galleryImgUrl = $galleryImages[$i];
-                                                $galleryImgPath = PATH_ROOT . $galleryImgUrl;
-                                                if (!file_exists($galleryImgPath)) {
-                                                    $galleryImgUrl = 'assets/admin/image/no-image.png';
+                                                $imagePath = trim($galleryImages[$i]);
+                                                
+                                                // Use BASE_ASSETS_UPLOADS for gallery images
+                                                if (!empty($imagePath)) {
+                                                    $galleryImgUrl = BASE_ASSETS_UPLOADS . $imagePath;
+                                                } else {
+                                                    $galleryImgUrl = BASE_URL . 'assets/admin/image/no-image.png';
                                                 }
                                             ?>
                                                 <div class="gallery-small-image">
-                                                    <img src="<?= BASE_URL . $galleryImgUrl ?>" alt="Gallery <?= $i + 1 ?>">
+                                                    <img src="<?= $galleryImgUrl ?>" alt="Gallery <?= $i + 1 ?>">
                                                 </div>
                                             <?php endfor; ?>
                                         </div>
