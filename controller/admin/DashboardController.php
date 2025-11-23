@@ -1,7 +1,11 @@
 <?php
-
 class DashboardController
 {
+    protected $model;
+    public function __construct()
+    {
+        $this->model = new Booking();
+    }
     public function index()
     {
         // Kiểm tra quyền: chỉ admin và hdv (qtv) được truy cập
@@ -26,12 +30,17 @@ class DashboardController
         // Khách hàng mới (trong tháng)
         $newCustomers = $bookingModel->getNewCustomersThisMonth($currentMonth, $currentYear);
 
+        // Booking chờ xác nhận
+        $bookings = $this->model->getAll();
+        $pendingBookings = $bookingModel->getRecentPendingBookings(5);
+
         // Truyền dữ liệu sang view
         $data = [
             'monthlyRevenue' => $monthlyRevenue,
             'newBookings' => $newBookings,
             'ongoingTours' => $ongoingTours,
-            'newCustomers' => $newCustomers
+            'newCustomers' => $newCustomers,
+            'pendingBookings' => $pendingBookings
         ];
 
         require_once PATH_VIEW_ADMIN . 'default/header.php';

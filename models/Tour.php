@@ -7,15 +7,12 @@ class Tour extends BaseModel
     protected $columns = [
         'id',
         'name',
-        'type',
+        'category_id',
         'description',
         'base_price',
         'policy',
         'supplier_id',
-        'pricing_options',
-        'itinerary_schedule',
-        'partner_services',
-        'gallery_images',
+        'picture',
         'created_at',
         'updated_at'
     ];
@@ -26,81 +23,145 @@ class Tour extends BaseModel
     }
 
     /**
-     * Return all tours
+     * Return all tours with pagination, filtering and advanced data
+     * @param int $page
+     * @param int $perPage
+     * @param array $filters
      * @return array
      */
-    public function getAll()
-    {
-        $sql = "SELECT t.*, s.id AS supplier_id, s.name AS supplier_name
-                FROM {$this->table} AS t
-                LEFT JOIN `suppliers` AS s ON t.supplier_id = s.id";
-        $stmt = self::$pdo->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function getFilteredTours(array $filters = [], int $page = 1, int $perPage = 10, string $sortBy = 'created_at', string $sortOrder = 'DESC'): array
+    public function getAllTours($page = 1, $perPage = 10, $filters = [])
     {
         $page = max(1, (int)$page);
         $perPage = max(5, min(50, (int)$perPage));
         $offset = ($page - 1) * $perPage;
 
-        // Validate sort column
-        $allowedSortColumns = ['name', 'type', 'base_price', 'created_at', 'updated_at'];
-        $sortBy = in_array($sortBy, $allowedSortColumns) ? $sortBy : 'created_at';
-        $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
-
-        $conditions = [];
+        // Build WHERE conditions
+        $whereConditions = [];
         $params = [];
 
+        // Keyword search
         if (!empty($filters['keyword'])) {
-            $conditions[] = 't.name LIKE :keyword';
-            $params['keyword'] = '%' . $filters['keyword'] . '%';
+            $whereConditions[] = "(t.name LIKE :keyword OR t.description LIKE :keyword OR s.name LIKE :keyword)";
+            $params[':keyword'] = '%' . $filters['keyword'] . '%';
         }
 
-        if (!empty($filters['type'])) {
-            $conditions[] = 't.type = :type';
-            $params['type'] = $filters['type'];
+        // Category filter
+        if (!empty($filters['category_id'])) {
+            $whereConditions[] = "t.category_id = :category_id";
+            $params[':category_id'] = $filters['category_id'];
         }
 
+        // Supplier filter
         if (!empty($filters['supplier_id'])) {
-            $conditions[] = 't.supplier_id = :supplier_id';
-            $params['supplier_id'] = (int)$filters['supplier_id'];
+            $whereConditions[] = "t.supplier_id = :supplier_id";
+            $params[':supplier_id'] = $filters['supplier_id'];
         }
 
+        // Date range filter
         if (!empty($filters['date_from'])) {
-            $conditions[] = 'DATE(t.created_at) >= :date_from';
-            $params['date_from'] = $filters['date_from'];
+            $whereConditions[] = "DATE(t.created_at) >= :date_from";
+            $params[':date_from'] = $filters['date_from'];
         }
-
         if (!empty($filters['date_to'])) {
-            $conditions[] = 'DATE(t.created_at) <= :date_to';
-            $params['date_to'] = $filters['date_to'];
+            $whereConditions[] = "DATE(t.created_at) <= :date_to";
+            $params[':date_to'] = $filters['date_to'];
         }
 
-        $whereSql = '';
-        if (!empty($conditions)) {
-            $whereSql = 'WHERE ' . implode(' AND ', $conditions);
+        // Price range filter
+        if (!empty($filters['price_min'])) {
+            $whereConditions[] = "t.base_price >= :price_min";
+            $params[':price_min'] = $filters['price_min'];
+        }
+        if (!empty($filters['price_max'])) {
+            $whereConditions[] = "t.base_price <= :price_max";
+            $params[':price_max'] = $filters['price_max'];
         }
 
-        $countSql = "SELECT COUNT(*) FROM {$this->table} AS t {$whereSql}";
+        // Rating filter
+        if (!empty($filters['rating_min'])) {
+            $whereConditions[] = "COALESCE(avg_rating, 0) >= :rating_min";
+            $params[':rating_min'] = $filters['rating_min'];
+        }
+
+        $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+
+        // Build ORDER BY
+        $orderBy = 't.created_at DESC';
+        if (!empty($filters['sort_by'])) {
+            $sortBy = $filters['sort_by'];
+            $sortDir = strtoupper($filters['sort_dir'] ?? 'DESC');
+
+            switch ($sortBy) {
+                case 'name':
+                    $orderBy = "t.name $sortDir";
+                    break;
+                case 'price':
+                    $orderBy = "t.base_price $sortDir";
+                    break;
+                case 'rating':
+                    $orderBy = "COALESCE(avg_rating, 0) $sortDir";
+                    break;
+                case 'created_at':
+                default:
+                    $orderBy = "t.created_at $sortDir";
+                    break;
+            }
+        }
+
+        // Count query
+        $countSql = "SELECT COUNT(DISTINCT t.id) FROM {$this->table} AS t
+                     LEFT JOIN `suppliers` AS s ON t.supplier_id = s.id
+                     LEFT JOIN `tour_categories` AS tc ON t.category_id = tc.id
+                     LEFT JOIN (
+                         SELECT tour_id, AVG(rating) as avg_rating
+                         FROM tour_feedbacks
+                         GROUP BY tour_id
+                     ) tf ON t.id = tf.tour_id
+                     $whereClause";
+
         $countStmt = self::$pdo->prepare($countSql);
-        $countStmt->execute($params);
+        foreach ($params as $key => $value) {
+            $countStmt->bindValue($key, $value);
+        }
+        $countStmt->execute();
         $total = (int)$countStmt->fetchColumn();
 
-        $sql = "SELECT t.*, s.name AS supplier_name
+        // Main query with complex joins
+        $sql = "SELECT
+                    t.*,
+                    s.id AS supplier_id,
+                    s.name AS supplier_name,
+                    tc.name as category_name,
+                    COALESCE(tf.avg_rating, 0) as avg_rating,
+                    COALESCE(tb.booking_count, 0) as booking_count,
+                    t.main_image,
+                    GROUP_CONCAT(tgi.image_url ORDER BY tgi.sort_order SEPARATOR ',') as gallery_images,
+                    0 as availability_percentage
                 FROM {$this->table} AS t
-                LEFT JOIN suppliers AS s ON t.supplier_id = s.id
-                {$whereSql}
-                ORDER BY t.{$sortBy} {$sortOrder}
+                LEFT JOIN `suppliers` AS s ON t.supplier_id = s.id
+                LEFT JOIN `tour_categories` AS tc ON t.category_id = tc.id
+                LEFT JOIN (
+                    SELECT tour_id, AVG(rating) as avg_rating
+                    FROM tour_feedbacks
+                    GROUP BY tour_id
+                ) tf ON t.id = tf.tour_id
+                LEFT JOIN (
+                    SELECT tour_id, COUNT(*) as booking_count
+                    FROM bookings
+                    GROUP BY tour_id
+                ) tb ON t.id = tb.tour_id
+                LEFT JOIN `tour_gallery_images` tgi ON t.id = tgi.tour_id
+                $whereClause
+                GROUP BY t.id, s.id, s.name, tc.name, tf.avg_rating, tb.booking_count, t.main_image
+                ORDER BY $orderBy
                 LIMIT :limit OFFSET :offset";
 
         $stmt = self::$pdo->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue(':' . $key, $value);
-        }
         $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
         $stmt->execute();
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -110,38 +171,110 @@ class Tour extends BaseModel
             'page' => $page,
             'per_page' => $perPage,
             'total_pages' => (int)ceil($total / $perPage),
-            'sort_by' => $sortBy,
-            'sort_order' => $sortOrder,
+            'filters' => $filters,
         ];
     }
 
-    /**
-     * Find one tour by id
-     */
+
+
     public function findById($id)
     {
-        return $this->find('*', 'id = :id', ['id' => $id]);
-    }
+        $tour = $this->find('*', 'id = :id', ['id' => $id]);
+        if (!$tour) {
+            return null;
+        }
 
-    /**
-     * Create a new tour record from associative array
-     */
-    public function create(array $data)
+        return $tour;
+    }
+    public function getRelatedData(string $tableName, int $tourId): array
     {
-        return $this->insert($data);
+        $sql = "SELECT * FROM {$tableName} WHERE tour_id = :tour_id";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    /**
-     * Update tour by id
-     */
-    public function updateById($id, array $data)
+    public function createTour($tourData, $pricingOptions = [], $itineraries = [], $partners = [], $uploadedImages = [])
     {
-        return $this->update($data, 'id = :id', ['id' => $id]);
+        self::$pdo->beginTransaction(); // BẮT ĐẦU TRANSACTION
+        try {
+            // 1. INSERT TOUR CƠ BẢN
+            $tourId = $this->insert($tourData);
+
+            // 2. INSERT PRICING OPTIONS
+            if (!empty($pricingOptions)) {
+                $pricingModel = new TourPricing();
+                foreach ($pricingOptions as $option) {
+                    $pricingModel->insert([
+                        'tour_id' => $tourId,
+                        'label' => $option['label'] ?? '',
+                        'price' => $option['price'] ?? 0,
+                        'description' => $option['description'] ?? '',
+                    ]);
+                }
+            }
+
+            // 3. INSERT ITINERARIES
+            if (!empty($itineraries)) {
+                $itineraryModel = new TourItinerary();
+                foreach ($itineraries as $index => $item) {
+                    // Tính day_number từ day_label (VD: "Ngày 1" → 1)
+                    $dayNumber = $index + 1;
+                    if (preg_match('/Ngày\s+(\d+)/i', $item['day'], $matches)) {
+                        $dayNumber = (int)$matches[1];
+                    }
+
+                    $itineraryModel->insert([
+                        'tour_id' => $tourId,
+                        'day_label' => $item['day'] ?? '',
+                        'day_number' => $dayNumber,
+                        'time_start' => $item['time_start'] ?? null,
+                        'time_end' => $item['time_end'] ?? null,
+                        'title' => $item['title'] ?? '',
+                        'description' => $item['description'] ?? '',
+                        'activities' => '', // Có thể mở rộng sau
+                        'image_url' => '', // Có thể mở rộng sau
+                    ]);
+                }
+            }
+
+            // 4. INSERT IMAGES
+            if (!empty($uploadedImages)) {
+                $imageModel = new TourImage();
+                foreach ($uploadedImages as $index => $image) {
+                    $imageModel->insert([
+                        'tour_id' => $tourId,
+                        'main_img' => $image['is_main'] ? 1 : 0,
+                        'image_url' => $image['path'],
+                        'caption' => '',
+                        'sort_order' => $index + 1,
+                    ]);
+                }
+            }
+
+            // 5. INSERT PARTNERS
+            if (!empty($partners)) {
+                $partnerModel = new TourPartner();
+                foreach ($partners as $partner) {
+                    $partnerModel->insert([
+                        'tour_id' => $tourId,
+                        'service_type' => $partner['service_type'] ?? 'other',
+                        'partner_name' => $partner['name'] ?? '',
+                        'contact' => $partner['contact'] ?? '',
+                        'notes' => $partner['notes'] ?? '',
+                    ]);
+                }
+            }
+
+            self::$pdo->commit(); // COMMIT TRANSACTION
+            return $tourId;
+        } catch (Exception $e) {
+            self::$pdo->rollBack(); // ROLLBACK NẾU CÓ LỖI
+            throw $e;
+        }
     }
 
-    /**
-     * Delete tour by id
-     */
+
     public function deleteById($id)
     {
         return $this->delete('id = :id', ['id' => $id]);

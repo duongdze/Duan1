@@ -3,9 +3,6 @@ include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 ?>
 
-<!-- Quill editor styles -->
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-
 <main class="wrapper">
     <div class="main-content">
         <div class="page-header">
@@ -21,7 +18,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
-        <form method="POST" action="?action=tours/store" enctype="multipart/form-data" class="tour-form">
+        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=tours/store" enctype="multipart/form-data" class="tour-form">
             <div class="row g-3">
                 <!-- Left Column -->
                 <div class="col-lg-6">
@@ -34,24 +31,26 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label for="name" class="form-label fw-500">Tên tour</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Tour du lịch Quảng Bình" required>
+                                <label for="name" class="form-label fw-500">Tên Tour</label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Nhập tên tour">
                             </div>
 
                             <div class="mb-3">
-                                <label for="type" class="form-label fw-500">Danh mục tour</label>
-                                <select class="form-select" id="type" name="type" required>
-                                    <option value="">Chọn danh mục tour</option>
-                                    <option value="trong_nuoc">Tour trong nước</option>
-                                    <option value="quoc_te">Tour quốc tế</option>
-                                    <option value="theo_yeu_cau">Tour theo yêu cầu</option>
+                                <label for="category_id" class="form-label fw-500">Danh Mục Tour</label>
+                                <select class="form-select" id="category_id" name="category_id">
+                                    <option value="">-- Chọn Danh Mục Tour --</option>
+                                    <?php if (!empty($categories)): ?>
+                                        <?php foreach ($categories as $category): ?>
+                                            <option value="<?= htmlspecialchars($category['id']) ?>"><?= htmlspecialchars($category['name']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </select>
                             </div>
 
                             <div class="mb-3">
-                                <label for="supplier_id" class="form-label fw-500">Nhà cung cấp</label>
+                                <label for="supplier_id" class="form-label fw-500">Nhà Cung Cấp</label>
                                 <select class="form-select" id="supplier_id" name="supplier_id">
-                                    <option value="">Chọn nhà cung cấp</option>
+                                    <option value="">-- Chọn Nhà Cung Cấp --</option>
                                     <?php if (!empty($suppliers)): ?>
                                         <?php foreach ($suppliers as $s): ?>
                                             <option value="<?= htmlspecialchars($s['id']) ?>"><?= htmlspecialchars($s['name']) ?></option>
@@ -61,8 +60,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             </div>
 
                             <div class="mb-3">
-                                <label for="base_price" class="form-label fw-500">Giá cơ bản</label>
-                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="1.500.000" min="0" step="50000" required>
+                                <label for="base_price" class="form-label fw-500">Giá Cơ Bản</label>
+                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản">
                                 <small class="text-muted">Đơn giá mặc định áp dụng khi không có gói riêng.</small>
                             </div>
                         </div>
@@ -101,15 +100,15 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="row g-2">
                                         <div class="col-md-6">
                                             <label class="form-label fw-500">Nhóm khách / Gói</label>
-                                            <input type="text" class="form-control" name="pricing_label[]" data-field="label" placeholder="Người lớn" required>
+                                            <input type="text" class="form-control" name="tour_pricing_options_label" data-field="label" placeholder="Người lớn">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-500">Giá áp dụng</label>
-                                            <input type="number" class="form-control" name="pricing_price[]" data-field="price" placeholder="1500000" min="0" required>
+                                            <input type="number" class="form-control" name="tour_pricing_options_price" data-field="price" placeholder="1500000" min="0">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Ghi chú dịch vụ</label>
-                                            <textarea class="form-control" rows="2" name="pricing_description[]" data-field="description" placeholder="Bao gồm ăn sáng, xe đưa đón sân bay"></textarea>
+                                            <textarea class="form-control" rows="2" name="tour_pricing_options_description" data-field="description" placeholder="Bao gồm ăn sáng, xe đưa đón sân bay"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -139,23 +138,23 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="row g-2">
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Ngày / Chặng</label>
-                                            <input type="text" name="itinerary_day[]" data-field="day" class="form-control" placeholder="Ngày 1" required>
+                                            <input type="text" name="tour_itinerary_day" data-field="day" class="form-control" placeholder="Ngày 1">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Giờ bắt đầu</label>
-                                            <input type="time" name="itinerary_time_start[]" data-field="time_start" class="form-control">
+                                            <input type="time" name="tour_itinerary_time_start" data-field="time_start" class="form-control">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Giờ kết thúc</label>
-                                            <input type="time" name="itinerary_time_end[]" data-field="time_end" class="form-control">
+                                            <input type="time" name="tour_itinerary_time_end[]" data-field="time_end" class="form-control">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Tiêu đề hoạt động</label>
-                                            <input type="text" name="itinerary_title[]" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội" required>
+                                            <input type="text" name="tour_itinerary_title" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Chi tiết</label>
-                                            <textarea name="itinerary_description[]" data-field="description" class="form-control" rows="3" placeholder="Tham quan, ăn uống, trải nghiệm..."></textarea>
+                                            <textarea name="tour_itinerary_description" data-field="description" class="form-control" rows="3" placeholder="Tham quan, ăn uống, trải nghiệm..."></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -167,30 +166,20 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     <div class="card mb-3">
                         <div class="card-header bg-light">
                             <h5 class="mb-0">
-                                <i class="fas fa-image"></i> Hình ảnh
+                                <i class="fas fa-images"></i> Hình ảnh
                             </h5>
                         </div>
-                        <div class="card-body text-center">
-                            <div class="mb-3">
-                                <label class="form-label fw-500 d-flex align-items-center justify-content-between">
-                                    Ảnh đại diện
-                                    <small class="text-muted">Tỷ lệ khuyến nghị 4:3</small>
-                                </label>
-                                <div class="p-4 bg-light rounded border border-dashed" id="image-preview">
-                                    <i class="fas fa-image fa-3x text-muted"></i>
-                                    <p class="text-muted small mt-2 mb-0">Chưa có hình ảnh</p>
-                                </div>
-                                <input type="file" class="form-control mt-2" id="image" name="image" accept="image/*">
+                        <div class="card-body">
+                            <div id="image-drop-zone" class="p-4 bg-light rounded border-dashed text-center" style="cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
+                                <p class="text-muted small mt-2 mb-0">Kéo và thả ảnh vào đây, hoặc nhấp để chọn</p>
+                                <p class="text-muted small">Ảnh đầu tiên sẽ là ảnh đại diện. Tối đa 10 ảnh.</p>
                             </div>
+                            <!-- Hidden file inputs to store files for submission -->
+                            <input type="file" id="file-input-handler" class="d-none" multiple accept="image/*">
+                            <input type="file" name="image_url[]" id="gallery-images-input" class="d-none" multiple>
 
-                            <div>
-                                <label class="form-label fw-500">Bộ sưu tập hình ảnh</label>
-                                <div class="p-3 border rounded bg-light mb-2">
-                                    <input type="file" class="form-control" id="gallery" name="gallery_images[]" accept="image/*" multiple>
-                                    <small class="text-muted d-block mt-2">Tối đa 10 ảnh, hỗ trợ jpg, png, webp.</small>
-                                </div>
-                                <div id="gallery-preview" class="row g-2"></div>
-                            </div>
+                            <div id="image-preview-container" class="row g-2 mt-3"></div>
                         </div>
                     </div>
 
@@ -213,7 +202,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="row g-2">
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Loại dịch vụ</label>
-                                            <select class="form-select" name="partner_service[]" data-field="service_type">
+                                            <select class="form-select" name="service_type" data-field="service_type">
                                                 <option value="hotel">Khách sạn</option>
                                                 <option value="transport">Vận chuyển</option>
                                                 <option value="restaurant">Nhà hàng</option>
@@ -223,15 +212,15 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Đối tác</label>
-                                            <input type="text" class="form-control" name="partner_name[]" data-field="name" placeholder="The Cliff Resort" required>
+                                            <input type="text" class="form-control" name="tour_partners_name" data-field="name" placeholder="The Cliff Resort">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-500">Liên hệ</label>
-                                            <input type="text" class="form-control" name="partner_contact[]" data-field="contact" placeholder="Mr A - 098xxx">
+                                            <input type="text" class="form-control" name="tour_partners_contract" data-field="contact" placeholder="Mr A - 098xxx">
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-500">Ghi chú</label>
-                                            <textarea class="form-control" rows="2" name="partner_notes[]" data-field="notes" placeholder="Yêu cầu đặt trước 3 ngày..."></textarea>
+                                            <textarea class="form-control" rows="2" name="tour_partners_notes" data-field="notes" placeholder="Yêu cầu đặt trước 3 ngày..."></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -266,6 +255,152 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             </div>
         </form>
 </main>
+
+<!-- Image Viewer Modal -->
+<div id="image-viewer-modal" class="modal-viewer" style="display:none;">
+    <span class="close-viewer">&times;</span>
+    <img class="modal-viewer-content" id="modal-image">
+</div>
+
+<style>
+    .image-preview-card {
+        position: relative;
+    }
+
+    .image-preview-card .actions-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .image-preview-card:hover .actions-overlay {
+        opacity: 1;
+    }
+
+    .actions-overlay .action-btn {
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transition: background 0.2s;
+    }
+
+    .actions-overlay .action-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Modal Styles */
+    .modal-viewer {
+        position: fixed;
+        z-index: 9999;
+        padding-top: 50px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.9);
+    }
+
+    .modal-viewer-content {
+        margin: auto;
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+    .close-viewer {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+    }
+
+    .image-preview-card {
+        position: relative;
+    }
+
+    .image-preview-card .actions-overlay {
+        position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .image-preview-card:hover .actions-overlay {
+            opacity: 1;
+        }
+
+        .actions-overlay .action-btn {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: background 0.2s;
+        }
+
+        .actions-overlay .action-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Modal Styles */
+        .modal-viewer {
+            position: fixed;
+            z-index: 9999;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .modal-viewer-content {
+            margin: auto;
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .close-viewer {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+</style>
+
+
 
 <?php
 include_once PATH_VIEW_ADMIN . 'default/footer.php';

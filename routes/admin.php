@@ -33,6 +33,8 @@ match ($action) {
     'tours/versions/create' => (new TourVersionController)->create(),
     'tours/versions/store'  => (new TourVersionController)->store(),
     'tours/versions/delete' => (new TourVersionController)->delete(),
+    'tour_category'         => (new TourCategoryController)->index(),
+
 
     'tours/itineraries'     => (new ItineraryController)->index(),
     'tours/itineraries/create' => (new ItineraryController)->create(),

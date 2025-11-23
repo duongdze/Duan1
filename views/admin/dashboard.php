@@ -110,27 +110,33 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>BK-0125</td>
-                                        <td>Nguyễn Văn A</td>
-                                        <td>Khám phá Đà Nẵng - Hội An</td>
-                                        <td>15/11/2025</td>
-                                        <td><span class="badge bg-warning text-dark">Chờ xác nhận</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>BK-0124</td>
-                                        <td>Trần Thị B</td>
-                                        <td>Du lịch Mộc Châu - Mùa hoa cải</td>
-                                        <td>14/11/2025</td>
-                                        <td><span class="badge bg-warning text-dark">Chờ xác nhận</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>BK-0123</td>
-                                        <td>Lê Văn C</td>
-                                        <td>Chinh phục Fansipan</td>
-                                        <td>14/11/2025</td>
-                                        <td><span class="badge bg-warning text-dark">Chờ xác nhận</span></td>
-                                    </tr>
+                                    <?php if (!empty($pendingBookings)) : ?>
+                                        <?php foreach ($pendingBookings as $booking) : ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($booking['id']) ?></td>
+                                                <td><?= htmlspecialchars($booking['customer_name']) ?></td>
+                                                <td><?= htmlspecialchars($booking['tour_name']) ?></td>
+                                                <td><?= date('d/m/Y', strtotime($booking['booking_date'])) ?></td>
+                                                <td>
+                                                    <?php
+                                                    $statusText = 'Chờ Xác Nhận';
+                                                    if ($booking['status'] === 'hoan_tat') {
+                                                        $statusText = 'Hoàn Tất';
+                                                    } elseif ($booking['status'] === 'da_coc') {
+                                                        $statusText = 'Đã Cọc';
+                                                    } elseif ($booking['status'] === 'da_huy') {
+                                                        $statusText = 'Đã Hủy';
+                                                    }
+                                                    ?>
+                                                    <span class="badge bg-warning text-dark"><?= $statusText ?></span>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else : ?>
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">Không có booking nào đang chờ xác nhận.</td>
+                                        </tr>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>

@@ -57,4 +57,28 @@ class Booking extends BaseModel
         $data = $stmt->fetch();
         return $data['count'] ?? 0;
     }
+
+    /**
+     * Lấy các booking đang chờ xác nhận gần đây
+     * @param int $limit
+     * @return array
+     */
+    public function getRecentPendingBookings($limit = 5)
+    {
+        $sql = "SELECT 
+                    B.id,
+                    B.booking_date,
+                    B.status,
+                    T.name AS tour_name, 
+                    BC.name AS customer_name
+                FROM {$this->table} AS B 
+                LEFT JOIN tours AS T ON B.tour_id = T.id
+                LEFT JOIN booking_customers AS BC ON B.customer_id = BC.id
+                WHERE B.status = 'cho_xac_nhan'
+                ORDER BY B.booking_date DESC, B.id DESC
+                LIMIT " . (int)$limit;
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

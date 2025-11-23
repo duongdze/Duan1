@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/bootstrap.css">
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/admin-dashboard.css">
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/sidebar.css">
+    <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/tours.css">
     <!-- <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/style.css"> -->
 </head>
 
@@ -24,7 +25,7 @@
                         <div class="user-avatar">
                             <?php
                             $user = $_SESSION['user'] ?? null;
-                            $avatarUrl = !empty($user['avatar']) ? BASE_ASSETS_UPLOADS . $user['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['name'] ?? 'User') . '&background=0D6EFD&color=fff&size=40';
+                            $avatarUrl = !empty($user['avatar']) ? BASE_ASSETS_UPLOADS . 'users/admin/' . $user['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['name'] ?? 'User') . '&background=0D6EFD&color=fff&size=40';
                             $userName = $user['full_name'] ?? 'Guest';
                             $userRole = $user['role'] ?? 'user';
                             ?>

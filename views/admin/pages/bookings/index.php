@@ -9,7 +9,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 <h1 class="h2">Quản lý Booking</h1>
                 <p class="text-muted">Danh sách tất cả các booking trong hệ thống.</p>
             </div>
-            <button class="btn btn-primary"><i class="fas fa-plus"></i> Tạo booking mới</button>
+            <a href="<?= BASE_URL_ADMIN . '&action=bookings/create' ?>"><button class="btn btn-primary"><i class="fas fa-plus"></i> Tạo booking mới</button></a>
         </div>
 
         <div class="card">
@@ -39,7 +39,16 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <td><?= $booking['tour_name'] ?></td>
                                         <td><?= $booking['booking_date'] ?></td>
                                         <td><?= $booking['total_price'] ?></td>
-                                        <td><span class="badge bg-warning text-dark"><?= $booking['status'] ?></span></td>
+                                        <td><span class="badge bg-warning text-dark"> <?php $statusText = 'Chờ Xác Nhận';
+                                                                                        if ($booking['status'] === 'hoan_tat') {
+                                                                                            $statusText = 'Hoàn Tất';
+                                                                                        } elseif ($booking['status'] === 'da_coc') {
+                                                                                            $statusText = 'Đã Cọc';
+                                                                                        } elseif ($booking['status'] === 'da_huy') {
+                                                                                            $statusText = 'Đã Hủy';
+                                                                                        }
+                                                                                        ?>
+                                                <span class="badge bg-warning text-dark"><?= $statusText ?></span></td>
                                         <td>
                                             <a href="<?= BASE_URL_ADMIN . '&action=booking/detail&id=' . $booking['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
                                             <a href="<?= BASE_URL_ADMIN . '&action=booking/edit&id=' . $booking['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>

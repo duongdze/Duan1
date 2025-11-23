@@ -1,71 +1,179 @@
 document.addEventListener("DOMContentLoaded", function () {
-  function initQuillEditor(selector, inputId) {
-    var element = document.querySelector(selector);
-    if (!element || typeof Quill === "undefined") {
-      return null;
-    }
-    var editor = new Quill(selector, {
-      theme: "snow",
-      modules: {
-        toolbar: [
-          ["bold", "italic", "underline", "strike"],
-          ["blockquote", "code-block"],
-          [
-            {
-              list: "ordered",
-            },
-            {
-              list: "bullet",
-            },
-          ],
-          [
-            {
-              size: ["small", false, "large", "huge"],
-            },
-          ],
-          [
-            {
-              header: [1, 2, 3, 4, 5, 6],
-            },
-          ],
-          ["link"],
-          ["clean"],
-        ],
-      },
+  // ===== TOURS INDEX PAGE FUNCTIONALITY =====
+
+  // Filter form handling with AJAX
+  const filterForm = document.getElementById("tour-filters");
+  if (filterForm) {
+    // Auto-submit on filter change (debounced)
+    let filterTimeout;
+    const filterInputs = filterForm.querySelectorAll("input, select");
+
+    filterInputs.forEach((input) => {
+      input.addEventListener("input", function () {
+        clearTimeout(filterTimeout);
+        filterTimeout = setTimeout(() => {
+          submitFilters();
+        }, 500);
+      });
+
+      input.addEventListener("change", function () {
+        if (input.type !== "text") {
+          submitFilters();
+        }
+      });
     });
 
-    var hiddenInput = document.getElementById(inputId);
-    if (hiddenInput && hiddenInput.value) {
-      editor.root.innerHTML = hiddenInput.value;
+    // Manual submit button
+    const submitBtn = filterForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        submitFilters();
+      });
     }
 
-    return {
-      instance: editor,
-      sync: function () {
-        if (hiddenInput) {
-          hiddenInput.value = editor.root.innerHTML;
+    function submitFilters() {
+      const formData = new FormData(filterForm);
+      const params = new URLSearchParams();
+
+      // Add action parameter
+      params.append("action", "tours");
+
+      // Add all form data
+      for (let [key, value] of formData.entries()) {
+        if (value.trim() !== "") {
+          params.append(key, value);
         }
-      },
-    };
+      }
+
+      // Update URL without page reload
+      const newUrl = window.location.pathname + "?" + params.toString();
+      window.history.pushState({}, "", newUrl);
+
+      // Show loading state
+      const container = document.getElementById("tour-list-container");
+      if (container) {
+        container.style.opacity = "0.6";
+        container.style.pointerEvents = "none";
+      }
+
+      // Reload page with new filters
+      window.location.reload();
+    }
   }
 
-  var descriptionEditor = initQuillEditor(
-    "#editor-description",
-    "input-description"
-  );
-  var policyEditor = initQuillEditor("#editor-policy", "input-policy");
+  // ===== TOURS CREATE/EDIT SECTION =====
+  const editors = {};
 
-  var tourForms = document.querySelectorAll("form.tour-form");
-  tourForms.forEach(function (form) {
-    form.addEventListener("submit", function () {
-      if (descriptionEditor) {
-        descriptionEditor.sync();
+  // Debug: Check if CKEDITOR loaded
+  console.log("DOMContentLoaded fired");
+  console.log(
+    "CKEDITOR available:",
+    typeof CKEDITOR !== "undefined" ? CKEDITOR : "NOT FOUND"
+  );
+
+  // Wait for CKEDITOR to be loaded from CDN
+  function initCKEditor(selector, inputId) {
+    return new Promise((resolve, reject) => {
+      const element = document.querySelector(selector);
+      if (!element) {
+        console.warn("Element not found:", selector);
+        resolve(null);
+        return;
       }
-      if (policyEditor) {
-        policyEditor.sync();
+
+      // Kiểm tra xem CKEDITOR có được load không
+      if (typeof CKEDITOR === "undefined") {
+        console.error("CKEDITOR not loaded from CDN");
+        reject(new Error("CKEDITOR not loaded"));
+        return;
+      }
+
+      console.log("Initializing CKEditor for:", selector);
+
+      try {
+        // Remove # from selector để CKEDITOR.replace có thể nhận ID
+        const elementId = selector.replace("#", "");
+
+        // Thay thế element bằng CKEditor instance
+        CKEDITOR.replace(elementId, {
+          toolbar: [
+            {
+              name: "basicstyles",
+              items: ["Bold", "Italic", "Underline", "Strike", "RemoveFormat"],
+            },
+            {
+              name: "paragraph",
+              items: [
+                "NumberedList",
+                "BulletedList",
+                "-",
+                "Outdent",
+                "Indent",
+                "-",
+                "Blockquote",
+                "CreateDiv",
+              ],
+            },
+            { name: "links", items: ["Link", "Unlink"] },
+            { name: "insert", items: ["Image", "Table", "HorizontalRule"] },
+            { name: "styles", items: ["Styles", "Format", "Font", "FontSize"] },
+            { name: "colors", items: ["TextColor", "BGColor"] },
+          ],
+          height: "300px",
+          contentsCss:
+            "body { font-family: Arial, sans-serif; font-size: 14px; }",
+        });
+
+        // Lưu reference tới editor
+        CKEDITOR.instances[elementId].on("instanceReady", function (evt) {
+          const editor = evt.editor;
+          const hiddenInput = document.getElementById(inputId);
+
+          if (hiddenInput && hiddenInput.value) {
+            editor.setData(hiddenInput.value);
+          }
+
+          editors[inputId] = {
+            instance: editor,
+            sync: function () {
+              if (hiddenInput) {
+                hiddenInput.value = editor.getData();
+              }
+            },
+          };
+
+          resolve(editors[inputId]);
+        });
+      } catch (error) {
+        console.error("CKEditor initialization error:", error);
+        reject(error);
       }
     });
-  });
+  }
+
+  // Initialize both editors
+  Promise.all([
+    initCKEditor("#editor-description", "input-description"),
+    initCKEditor("#editor-policy", "input-policy"),
+  ])
+    .then((results) => {
+      console.log("CKEditor instances initialized:", results);
+      // After editors are initialized, attach form submit handler
+      const tourForms = document.querySelectorAll("form.tour-form");
+      tourForms.forEach(function (form) {
+        form.addEventListener("submit", function (e) {
+          Object.values(editors).forEach((editor) => {
+            if (editor) {
+              editor.sync();
+            }
+          });
+        });
+      });
+    })
+    .catch((error) => {
+      console.error("Error initializing CKEditor:", error);
+    });
 
   function setupDynamicSection(config) {
     var listEl = document.getElementById(config.listId);
