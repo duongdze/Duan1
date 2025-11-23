@@ -22,7 +22,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= BASE_URL_ADMIN ?>&action=tours/create">
+                        <a class="nav-link" href="<?= BASE_URL_ADMIN ?>&action=tour_logs">
                             <i class="fas bi-clock-history fa-fw me-2"></i> Lịch sử Tour
                         </a>
                     </li>
