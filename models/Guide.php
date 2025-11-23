@@ -13,4 +13,11 @@ class Guide extends BaseModel
         'health_status',
         'notes'
     ];
+
+    public function getAllWithName()
+    {
+        $stmt = self::$pdo->query("SELECT g.id, u.full_name FROM guides g JOIN users u ON u.user_id = g.user_id");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
 }
