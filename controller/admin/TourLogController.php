@@ -1,6 +1,4 @@
 <?php
-// controller/admin/TourLogController.php
-
 require_once 'models/TourLog.php';
 require_once 'models/Tour.php';
 require_once 'models/Guide.php';
@@ -22,9 +20,9 @@ class TourLogController
 
     public function create()
     {
-        // prepare data for create view
         $tourModel = new Tour();
-        $tours = $tourModel->getAll();
+        $toursData = $tourModel->getAllTours(1, 100);
+        $tours = $toursData['data'];
 
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
@@ -35,27 +33,24 @@ class TourLogController
     public function store()
     {
         $data = [
-            'tour_id'          => $_POST['tour_id'] ?? null,
-            'guide_id'         => $_POST['guide_id'] ?? null,
-            'date'             => $_POST['date'] ?? date('Y-m-d'),
-            'description'      => $_POST['description'] ?? '',
-            'issue'            => $_POST['issue'] ?? '',
-            'solution'         => $_POST['solution'] ?? '',
+            'tour_id'           => $_POST['tour_id'] ?? null,
+            'guide_id'          => $_POST['guide_id'] ?? null,
+            'date'              => $_POST['date'] ?? date('Y-m-d'),
+            'description'       => $_POST['description'] ?? '',
+            'issue'             => $_POST['issue'] ?? '',
+            'solution'          => $_POST['solution'] ?? '',
             'customer_feedback' => $_POST['customer_feedback'] ?? '',
-            'weather'          => $_POST['weather'] ?? '',
-            'incident'         => $_POST['incident'] ?? '',
-            'health_status'    => $_POST['health_status'] ?? '',
-            'special_activity' => $_POST['special_activity'] ?? '',
-            'handling_notes'   => $_POST['handling_notes'] ?? '',
-            'guide_rating'     => $_POST['guide_rating'] ?? null,
+            'weather'           => $_POST['weather'] ?? '',
+            'incident'          => $_POST['incident'] ?? '',
+            'health_status'     => $_POST['health_status'] ?? '',
+            'special_activity'  => $_POST['special_activity'] ?? '',
+            'handling_notes'    => $_POST['handling_notes'] ?? '',
+            'guide_rating'      => $_POST['guide_rating'] ?? null,
         ];
 
-        if ($this->model->create($data)) {
-            header('Location:' . BASE_URL_ADMIN . '&action=tour_logs');
-            exit;
-        } else {
-            die('Lỗi khi thêm nhật ký');
-        }
+        $this->model->create($data);
+        header('Location:' . BASE_URL_ADMIN . '&action=tour_logs');
+        exit;
     }
 
     public function edit()
@@ -71,7 +66,8 @@ class TourLogController
         }
 
         $tourModel = new Tour();
-        $tours = $tourModel->getAll();
+        $toursData = $tourModel->getAllTours(1, 100);
+        $tours = $toursData['data'];
 
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
@@ -87,19 +83,19 @@ class TourLogController
         }
 
         $data = [
-            'tour_id'          => $_POST['tour_id'] ?? null,
-            'guide_id'         => $_POST['guide_id'] ?? null,
-            'date'             => $_POST['date'] ?? date('Y-m-d'),
-            'description'      => $_POST['description'] ?? '',
-            'issue'            => $_POST['issue'] ?? '',
-            'solution'         => $_POST['solution'] ?? '',
+            'tour_id'           => $_POST['tour_id'] ?? null,
+            'guide_id'          => $_POST['guide_id'] ?? null,
+            'date'              => $_POST['date'] ?? date('Y-m-d'),
+            'description'       => $_POST['description'] ?? '',
+            'issue'             => $_POST['issue'] ?? '',
+            'solution'          => $_POST['solution'] ?? '',
             'customer_feedback' => $_POST['customer_feedback'] ?? '',
-            'weather'          => $_POST['weather'] ?? '',
-            'incident'         => $_POST['incident'] ?? '',
-            'health_status'    => $_POST['health_status'] ?? '',
-            'special_activity' => $_POST['special_activity'] ?? '',
-            'handling_notes'   => $_POST['handling_notes'] ?? '',
-            'guide_rating'     => $_POST['guide_rating'] ?? null,
+            'weather'           => $_POST['weather'] ?? '',
+            'incident'          => $_POST['incident'] ?? '',
+            'health_status'     => $_POST['health_status'] ?? '',
+            'special_activity'  => $_POST['special_activity'] ?? '',
+            'handling_notes'    => $_POST['handling_notes'] ?? '',
+            'guide_rating'      => $_POST['guide_rating'] ?? null,
         ];
 
         $this->model->updateLog($id, $data);
