@@ -27,7 +27,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
-        <form method="POST" action="?action=tours/update" enctype="multipart/form-data" class="tour-form">
+        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=tours/update" enctype="multipart/form-data" class="tour-form">
             <input type="hidden" name="id" value="<?= htmlspecialchars($tour['id']) ?>">
             <!-- Container for tracking deleted image URLs -->
             <div id="deleted-images-container"></div>
@@ -78,7 +78,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                             <div class="mb-3">
                                 <label for="base_price" class="form-label fw-500">Giá Cơ Bản</label>
-                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="50000" value="<?= htmlspecialchars($tour['base_price']) ?>">
+                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="1" value="<?= htmlspecialchars($tour['base_price']) ?>">
                                 <small class="text-muted">Đơn giá mặc định áp dụng khi không có gói riêng.</small>
                             </div>
                         </div>
@@ -275,12 +275,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     </div>
 </main>
 
-<!-- Image Viewer Modal -->
-<div id="image-viewer-modal" class="modal-viewer" style="display:none;">
-    <span class="close-viewer">&times;</span>
-    <img class="modal-viewer-content" id="modal-image">
-</div>
-
 <style>
     .image-preview-card {
         position: relative;
@@ -317,39 +311,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     .actions-overlay .action-btn:hover {
         background: rgba(255, 255, 255, 0.4);
     }
-
-    /* Modal Styles */
-    .modal-viewer {
-        position: fixed;
-        z-index: 9999;
-        padding-top: 50px;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.9);
-    }
-
-    .modal-viewer-content {
-        margin: auto;
-        display: block;
-        width: auto;
-        height: auto;
-        max-width: 90%;
-        max-height: 90%;
-    }
-
-    .close-viewer {
-        position: absolute;
-        top: 15px;
-        right: 35px;
-        color: #f1f1f1;
-        font-size: 40px;
-        font-weight: bold;
-        transition: 0.3s;
-        cursor: pointer;
-    }
 </style>
 
 <script>
@@ -362,21 +323,29 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         const galleryImagesInput = document.getElementById('gallery-images-input');
         const deletedContainer = document.getElementById('deleted-images-container');
         const newPrimaryInput = document.getElementById('new-primary-image-url');
-        const modal = document.getElementById('image-viewer-modal');
-        const modalImg = document.getElementById('modal-image');
-        const closeModal = document.querySelector('.close-viewer');
+        // Note: viewing handled by global lightbox (provided by assets/admin/js/tours.js)
 
         // --- State ---
-        // `imageItems` holds the master list of images. Items can be a string (URL for existing) or a File object (for new).
+        // `imageItems` holds the master list of images.
+        // Existing images are stored as objects { id, url }, new uploads are File objects.
         let imageItems = [];
 
         // --- Initial Data (from PHP) ---
-        const existingImagesData = <?= json_encode($allImages, JSON_UNESCAPED_SLASHES) ?>;
+        const existingImagesData = <?= json_encode($allImages, JSON_UNESCAPED_SLASHES) ?> || [];
 
         function initializeImages() {
-            // The PHP code already ensures the primary image is first.
-            imageItems = existingImagesData.map(img => img.url);
+            // Normalize existing images into objects {id, url} so we keep IDs for deletes/primary selection.
+            // Support different keys coming from backend: prefer `id` and `url`, fallback to `image_url` or `path`.
+            imageItems = existingImagesData.map(img => ({
+                id: (img && (img.id || img.image_id || img.imageId)) ? (img.id || img.image_id || img.imageId) : null,
+                // public URL for preview
+                url: (img && (img.url || img.image_url)) ? (img.url || img.image_url) : '',
+                // relative DB path (e.g. 'tours/xxx.jpg') for backend operations
+                path: (img && (img.path || img.image_url)) ? (img.path || img.image_url) : ''
+            }));
+
             updatePreviews();
+            updateFormInputs();
         }
 
         // --- Event Listeners ---
@@ -400,12 +369,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             handleFiles(files);
             fileInput.value = ''; // Reset for next selection
         });
-        closeModal.addEventListener('click', () => modal.style.display = "none");
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = "none";
-            }
-        });
+        // no-op: lightbox handled in shared JS
 
         // --- Core Functions ---
         function handleFiles(files) {
@@ -418,8 +382,19 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         function updatePreviews() {
             previewContainer.innerHTML = '';
             imageItems.forEach((item, index) => {
-                const isExisting = typeof item === 'string';
-                const imgSrc = isExisting ? item : URL.createObjectURL(item);
+                // Determine source for preview:
+                // - File objects (new uploads) -> createObjectURL
+                // - Existing image objects -> item.url
+                // - Plain string (edge cases) -> use string as src
+                let imgSrc = '';
+                const isFile = item instanceof File;
+                if (isFile) {
+                    imgSrc = URL.createObjectURL(item);
+                } else if (typeof item === 'object' && item.url) {
+                    imgSrc = item.url;
+                } else if (typeof item === 'string') {
+                    imgSrc = item;
+                }
 
                 const previewWrapper = document.createElement('div');
                 previewWrapper.className = 'col-6 col-md-4 col-lg-3';
@@ -429,8 +404,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 img.src = imgSrc;
                 img.className = 'card-img-top object-fit-cover';
                 img.style.height = '120px';
-                if (!isExisting) {
-                    img.onload = () => URL.revokeObjectURL(img.src); // Clean up memory
+                // revoke object URLs for File objects after load to free memory
+                if (isFile) {
+                    img.onload = () => URL.revokeObjectURL(img.src);
                 }
 
                 const overlay = createOverlay(index, imgSrc);
@@ -456,9 +432,18 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             const viewBtn = document.createElement('i');
             viewBtn.className = 'fas fa-eye action-btn';
             viewBtn.title = 'Xem ảnh';
-            viewBtn.onclick = () => {
-                modalImg.src = imgSrc;
-                modal.style.display = "block";
+            viewBtn.onclick = (e) => {
+                e.preventDefault();
+                // Use global lightbox instance if available
+                try {
+                    const imgs = Array.from(previewContainer.querySelectorAll('img.card-img-top')).map(i => i.src);
+                    if (window.tourLightbox) {
+                        window.tourLightbox.open(imgs, index);
+                        return;
+                    }
+                } catch (err) {
+                    // fallback: do nothing
+                }
             };
             overlay.appendChild(viewBtn);
 
@@ -481,12 +466,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
         function removeItem(indexToRemove) {
             const item = imageItems[indexToRemove];
-            if (typeof item === 'string') {
-                // It's an existing image URL, mark for deletion on the backend
+            // If it's an existing image (object with id or url), send its id if available, otherwise send the url.
+            if (typeof item === 'object') {
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
                 hiddenInput.name = 'deleted_images[]';
-                hiddenInput.value = item;
+                // prefer numeric id, otherwise send DB-relative path so backend can match image_url
+                hiddenInput.value = item.id ? item.id : (item.path || item.url);
                 deletedContainer.appendChild(hiddenInput);
             }
             imageItems.splice(indexToRemove, 1);
@@ -499,9 +485,14 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 const item = imageItems.splice(indexToMakePrimary, 1)[0];
                 imageItems.unshift(item);
 
-                // If the new primary is an existing image, record its URL for the backend.
-                // Otherwise, clear it, as the new primary is a new file upload.
-                newPrimaryInput.value = (typeof item === 'string') ? item : '';
+                // If the new primary is an existing image, record its ID (prefer) or URL for the backend.
+                if (typeof item === 'object') {
+                    // prefer id; if not available send DB-relative path (not full public URL)
+                    newPrimaryInput.value = item.id ? item.id : (item.path || item.url);
+                } else {
+                    // new file upload -> backend should detect uploaded main image from `image` input
+                    newPrimaryInput.value = '';
+                }
 
                 updatePreviews();
                 updateFormInputs();

@@ -61,7 +61,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                             <div class="mb-3">
                                 <label for="base_price" class="form-label fw-500">Giá Cơ Bản</label>
-                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản">
+                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="1">
                                 <small class="text-muted">Đơn giá mặc định áp dụng khi không có gói riêng.</small>
                             </div>
                         </div>
@@ -336,68 +336,68 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
     .image-preview-card .actions-overlay {
         position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-        }
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
 
-        .image-preview-card:hover .actions-overlay {
-            opacity: 1;
-        }
+    .image-preview-card:hover .actions-overlay {
+        opacity: 1;
+    }
 
-        .actions-overlay .action-btn {
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            transition: background 0.2s;
-        }
+    .actions-overlay .action-btn {
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transition: background 0.2s;
+    }
 
-        .actions-overlay .action-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-        }
+    .actions-overlay .action-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
 
-        /* Modal Styles */
-        .modal-viewer {
-            position: fixed;
-            z-index: 9999;
-            padding-top: 50px;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.9);
-        }
+    /* Modal Styles */
+    .modal-viewer {
+        position: fixed;
+        z-index: 9999;
+        padding-top: 50px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.9);
+    }
 
-        .modal-viewer-content {
-            margin: auto;
-            display: block;
-            width: auto;
-            height: auto;
-            max-width: 90%;
-            max-height: 90%;
-        }
+    .modal-viewer-content {
+        margin: auto;
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 90%;
+        max-height: 90%;
+    }
 
-        .close-viewer {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            transition: 0.3s;
-            cursor: pointer;
-        }
+    .close-viewer {
+        position: absolute;
+        top: 15px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        transition: 0.3s;
+        cursor: pointer;
+    }
 </style>
 
 

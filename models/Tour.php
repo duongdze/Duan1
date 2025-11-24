@@ -136,7 +136,7 @@ class Tour extends BaseModel
                     tc.name as category_name,
                     COALESCE(tf.avg_rating, 0) as avg_rating,
                     COALESCE(tb.booking_count, 0) as booking_count,
-                    MAX(CASE WHEN tgi.main_img = 1 THEN tgi.image_url ELSE NULL END) AS main_image,
+                    MAX(CASE WHEN tgi.main_img = 1 THEN tgi.image_url END) AS main_image,
                     GROUP_CONCAT(tgi.image_url ORDER BY tgi.sort_order SEPARATOR ',') as gallery_images,
                     0 as availability_percentage
                 FROM {$this->table} AS t
@@ -207,10 +207,28 @@ class Tour extends BaseModel
             if (!empty($pricingOptions)) {
                 $pricingModel = new TourPricing();
                 foreach ($pricingOptions as $option) {
+                    // Normalize price: accept integers like 1,2,3 or decimals with comma/dot
+                    $rawPrice = $option['price'] ?? '';
+                    if (is_string($rawPrice)) {
+                        $rawPrice = trim(str_replace(',', '.', $rawPrice));
+                    }
+
+                    if ($rawPrice === '' || $rawPrice === null) {
+                        $priceValue = 0;
+                    } else {
+                        // If not numeric, fallback to 0 to avoid SQL errors
+                        if (!is_numeric($rawPrice)) {
+                            $priceValue = 0;
+                        } else {
+                            // store with 2 decimal places
+                            $priceValue = number_format((float)$rawPrice, 2, '.', '');
+                        }
+                    }
+
                     $pricingModel->insert([
                         'tour_id' => $tourId,
                         'label' => $option['label'] ?? '',
-                        'price' => $option['price'] ?? 0,
+                        'price' => $priceValue,
                         'description' => $option['description'] ?? '',
                         'created_at' => date('Y-m-d H:i:s'),
                     ]);
@@ -251,6 +269,7 @@ class Tour extends BaseModel
                         'image_url' => $image['path'],
                         'caption' => '',
                         'sort_order' => $index + 1,
+                        'created_at' => date('Y-m-d H:i:s'),
                     ]);
                 }
             }
@@ -310,14 +329,8 @@ class Tour extends BaseModel
                 }
             }
 
-            // also attempt to delete main_image file from tours table
-            $tour = $this->find('*', 'id = :id', ['id' => $id]);
-            if ($tour && !empty($tour['main_image'])) {
-                $mainPath = PATH_ASSETS_UPLOADS . $tour['main_image'];
-                if (file_exists($mainPath)) {
-                    @unlink($mainPath);
-                }
-            }
+            // main image is stored in `tour_gallery_images` (handled above).
+            // If you keep a separate `tours.main_image` column, ensure DB and code are synchronized.
 
             // 2. Delete DB records in dependent tables
             $imageModel->deleteByTourId($id);

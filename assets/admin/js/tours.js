@@ -62,6 +62,216 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // ===== Thumbnail click and Lightbox =====
+  function createLightbox() {
+    // remove existing lightbox if present so we recreate clean handlers
+    const existing = document.getElementById("image-lightbox");
+    if (existing) existing.remove();
+
+    const lb = document.createElement("div");
+    lb.id = "image-lightbox";
+    lb.className = "image-lightbox";
+    lb.innerHTML =
+      '\n      <div class="lightbox-inner">\n        <button class="lightbox-close" aria-label="Close">&times;</button>\n        <button class="lightbox-prev" aria-label="Previous">&#8249;</button>\n        <div class="lightbox-media">\n          <img class="lightbox-image" src="" alt="">\n        </div>\n        <div class="lightbox-thumbs" aria-hidden="false"></div>\n        <button class="lightbox-next" aria-label="Next">&#8250;</button>\n      </div>';
+    document.body.appendChild(lb);
+
+    const img = lb.querySelector(".lightbox-image");
+    const btnClose = lb.querySelector(".lightbox-close");
+    const btnPrev = lb.querySelector(".lightbox-prev");
+    const btnNext = lb.querySelector(".lightbox-next");
+    const thumbsContainer = lb.querySelector(".lightbox-thumbs");
+
+    let currentGallery = null;
+    let currentIndex = 0;
+
+    function renderThumbs(gallery, activeIdx) {
+      thumbsContainer.innerHTML = "";
+      if (!gallery || !gallery.length) return;
+      gallery.forEach(function (src, i) {
+        const div = document.createElement("div");
+        div.className = "thumb" + (i === activeIdx ? " active" : "");
+        const timg = document.createElement("img");
+        timg.src = src;
+        timg.alt = "thumb-" + i;
+        timg.dataset.index = i;
+        timg.addEventListener("click", function (e) {
+          e.stopPropagation();
+          currentIndex = i;
+          img.src = src;
+          // update active
+          thumbsContainer.querySelectorAll(".thumb").forEach(function (t) {
+            t.classList.remove("active");
+          });
+          div.classList.add("active");
+        });
+        div.appendChild(timg);
+        thumbsContainer.appendChild(div);
+      });
+    }
+
+    function close() {
+      lb.classList.remove("open");
+      img.removeAttribute("src");
+      currentGallery = null;
+      currentIndex = 0;
+      thumbsContainer.innerHTML = "";
+    }
+
+    btnClose.addEventListener("click", close);
+    lb.addEventListener("click", function (e) {
+      if (e.target === lb) close();
+    });
+
+    btnPrev.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (!currentGallery || !currentGallery.length) return;
+      currentIndex =
+        (currentIndex - 1 + currentGallery.length) % currentGallery.length;
+      img.src = currentGallery[currentIndex];
+      // update active thumb
+      thumbsContainer.querySelectorAll(".thumb").forEach(function (t) {
+        t.classList.remove("active");
+      });
+      const active = thumbsContainer.querySelector(
+        ".thumb:nth-child(" + (currentIndex + 1) + ")"
+      );
+      if (active) active.classList.add("active");
+    });
+
+    btnNext.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (!currentGallery || !currentGallery.length) return;
+      currentIndex = (currentIndex + 1) % currentGallery.length;
+      img.src = currentGallery[currentIndex];
+      thumbsContainer.querySelectorAll(".thumb").forEach(function (t) {
+        t.classList.remove("active");
+      });
+      const active = thumbsContainer.querySelector(
+        ".thumb:nth-child(" + (currentIndex + 1) + ")"
+      );
+      if (active) active.classList.add("active");
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (!lb.classList.contains("open")) return;
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") btnPrev.click();
+      if (e.key === "ArrowRight") btnNext.click();
+    });
+
+    return {
+      open: function (gallery, index) {
+        if (!gallery || !gallery.length) return;
+        currentGallery = gallery;
+        currentIndex = typeof index === "number" ? index : 0;
+        img.src = currentGallery[currentIndex];
+        renderThumbs(currentGallery, currentIndex);
+        lb.classList.add("open");
+      },
+      close: close,
+    };
+  }
+
+  window.tourLightbox = createLightbox();
+  const lightbox = window.tourLightbox;
+
+  document.querySelectorAll(".tour-card").forEach(function (card) {
+    const raw = card.dataset.gallery;
+    let gallery = [];
+    try {
+      gallery = raw ? JSON.parse(raw) : [];
+    } catch (err) {
+      gallery = raw ? raw.split(",") : [];
+    }
+
+    const mainImg = card.querySelector(".tour-main img");
+    const thumbImgs = card.querySelectorAll(".tour-thumbs .thumb-item img");
+
+    // Mark first thumb as active if exists
+    if (thumbImgs && thumbImgs.length) {
+      card.querySelectorAll(".tour-thumbs .thumb-item").forEach(function (el) {
+        el.classList.remove("active");
+      });
+    }
+
+    thumbImgs.forEach(function (img) {
+      img.addEventListener("click", function (e) {
+        const idx = parseInt(this.dataset.index, 10);
+        if (!isNaN(idx) && gallery[idx]) {
+          if (mainImg) mainImg.src = gallery[idx];
+          card.dataset.currentIndex = idx;
+        } else if (mainImg) {
+          mainImg.src = this.src;
+          card.dataset.currentIndex = this.dataset.index || 0;
+        }
+        // active state
+        card.querySelectorAll(".tour-thumbs .thumb-item").forEach(function (t) {
+          t.classList.remove("active");
+        });
+        this.parentElement.classList.add("active");
+      });
+    });
+
+    if (mainImg) {
+      mainImg.style.cursor = "zoom-in";
+      mainImg.addEventListener("click", function () {
+        let idx = parseInt(card.dataset.currentIndex || "0", 10);
+        if (isNaN(idx)) idx = 0;
+        lightbox.open(gallery.length ? gallery : [this.src], idx);
+      });
+    }
+  });
+
+  // ===== Edit page: connect previews to lightbox =====
+  const previewContainer = document.getElementById("image-preview-container");
+  if (previewContainer) {
+    // Open lightbox when clicking the preview image or the action button in overlay
+    previewContainer.addEventListener("click", function (e) {
+      // Prefer detecting the action button element (more robust than icon-only selector)
+      const actionBtn = e.target.closest(".action-btn");
+      if (actionBtn) {
+        // If it's the eye button (view)
+        if (actionBtn.classList.contains("fa-eye")) {
+          e.preventDefault();
+          const wrappers = Array.from(previewContainer.children);
+          const imgs = Array.from(
+            previewContainer.querySelectorAll("img.card-img-top")
+          ).map((i) => i.src);
+          const wrapper = actionBtn.closest(".col-6, .col-md-4, .col-lg-3");
+          let idx = 0;
+          if (wrapper) {
+            idx = wrappers.indexOf(wrapper);
+            if (idx === -1) idx = 0;
+          }
+          if (window.tourLightbox) {
+            window.tourLightbox.open(imgs, idx);
+          } else {
+            console.warn("tourLightbox not available yet");
+          }
+          return;
+        }
+      }
+
+      // If click directly on the preview image
+      const imgEl = e.target.closest("img.card-img-top");
+      if (imgEl) {
+        e.preventDefault();
+        const imgs = Array.from(
+          previewContainer.querySelectorAll("img.card-img-top")
+        ).map((i) => i.src);
+        const wrappers = Array.from(previewContainer.children);
+        const wrapper = imgEl.closest(".col-6, .col-md-4, .col-lg-3");
+        let idx = wrappers.indexOf(wrapper);
+        if (idx === -1) idx = imgs.indexOf(imgEl.src) || 0;
+        if (window.tourLightbox) {
+          window.tourLightbox.open(imgs, idx);
+        } else {
+          console.warn("tourLightbox not available yet");
+        }
+      }
+    });
+  }
+
   // ===== TOURS CREATE/EDIT SECTION =====
   const editors = {};
 
@@ -168,6 +378,79 @@ document.addEventListener("DOMContentLoaded", function () {
               editor.sync();
             }
           });
+
+          // Serialize dynamic sections into JSON hidden inputs
+          try {
+            // pricing
+            const pricingList = document.getElementById("pricing-tier-list");
+            const pricingArr = [];
+            if (pricingList) {
+              pricingList
+                .querySelectorAll(".pricing-tier-item")
+                .forEach(function (item) {
+                  const obj = {};
+                  item.querySelectorAll("[data-field]").forEach(function (f) {
+                    const key = f.dataset.field;
+                    if (!key) return;
+                    obj[key] = f.value;
+                  });
+                  // only push if has some content
+                  if (Object.keys(obj).length) pricingArr.push(obj);
+                });
+            }
+
+            // itinerary
+            const itinList = document.getElementById("itinerary-list");
+            const itinArr = [];
+            if (itinList) {
+              itinList
+                .querySelectorAll(".itinerary-item")
+                .forEach(function (item) {
+                  const obj = {};
+                  item.querySelectorAll("[data-field]").forEach(function (f) {
+                    const key = f.dataset.field;
+                    if (!key) return;
+                    obj[key] = f.value;
+                  });
+                  if (Object.keys(obj).length) itinArr.push(obj);
+                });
+            }
+
+            // partners
+            const partnerList = document.getElementById("partner-list");
+            const partnerArr = [];
+            if (partnerList) {
+              partnerList
+                .querySelectorAll(".partner-item")
+                .forEach(function (item) {
+                  const obj = {};
+                  item.querySelectorAll("[data-field]").forEach(function (f) {
+                    const key = f.dataset.field;
+                    if (!key) return;
+                    obj[key] = f.value;
+                  });
+                  if (Object.keys(obj).length) partnerArr.push(obj);
+                });
+            }
+
+            // attach hidden inputs (replace if exist)
+            function upsertHidden(name, value) {
+              let input = form.querySelector('input[name="' + name + '"]');
+              if (!input) {
+                input = document.createElement("input");
+                input.type = "hidden";
+                input.name = name;
+                form.appendChild(input);
+              }
+              input.value = value;
+            }
+
+            upsertHidden("tour_pricing_options", JSON.stringify(pricingArr));
+            upsertHidden("tour_itinerary", JSON.stringify(itinArr));
+            upsertHidden("tour_partners", JSON.stringify(partnerArr));
+          } catch (err) {
+            console.error("Error serializing dynamic sections:", err);
+          }
         });
       });
     })
