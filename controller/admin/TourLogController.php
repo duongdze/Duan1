@@ -21,8 +21,8 @@ class TourLogController
     public function create()
     {
         $tourModel = new Tour();
-        $toursData = $tourModel->getAllTours(1, 100);
-        $tours = $toursData['data'];
+        // use generic select() to fetch all tours (getAll() not defined in Tour model)
+        $tours = $tourModel->select();
 
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
@@ -66,8 +66,7 @@ class TourLogController
         }
 
         $tourModel = new Tour();
-        $toursData = $tourModel->getAllTours(1, 100);
-        $tours = $toursData['data'];
+        $tours = $tourModel->select();
 
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
