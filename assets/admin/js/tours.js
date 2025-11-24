@@ -272,191 +272,86 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ===== TOURS CREATE/EDIT SECTION =====
-  const editors = {};
+  // ===== TOURS CREATE/EDIT SECTION (no CKEditor) =====
 
-  // Debug: Check if CKEDITOR loaded
-  console.log("DOMContentLoaded fired");
-  console.log(
-    "CKEDITOR available:",
-    typeof CKEDITOR !== "undefined" ? CKEDITOR : "NOT FOUND"
-  );
-
-  // Wait for CKEDITOR to be loaded from CDN
-  function initCKEditor(selector, inputId) {
-    return new Promise((resolve, reject) => {
-      const element = document.querySelector(selector);
-      if (!element) {
-        console.warn("Element not found:", selector);
-        resolve(null);
-        return;
-      }
-
-      // Kiểm tra xem CKEDITOR có được load không
-      if (typeof CKEDITOR === "undefined") {
-        console.error("CKEDITOR not loaded from CDN");
-        reject(new Error("CKEDITOR not loaded"));
-        return;
-      }
-
-      console.log("Initializing CKEditor for:", selector);
-
-      try {
-        // Remove # from selector để CKEDITOR.replace có thể nhận ID
-        const elementId = selector.replace("#", "");
-
-        // Thay thế element bằng CKEditor instance
-        CKEDITOR.replace(elementId, {
-          toolbar: [
-            {
-              name: "basicstyles",
-              items: ["Bold", "Italic", "Underline", "Strike", "RemoveFormat"],
-            },
-            {
-              name: "paragraph",
-              items: [
-                "NumberedList",
-                "BulletedList",
-                "-",
-                "Outdent",
-                "Indent",
-                "-",
-                "Blockquote",
-                "CreateDiv",
-              ],
-            },
-            { name: "links", items: ["Link", "Unlink"] },
-            { name: "insert", items: ["Image", "Table", "HorizontalRule"] },
-            { name: "styles", items: ["Styles", "Format", "Font", "FontSize"] },
-            { name: "colors", items: ["TextColor", "BGColor"] },
-          ],
-          height: "300px",
-          contentsCss:
-            "body { font-family: Arial, sans-serif; font-size: 14px; }",
-        });
-
-        // Lưu reference tới editor
-        CKEDITOR.instances[elementId].on("instanceReady", function (evt) {
-          const editor = evt.editor;
-          const hiddenInput = document.getElementById(inputId);
-
-          if (hiddenInput && hiddenInput.value) {
-            editor.setData(hiddenInput.value);
+  // Attach form submit handler to serialize dynamic sections into hidden inputs.
+  (function attachTourFormHandler() {
+    const tourForms = document.querySelectorAll("form.tour-form");
+    tourForms.forEach(function (form) {
+      form.addEventListener("submit", function (e) {
+        try {
+          // pricing
+          const pricingList = document.getElementById("pricing-tier-list");
+          const pricingArr = [];
+          if (pricingList) {
+            pricingList
+              .querySelectorAll(".pricing-tier-item")
+              .forEach(function (item) {
+                const obj = {};
+                item.querySelectorAll("[data-field]").forEach(function (f) {
+                  const key = f.dataset.field;
+                  if (!key) return;
+                  obj[key] = f.value;
+                });
+                if (Object.keys(obj).length) pricingArr.push(obj);
+              });
           }
 
-          editors[inputId] = {
-            instance: editor,
-            sync: function () {
-              if (hiddenInput) {
-                hiddenInput.value = editor.getData();
-              }
-            },
-          };
-
-          resolve(editors[inputId]);
-        });
-      } catch (error) {
-        console.error("CKEditor initialization error:", error);
-        reject(error);
-      }
-    });
-  }
-
-  // Initialize both editors
-  Promise.all([
-    initCKEditor("#editor-description", "input-description"),
-    initCKEditor("#editor-policy", "input-policy"),
-  ])
-    .then((results) => {
-      console.log("CKEditor instances initialized:", results);
-      // After editors are initialized, attach form submit handler
-      const tourForms = document.querySelectorAll("form.tour-form");
-      tourForms.forEach(function (form) {
-        form.addEventListener("submit", function (e) {
-          Object.values(editors).forEach((editor) => {
-            if (editor) {
-              editor.sync();
-            }
-          });
-
-          // Serialize dynamic sections into JSON hidden inputs
-          try {
-            // pricing
-            const pricingList = document.getElementById("pricing-tier-list");
-            const pricingArr = [];
-            if (pricingList) {
-              pricingList
-                .querySelectorAll(".pricing-tier-item")
-                .forEach(function (item) {
-                  const obj = {};
-                  item.querySelectorAll("[data-field]").forEach(function (f) {
-                    const key = f.dataset.field;
-                    if (!key) return;
-                    obj[key] = f.value;
-                  });
-                  // only push if has some content
-                  if (Object.keys(obj).length) pricingArr.push(obj);
+          // itinerary
+          const itinList = document.getElementById("itinerary-list");
+          const itinArr = [];
+          if (itinList) {
+            itinList
+              .querySelectorAll(".itinerary-item")
+              .forEach(function (item) {
+                const obj = {};
+                item.querySelectorAll("[data-field]").forEach(function (f) {
+                  const key = f.dataset.field;
+                  if (!key) return;
+                  obj[key] = f.value;
                 });
-            }
-
-            // itinerary
-            const itinList = document.getElementById("itinerary-list");
-            const itinArr = [];
-            if (itinList) {
-              itinList
-                .querySelectorAll(".itinerary-item")
-                .forEach(function (item) {
-                  const obj = {};
-                  item.querySelectorAll("[data-field]").forEach(function (f) {
-                    const key = f.dataset.field;
-                    if (!key) return;
-                    obj[key] = f.value;
-                  });
-                  if (Object.keys(obj).length) itinArr.push(obj);
-                });
-            }
-
-            // partners
-            const partnerList = document.getElementById("partner-list");
-            const partnerArr = [];
-            if (partnerList) {
-              partnerList
-                .querySelectorAll(".partner-item")
-                .forEach(function (item) {
-                  const obj = {};
-                  item.querySelectorAll("[data-field]").forEach(function (f) {
-                    const key = f.dataset.field;
-                    if (!key) return;
-                    obj[key] = f.value;
-                  });
-                  if (Object.keys(obj).length) partnerArr.push(obj);
-                });
-            }
-
-            // attach hidden inputs (replace if exist)
-            function upsertHidden(name, value) {
-              let input = form.querySelector('input[name="' + name + '"]');
-              if (!input) {
-                input = document.createElement("input");
-                input.type = "hidden";
-                input.name = name;
-                form.appendChild(input);
-              }
-              input.value = value;
-            }
-
-            upsertHidden("tour_pricing_options", JSON.stringify(pricingArr));
-            upsertHidden("tour_itinerary", JSON.stringify(itinArr));
-            upsertHidden("tour_partners", JSON.stringify(partnerArr));
-          } catch (err) {
-            console.error("Error serializing dynamic sections:", err);
+                if (Object.keys(obj).length) itinArr.push(obj);
+              });
           }
-        });
+
+          // partners
+          const partnerList = document.getElementById("partner-list");
+          const partnerArr = [];
+          if (partnerList) {
+            partnerList
+              .querySelectorAll(".partner-item")
+              .forEach(function (item) {
+                const obj = {};
+                item.querySelectorAll("[data-field]").forEach(function (f) {
+                  const key = f.dataset.field;
+                  if (!key) return;
+                  obj[key] = f.value;
+                });
+                if (Object.keys(obj).length) partnerArr.push(obj);
+              });
+          }
+
+          // attach hidden inputs (replace if exist)
+          function upsertHidden(name, value) {
+            let input = form.querySelector('input[name="' + name + '"]');
+            if (!input) {
+              input = document.createElement("input");
+              input.type = "hidden";
+              input.name = name;
+              form.appendChild(input);
+            }
+            input.value = value;
+          }
+
+          upsertHidden("tour_pricing_options", JSON.stringify(pricingArr));
+          upsertHidden("tour_itinerary", JSON.stringify(itinArr));
+          upsertHidden("tour_partners", JSON.stringify(partnerArr));
+        } catch (err) {
+          console.error("Error serializing dynamic sections:", err);
+        }
       });
-    })
-    .catch((error) => {
-      console.error("Error initializing CKEditor:", error);
     });
+  })();
 
   function setupDynamicSection(config) {
     var listEl = document.getElementById(config.listId);

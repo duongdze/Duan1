@@ -462,7 +462,13 @@ class TourController
             $this->model->commit();
 
             $_SESSION['success'] = 'Cập nhật tour thành công.';
-            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            // Prefer returning to provided `return_to` (only if internal), otherwise fallback to tours list
+            $returnTo = $_POST['return_to'] ?? '';
+            if ($returnTo && strpos($returnTo, BASE_URL_ADMIN) === 0) {
+                header('Location: ' . $returnTo);
+            } else {
+                header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            }
             exit;
         } catch (Exception $e) {
             $this->model->rollBack();
@@ -541,6 +547,23 @@ class TourController
             $stmt->execute(['tid' => $id]);
             $tour['booking_count'] = $stmt->fetch()['bc'] ?? 0;
         }
+
+        // Enrich tour with supplier contact/name if missing
+        try {
+            $supplierModel = new Supplier();
+            $supplier = $supplierModel->find('*', 'id = :id', ['id' => $tour['supplier_id'] ?? 0]);
+            $tour['supplier_name'] = $tour['supplier_name'] ?? ($supplier['name'] ?? '');
+            // prefer explicit supplier_contact, fallback to supplier phone or contact
+            $tour['supplier_contact'] = $tour['supplier_contact'] ?? ($supplier['contact'] ?? ($supplier['phone'] ?? ''));
+        } catch (Exception $e) {
+            // ignore if supplier lookup fails
+        }
+
+        // Normalize commonly expected fields for the detail view
+        $tour['subtitle'] = $tour['subtitle'] ?? ($tour['short_description'] ?? '');
+        $tour['duration'] = $tour['duration'] ?? ($tour['days'] ?? '');
+        $tour['capacity'] = $tour['capacity'] ?? ($tour['seats'] ?? '');
+        $tour['start_date'] = $tour['start_date'] ?? ($tour['next_start_date'] ?? '');
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
     }

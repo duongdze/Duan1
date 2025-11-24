@@ -93,47 +93,51 @@ $partnerServices = $partnerServices ?? [];
             ?>
             <div class="col-lg-7">
                 <div class="card mb-3 shadow-sm">
-                    <div class="card-body p-0">
-                        <div class="position-relative" style="height:520px;">
-                            <?php
-                            if ($mainImage) {
-                                $mainUrl = (strpos($mainImage, 'http') === 0) ? $mainImage : BASE_ASSETS_UPLOADS . $mainImage;
-                            } else {
-                                $mainUrl = BASE_URL . 'assets/admin/image/no-image.png';
-                            }
-                            ?>
-                            <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="img-fluid w-100" style="height:520px; object-fit:cover;">
-                            <div class="position-absolute" style="left:18px; bottom:18px;">
-                                <h3 class="text-white mb-1" style="text-shadow:0 2px 8px rgba(0,0,0,.6);"><?= htmlspecialchars($tour['name'] ?? '') ?></h3>
-                                <div class="text-white small" style="text-shadow:0 2px 6px rgba(0,0,0,.6);">
-                                    <?= htmlspecialchars($tour['subtitle'] ?? ($tour['short_description'] ?? '')) ?>
-                                </div>
-                            </div>
-                            <div class="position-absolute" style="right:18px; top:18px;">
-                                <div class="badge bg-primary"><?= htmlspecialchars($tour['category_name'] ?? '') ?></div>
-                            </div>
-                            <div class="position-absolute" style="right:18px; bottom:18px;">
-                                <div class="bg-white p-2 rounded shadow-sm text-dark">
-                                    <div class="fw-bold fs-5"><?= $priceShort ?></div>
-                                    <div class="small text-muted">Giá khởi điểm</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <?php if (!empty($thumbsToShow)): ?>
-                            <div class="d-flex gap-2 p-3 align-items-center" style="overflow:auto">
-                                <?php foreach ($thumbsToShow as $i => $timg):
-                                    $turl = (strpos($timg, 'http') === 0) ? $timg : BASE_ASSETS_UPLOADS . $timg;
+                    <?php // attach same data-gallery JSON used in listing so shared JS works 
+                    ?>
+                    <div class="tour-card" data-gallery='<?= htmlspecialchars(json_encode($galleryUrls), ENT_QUOTES) ?>'>
+                        <div class="card-body p-0">
+                            <div class="tour-main position-relative" style="height:520px;">
+                                <?php
+                                if ($mainImage) {
+                                    $mainUrl = (strpos($mainImage, 'http') === 0) ? $mainImage : BASE_ASSETS_UPLOADS . $mainImage;
+                                } else {
+                                    $mainUrl = BASE_URL . 'assets/admin/image/no-image.png';
+                                }
                                 ?>
-                                    <div class="me-2" style="width:92px; height:64px; overflow:hidden; border-radius:6px;">
-                                        <img src="<?= $turl ?>" alt="thumb-<?= $i ?>" style="width:100%; height:100%; object-fit:cover;">
+                                <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="img-fluid w-100" style="height:520px; object-fit:cover;">
+                                <div class="position-absolute" style="left:18px; bottom:18px;">
+                                    <h3 class="text-white mb-1" style="text-shadow:0 2px 8px rgba(0,0,0,.6);"><?= htmlspecialchars($tour['name'] ?? '') ?></h3>
+                                    <div class="text-white small" style="text-shadow:0 2px 6px rgba(0,0,0,.6);">
+                                        <?= htmlspecialchars($tour['subtitle'] ?? ($tour['short_description'] ?? '')) ?>
                                     </div>
-                                <?php endforeach; ?>
-                                <?php if ($remaining > 0): ?>
-                                    <div class="me-2 d-flex align-items-center justify-content-center bg-secondary text-white" style="width:92px; height:64px; border-radius:6px;">+<?= $remaining ?></div>
-                                <?php endif; ?>
+                                </div>
+                                <div class="position-absolute" style="right:18px; top:18px;">
+                                    <div class="badge bg-primary"><?= htmlspecialchars($tour['category_name'] ?? '') ?></div>
+                                </div>
+                                <div class="position-absolute" style="right:18px; bottom:18px;">
+                                    <div class="bg-white p-2 rounded shadow-sm text-dark">
+                                        <div class="fw-bold fs-5"><?= $priceShort ?></div>
+                                        <div class="small text-muted">Giá khởi điểm</div>
+                                    </div>
+                                </div>
                             </div>
-                        <?php endif; ?>
+
+                            <?php if (!empty($thumbsToShow)): ?>
+                                <div class="tour-thumbs d-flex gap-2 p-3 align-items-center" style="overflow:auto">
+                                    <?php foreach ($thumbsToShow as $i => $timg):
+                                        $turl = (strpos($timg, 'http') === 0) ? $timg : BASE_ASSETS_UPLOADS . $timg;
+                                    ?>
+                                        <div class="thumb-item me-2" style="width:92px; height:64px; overflow:hidden; border-radius:6px;">
+                                            <img src="<?= $turl ?>" alt="thumb-<?= $i ?>" style="width:100%; height:100%; object-fit:cover;" data-index="<?= $i + 1 ?>">
+                                        </div>
+                                    <?php endforeach; ?>
+                                    <?php if ($remaining > 0): ?>
+                                        <div class="thumb-item me-2 d-flex align-items-center justify-content-center bg-secondary text-white" style="width:92px; height:64px; border-radius:6px;">+<?= $remaining ?></div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
 
