@@ -136,7 +136,7 @@ class Tour extends BaseModel
                     tc.name as category_name,
                     COALESCE(tf.avg_rating, 0) as avg_rating,
                     COALESCE(tb.booking_count, 0) as booking_count,
-                    t.main_image,
+                    MAX(CASE WHEN tgi.main_img = 1 THEN tgi.image_url END) AS main_image,
                     GROUP_CONCAT(tgi.image_url ORDER BY tgi.sort_order SEPARATOR ',') as gallery_images,
                     0 as availability_percentage
                 FROM {$this->table} AS t
@@ -154,7 +154,7 @@ class Tour extends BaseModel
                 ) tb ON t.id = tb.tour_id
                 LEFT JOIN `tour_gallery_images` tgi ON t.id = tgi.tour_id
                 $whereClause
-                GROUP BY t.id, s.id, s.name, tc.name, tf.avg_rating, tb.booking_count, t.main_image
+                GROUP BY t.id, s.id, s.name, tc.name, tf.avg_rating, tb.booking_count
                 ORDER BY $orderBy
                 LIMIT :limit OFFSET :offset";
 
@@ -251,6 +251,7 @@ class Tour extends BaseModel
                         'image_url' => $image['path'],
                         'caption' => '',
                         'sort_order' => $index + 1,
+                        'created_at' => date('Y-m-d H:i:s'),
                     ]);
                 }
             }
@@ -310,14 +311,8 @@ class Tour extends BaseModel
                 }
             }
 
-            // also attempt to delete main_image file from tours table
-            $tour = $this->find('*', 'id = :id', ['id' => $id]);
-            if ($tour && !empty($tour['main_image'])) {
-                $mainPath = PATH_ASSETS_UPLOADS . $tour['main_image'];
-                if (file_exists($mainPath)) {
-                    @unlink($mainPath);
-                }
-            }
+            // main image is stored in `tour_gallery_images` (handled above).
+            // If you keep a separate `tours.main_image` column, ensure DB and code are synchronized.
 
             // 2. Delete DB records in dependent tables
             $imageModel->deleteByTourId($id);
