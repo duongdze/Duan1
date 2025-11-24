@@ -378,6 +378,79 @@ document.addEventListener("DOMContentLoaded", function () {
               editor.sync();
             }
           });
+
+          // Serialize dynamic sections into JSON hidden inputs
+          try {
+            // pricing
+            const pricingList = document.getElementById("pricing-tier-list");
+            const pricingArr = [];
+            if (pricingList) {
+              pricingList
+                .querySelectorAll(".pricing-tier-item")
+                .forEach(function (item) {
+                  const obj = {};
+                  item.querySelectorAll("[data-field]").forEach(function (f) {
+                    const key = f.dataset.field;
+                    if (!key) return;
+                    obj[key] = f.value;
+                  });
+                  // only push if has some content
+                  if (Object.keys(obj).length) pricingArr.push(obj);
+                });
+            }
+
+            // itinerary
+            const itinList = document.getElementById("itinerary-list");
+            const itinArr = [];
+            if (itinList) {
+              itinList
+                .querySelectorAll(".itinerary-item")
+                .forEach(function (item) {
+                  const obj = {};
+                  item.querySelectorAll("[data-field]").forEach(function (f) {
+                    const key = f.dataset.field;
+                    if (!key) return;
+                    obj[key] = f.value;
+                  });
+                  if (Object.keys(obj).length) itinArr.push(obj);
+                });
+            }
+
+            // partners
+            const partnerList = document.getElementById("partner-list");
+            const partnerArr = [];
+            if (partnerList) {
+              partnerList
+                .querySelectorAll(".partner-item")
+                .forEach(function (item) {
+                  const obj = {};
+                  item.querySelectorAll("[data-field]").forEach(function (f) {
+                    const key = f.dataset.field;
+                    if (!key) return;
+                    obj[key] = f.value;
+                  });
+                  if (Object.keys(obj).length) partnerArr.push(obj);
+                });
+            }
+
+            // attach hidden inputs (replace if exist)
+            function upsertHidden(name, value) {
+              let input = form.querySelector('input[name="' + name + '"]');
+              if (!input) {
+                input = document.createElement("input");
+                input.type = "hidden";
+                input.name = name;
+                form.appendChild(input);
+              }
+              input.value = value;
+            }
+
+            upsertHidden("tour_pricing_options", JSON.stringify(pricingArr));
+            upsertHidden("tour_itinerary", JSON.stringify(itinArr));
+            upsertHidden("tour_partners", JSON.stringify(partnerArr));
+          } catch (err) {
+            console.error("Error serializing dynamic sections:", err);
+          }
         });
       });
     })

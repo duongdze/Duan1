@@ -27,7 +27,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
-        <form method="POST" action="?action=tours/update" enctype="multipart/form-data" class="tour-form">
+        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=tours/update" enctype="multipart/form-data" class="tour-form">
             <input type="hidden" name="id" value="<?= htmlspecialchars($tour['id']) ?>">
             <!-- Container for tracking deleted image URLs -->
             <div id="deleted-images-container"></div>
@@ -78,7 +78,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                             <div class="mb-3">
                                 <label for="base_price" class="form-label fw-500">Giá Cơ Bản</label>
-                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="50000" value="<?= htmlspecialchars($tour['base_price']) ?>">
+                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="1" value="<?= htmlspecialchars($tour['base_price']) ?>">
                                 <small class="text-muted">Đơn giá mặc định áp dụng khi không có gói riêng.</small>
                             </div>
                         </div>
@@ -338,7 +338,10 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             // Support different keys coming from backend: prefer `id` and `url`, fallback to `image_url` or `path`.
             imageItems = existingImagesData.map(img => ({
                 id: (img && (img.id || img.image_id || img.imageId)) ? (img.id || img.image_id || img.imageId) : null,
-                url: (img && (img.url || img.image_url || img.path)) ? (img.url || img.image_url || img.path) : ''
+                // public URL for preview
+                url: (img && (img.url || img.image_url)) ? (img.url || img.image_url) : '',
+                // relative DB path (e.g. 'tours/xxx.jpg') for backend operations
+                path: (img && (img.path || img.image_url)) ? (img.path || img.image_url) : ''
             }));
 
             updatePreviews();
@@ -379,9 +382,19 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         function updatePreviews() {
             previewContainer.innerHTML = '';
             imageItems.forEach((item, index) => {
-                // existing items are objects {id, url}; new items are File objects
-                const isExisting = (typeof item === 'object' && item.url) || (typeof item === 'string');
-                const imgSrc = (typeof item === 'object') ? item.url : (typeof item === 'string' ? item : URL.createObjectURL(item));
+                // Determine source for preview:
+                // - File objects (new uploads) -> createObjectURL
+                // - Existing image objects -> item.url
+                // - Plain string (edge cases) -> use string as src
+                let imgSrc = '';
+                const isFile = item instanceof File;
+                if (isFile) {
+                    imgSrc = URL.createObjectURL(item);
+                } else if (typeof item === 'object' && item.url) {
+                    imgSrc = item.url;
+                } else if (typeof item === 'string') {
+                    imgSrc = item;
+                }
 
                 const previewWrapper = document.createElement('div');
                 previewWrapper.className = 'col-6 col-md-4 col-lg-3';
@@ -391,9 +404,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 img.src = imgSrc;
                 img.className = 'card-img-top object-fit-cover';
                 img.style.height = '120px';
-                // only revoke object URLs for File objects (blobs)
-                if (!(typeof item === 'object') && !(typeof item === 'string')) {
-                    img.onload = () => URL.revokeObjectURL(img.src); // Clean up memory for blobs
+                // revoke object URLs for File objects after load to free memory
+                if (isFile) {
+                    img.onload = () => URL.revokeObjectURL(img.src);
                 }
 
                 const overlay = createOverlay(index, imgSrc);
@@ -458,7 +471,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
                 hiddenInput.name = 'deleted_images[]';
-                hiddenInput.value = item.id ? item.id : item.url;
+                // prefer numeric id, otherwise send DB-relative path so backend can match image_url
+                hiddenInput.value = item.id ? item.id : (item.path || item.url);
                 deletedContainer.appendChild(hiddenInput);
             }
             imageItems.splice(indexToRemove, 1);
@@ -473,7 +487,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                 // If the new primary is an existing image, record its ID (prefer) or URL for the backend.
                 if (typeof item === 'object') {
-                    newPrimaryInput.value = item.id ? item.id : item.url;
+                    // prefer id; if not available send DB-relative path (not full public URL)
+                    newPrimaryInput.value = item.id ? item.id : (item.path || item.url);
                 } else {
                     // new file upload -> backend should detect uploaded main image from `image` input
                     newPrimaryInput.value = '';

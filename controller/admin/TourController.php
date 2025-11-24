@@ -233,7 +233,10 @@ class TourController
         $allImages = array_map(function ($img) {
             return [
                 'id' => $img['id'] ?? null,
+                // public URL for preview
                 'url' => BASE_ASSETS_UPLOADS . ($img['image_url'] ?? ''),
+                // relative path stored in DB, used for delete/matching on server-side
+                'path' => $img['image_url'] ?? '',
                 'main' => !empty($img['main_img']) ? 1 : 0,
             ];
         }, $images ?: []);
@@ -400,10 +403,26 @@ class TourController
 
             $pricingModel->delete('tour_id = :tid', ['tid' => $id]);
             foreach ($pricingOptions as $opt) {
+                // Normalize price input from frontend
+                $rawPrice = $opt['price'] ?? '';
+                if (is_string($rawPrice)) {
+                    $rawPrice = trim(str_replace(',', '.', $rawPrice));
+                }
+
+                if ($rawPrice === '' || $rawPrice === null) {
+                    $priceValue = 0;
+                } else {
+                    if (!is_numeric($rawPrice)) {
+                        $priceValue = 0;
+                    } else {
+                        $priceValue = number_format((float)$rawPrice, 2, '.', '');
+                    }
+                }
+
                 $pricingModel->insert([
                     'tour_id' => $id,
                     'label' => $opt['label'] ?? '',
-                    'price' => $opt['price'] ?? 0,
+                    'price' => $priceValue,
                     'description' => $opt['description'] ?? '',
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);

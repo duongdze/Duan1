@@ -96,7 +96,7 @@ $partnerServices = $partnerServices ?? [];
                     <div class="card-body">
                         <div class="tour-card" data-gallery='<?= htmlspecialchars(json_encode($galleryUrls), ENT_QUOTES) ?>'>
                             <div class="tour-gallery">
-                                <div class="tour-main mb-3 position-relative">
+                                <div class="tour-main mb-3 position-relative" style="height:500px;">
                                     <?php
                                     if ($mainImage) {
                                         $mainUrl = (strpos($mainImage, 'http') === 0) ? $mainImage : BASE_ASSETS_UPLOADS . $mainImage;
@@ -104,7 +104,7 @@ $partnerServices = $partnerServices ?? [];
                                         $mainUrl = BASE_URL . 'assets/admin/image/no-image.png';
                                     }
                                     ?>
-                                    <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="img-fluid rounded" style="width:100%; max-height:380px; object-fit:cover;" data-index="0">
+                                    <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="img-fluid rounded" style="width:100%; height:500px; object-fit:cover;" data-index="0">
                                     <?php if (!empty($tour['category_name'])): ?>
                                         <span class="badge bg-primary position-absolute" style="top:10px; left:10px;"><?= htmlspecialchars($tour['category_name']) ?></span>
                                     <?php endif; ?>

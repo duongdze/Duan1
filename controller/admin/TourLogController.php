@@ -24,7 +24,8 @@ class TourLogController
     {
         // prepare data for create view
         $tourModel = new Tour();
-        $tours = $tourModel->getAll();
+        // use generic select() to fetch all tours (getAll() not defined in Tour model)
+        $tours = $tourModel->select();
 
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
@@ -71,7 +72,7 @@ class TourLogController
         }
 
         $tourModel = new Tour();
-        $tours = $tourModel->getAll();
+        $tours = $tourModel->select();
 
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
