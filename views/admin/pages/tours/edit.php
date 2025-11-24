@@ -29,6 +29,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
         <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=tours/update" enctype="multipart/form-data" class="tour-form">
             <input type="hidden" name="id" value="<?= htmlspecialchars($tour['id']) ?>">
+            <?php
+            // remember where the user came from so we can return them to the same list state after saving
+            $referer = $_GET['return_to'] ?? ($_SERVER['HTTP_REFERER'] ?? BASE_URL_ADMIN . '&action=tours');
+            ?>
+            <input type="hidden" name="return_to" value="<?= htmlspecialchars($referer) ?>">
             <!-- Container for tracking deleted image URLs -->
             <div id="deleted-images-container"></div>
             <!-- Hidden input to track if an existing gallery image is promoted to primary -->
@@ -93,8 +98,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div class="card-body">
                             <label for="description" class="form-label fw-500">Nhập mô tả</label>
-                            <input type="hidden" id="input-description" name="description" value='<?= htmlspecialchars($tour['description'] ?? '', ENT_QUOTES) ?>'>
-                            <div id="editor-description" class="quill-editor"></div>
+                            <textarea id="input-description" name="description" class="form-control" rows="6"><?= htmlspecialchars($tour['description'] ?? '') ?></textarea>
                         </div>
                     </div>
 
@@ -257,8 +261,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 </div>
                 <div class="card-body">
                     <label for="policy" class="form-label fw-500">Nhập chính sách</label>
-                    <input type="hidden" id="input-policy" name="policy" value='<?= htmlspecialchars($tour['policy'] ?? '', ENT_QUOTES) ?>'>
-                    <div id="editor-policy" class="quill-editor"></div>
+                    <textarea id="input-policy" name="policy" class="form-control" rows="5"><?= htmlspecialchars($tour['policy'] ?? '') ?></textarea>
                 </div>
             </div>
 

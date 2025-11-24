@@ -76,8 +76,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div class="card-body">
                             <label for="description" class="form-label fw-500">Nhập mô tả</label>
-                            <input type="hidden" id="input-description" name="description">
-                            <div id="editor-description" class="quill-editor"></div>
+                            <textarea id="input-description" name="description" class="form-control" rows="6" placeholder="Nhập mô tả tour (plain text)"></textarea>
                         </div>
                     </div>
 
@@ -239,8 +238,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 </div>
                 <div class="card-body">
                     <label for="policy" class="form-label fw-500">Nhập chính sách</label>
-                    <input type="hidden" id="input-policy" name="policy">
-                    <div id="editor-policy" class="quill-editor"></div>
+                    <textarea id="input-policy" name="policy" class="form-control" rows="5" placeholder="Nhập chính sách (plain text)"></textarea>
                 </div>
             </div>
 
