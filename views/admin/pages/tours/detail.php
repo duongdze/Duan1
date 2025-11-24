@@ -92,170 +92,187 @@ $partnerServices = $partnerServices ?? [];
             $bookingCount = (int)($tour['booking_count'] ?? 0);
             ?>
             <div class="col-lg-7">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <div class="tour-card" data-gallery='<?= htmlspecialchars(json_encode($galleryUrls), ENT_QUOTES) ?>'>
-                            <div class="tour-gallery">
-                                <div class="tour-main mb-3 position-relative" style="height:500px;">
-                                    <?php
-                                    if ($mainImage) {
-                                        $mainUrl = (strpos($mainImage, 'http') === 0) ? $mainImage : BASE_ASSETS_UPLOADS . $mainImage;
-                                    } else {
-                                        $mainUrl = BASE_URL . 'assets/admin/image/no-image.png';
-                                    }
-                                    ?>
-                                    <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="img-fluid rounded" style="width:100%; height:500px; object-fit:cover;" data-index="0">
-                                    <?php if (!empty($tour['category_name'])): ?>
-                                        <span class="badge bg-primary position-absolute" style="top:10px; left:10px;"><?= htmlspecialchars($tour['category_name']) ?></span>
-                                    <?php endif; ?>
-                                    <span class="price-badge"><?= $priceShort ?></span>
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="position-relative" style="height:520px;">
+                            <?php
+                            if ($mainImage) {
+                                $mainUrl = (strpos($mainImage, 'http') === 0) ? $mainImage : BASE_ASSETS_UPLOADS . $mainImage;
+                            } else {
+                                $mainUrl = BASE_URL . 'assets/admin/image/no-image.png';
+                            }
+                            ?>
+                            <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="img-fluid w-100" style="height:520px; object-fit:cover;">
+                            <div class="position-absolute" style="left:18px; bottom:18px;">
+                                <h3 class="text-white mb-1" style="text-shadow:0 2px 8px rgba(0,0,0,.6);"><?= htmlspecialchars($tour['name'] ?? '') ?></h3>
+                                <div class="text-white small" style="text-shadow:0 2px 6px rgba(0,0,0,.6);">
+                                    <?= htmlspecialchars($tour['subtitle'] ?? ($tour['short_description'] ?? '')) ?>
                                 </div>
-
-                                <?php if (!empty($thumbsToShow)): ?>
-                                    <div class="tour-thumbs d-flex gap-2 mb-3">
-                                        <?php foreach ($thumbsToShow as $i => $timg):
-                                            $turl = (strpos($timg, 'http') === 0) ? $timg : BASE_ASSETS_UPLOADS . $timg;
-                                        ?>
-                                            <div class="thumb-item" style="width:72px; height:72px; overflow:hidden; border-radius:6px;">
-                                                <img src="<?= $turl ?>" alt="thumb-<?= $i ?>" style="width:100%; height:100%; object-fit:cover;" data-index="<?= $i + 1 ?>">
-                                            </div>
-                                        <?php endforeach; ?>
-                                        <?php if ($remaining > 0): ?>
-                                            <div class="thumb-item d-flex align-items-center justify-content-center bg-secondary text-white" style="width:72px; height:72px; border-radius:6px;">+<?= $remaining ?></div>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endif; ?>
+                            </div>
+                            <div class="position-absolute" style="right:18px; top:18px;">
+                                <div class="badge bg-primary"><?= htmlspecialchars($tour['category_name'] ?? '') ?></div>
+                            </div>
+                            <div class="position-absolute" style="right:18px; bottom:18px;">
+                                <div class="bg-white p-2 rounded shadow-sm text-dark">
+                                    <div class="fw-bold fs-5"><?= $priceShort ?></div>
+                                    <div class="small text-muted">Giá khởi điểm</div>
+                                </div>
                             </div>
                         </div>
 
-                        <h5 class="mb-2">Mô tả</h5>
-                        <div class="mb-3">
-                            <?php if (!empty($tour['description'])): ?>
-                                <div class="border rounded p-3 bg-white"><?= $tour['description'] ?></div>
-                            <?php else: ?>
-                                <div class="text-muted">Không có mô tả.</div>
-                            <?php endif; ?>
-                        </div>
-
-                        <h5 class="mb-2">Chính sách</h5>
-                        <div class="mb-3">
-                            <?php if (!empty($tour['policy'])): ?>
-                                <div class="border rounded p-3 bg-white"><?= $tour['policy'] ?></div>
-                            <?php else: ?>
-                                <div class="text-muted">Không có chính sách.</div>
-                            <?php endif; ?>
-                        </div>
+                        <?php if (!empty($thumbsToShow)): ?>
+                            <div class="d-flex gap-2 p-3 align-items-center" style="overflow:auto">
+                                <?php foreach ($thumbsToShow as $i => $timg):
+                                    $turl = (strpos($timg, 'http') === 0) ? $timg : BASE_ASSETS_UPLOADS . $timg;
+                                ?>
+                                    <div class="me-2" style="width:92px; height:64px; overflow:hidden; border-radius:6px;">
+                                        <img src="<?= $turl ?>" alt="thumb-<?= $i ?>" style="width:100%; height:100%; object-fit:cover;">
+                                    </div>
+                                <?php endforeach; ?>
+                                <?php if ($remaining > 0): ?>
+                                    <div class="me-2 d-flex align-items-center justify-content-center bg-secondary text-white" style="width:92px; height:64px; border-radius:6px;">+<?= $remaining ?></div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Lịch trình</h5>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="card mb-3">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Giới thiệu</h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (!empty($tour['description'])): ?>
+                                    <div class="text-muted" style="white-space:pre-line"><?= nl2br(htmlspecialchars($tour['description'])) ?></div>
+                                <?php else: ?>
+                                    <div class="text-muted">Không có mô tả.</div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <?php if (!empty($itinerarySchedule)): ?>
-                            <?php foreach ($itinerarySchedule as $it): ?>
-                                <div class="mb-3">
-                                    <h6 class="mb-1"><?= htmlspecialchars($it['day_label'] ?? ('Ngày ' . ($it['day_number'] ?? ''))) ?></h6>
-                                    <div class="text-muted small mb-1"><?= htmlspecialchars($it['time_start'] ?? '') ?> - <?= htmlspecialchars($it['time_end'] ?? '') ?></div>
-                                    <strong><?= htmlspecialchars($it['title'] ?? '') ?></strong>
-                                    <p class="mb-0"><?= nl2br(htmlspecialchars($it['description'] ?? '')) ?></p>
-                                </div>
-                                <hr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="text-muted">Chưa có lịch trình.</div>
-                        <?php endif; ?>
+
+                    <div class="col-12">
+                        <div class="card mb-3">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Chính sách & Lưu ý</h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (!empty($tour['policy'])): ?>
+                                    <div class="text-muted" style="white-space:pre-line"><?= nl2br(htmlspecialchars($tour['policy'])) ?></div>
+                                <?php else: ?>
+                                    <div class="text-muted">Không có chính sách.</div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Lịch trình</h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (!empty($itinerarySchedule)): ?>
+                                    <?php foreach ($itinerarySchedule as $it): ?>
+                                        <div class="mb-3">
+                                            <h6 class="mb-1"><?= htmlspecialchars($it['day_label'] ?? ('Ngày ' . ($it['day_number'] ?? ''))) ?></h6>
+                                            <div class="text-muted small mb-1"><?= htmlspecialchars($it['time_start'] ?? '') ?> - <?= htmlspecialchars($it['time_end'] ?? '') ?></div>
+                                            <strong><?= htmlspecialchars($it['title'] ?? '') ?></strong>
+                                            <p class="mb-0"><?= nl2br(htmlspecialchars($it['description'] ?? '')) ?></p>
+                                        </div>
+                                        <hr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <div class="text-muted">Chưa có lịch trình.</div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="col-lg-5">
-                <div class="card mb-3">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Thông tin cơ bản</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-borderless table-sm mb-0">
-                            <tbody>
-                                <tr>
-                                    <th class="w-50">Danh mục</th>
-                                    <td><?= htmlspecialchars($tour['category_name'] ?? '') ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Nhà cung cấp</th>
-                                    <td><?= htmlspecialchars($tour['supplier_name'] ?? '') ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Giá cơ bản</th>
-                                    <td><?= number_format($tour['base_price'] ?? 0) ?> đ</td>
-                                </tr>
-                                <tr>
-                                    <th>Đánh giá trung bình</th>
-                                    <td><?= htmlspecialchars($tour['avg_rating'] ?? 0) ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Lượt đặt</th>
-                                    <td><?= htmlspecialchars($tour['booking_count'] ?? 0) ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Created</th>
-                                    <td><?= htmlspecialchars($tour['created_at'] ?? '') ?></td>
-                                </tr>
-                                <tr>
-                                    <th>Updated</th>
-                                    <td><?= htmlspecialchars($tour['updated_at'] ?? '') ?></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <div class="position-sticky" style="top:90px;">
+                    <div class="card mb-3 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <div class="text-muted small">Mã Tour</div>
+                                    <div class="fw-bold"><?= htmlspecialchars($tour['id'] ?? '') ?></div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="small text-muted">Đánh giá</div>
+                                    <div class="fw-bold"><?= $avgRating ?> / 5</div>
+                                    <div class="small text-muted">(<?= $bookingCount ?> lượt đặt)</div>
+                                </div>
+                            </div>
 
-                <div class="card mb-3">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Gói giá</h5>
-                    </div>
-                    <div class="card-body">
-                        <?php if (!empty($pricingOptions)): ?>
-                            <ul class="list-group list-group-flush">
-                                <?php foreach ($pricingOptions as $p): ?>
-                                    <li class="list-group-item d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <div class="fw-600"><?= htmlspecialchars($p['label'] ?? '') ?></div>
-                                            <div class="small text-muted"><?= htmlspecialchars($p['description'] ?? '') ?></div>
-                                        </div>
-                                        <div class="ms-3 fw-700"><?= number_format($p['price'] ?? 0) ?> đ</div>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        <?php else: ?>
-                            <div class="text-muted">Chưa có gói giá.</div>
-                        <?php endif; ?>
-                    </div>
-                </div>
+                            <hr>
 
-                <div class="card">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Đối tác dịch vụ</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <div class="text-muted">Giá</div>
+                                <div class="fw-bold fs-5"><?= $priceShort ?></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <div class="text-muted">Thời lượng</div>
+                                <div class="fw-bold"><?= htmlspecialchars($tour['duration'] ?? ($tour['days'] ?? '')) ?></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <div class="text-muted">Số chỗ</div>
+                                <div class="fw-bold"><?= htmlspecialchars($tour['capacity'] ?? $tour['seats'] ?? 'N/A') ?></div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="text-muted">Ngày khởi hành</div>
+                                <div class="fw-bold"><?= htmlspecialchars($tour['start_date'] ?? '-') ?></div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&tour_id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-primary">Tạo đặt chỗ</a>
+                                <a href="<?= BASE_URL_ADMIN ?>&action=tours/edit&id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-outline-secondary">Chỉnh sửa tour</a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <?php if (!empty($partnerServices)): ?>
-                            <ul class="list-group list-group-flush">
-                                <?php foreach ($partnerServices as $ps): ?>
-                                    <li class="list-group-item">
-                                        <div class="d-flex justify-content-between">
+
+                    <div class="card mb-3">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">Thông tin nhà cung cấp</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="small text-muted">Nhà cung cấp</div>
+                            <div class="fw-bold mb-2"><?= htmlspecialchars($tour['supplier_name'] ?? '-') ?></div>
+                            <div class="small text-muted">Liên hệ</div>
+                            <div class="mb-2"><?= nl2br(htmlspecialchars($tour['supplier_contact'] ?? ($tour['supplier_phone'] ?? ''))) ?></div>
+                            <div class="small text-muted">Tạo lúc</div>
+                            <div class="text-muted"><?= $createdDate ?></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">Gói giá</h6>
+                        </div>
+                        <div class="card-body">
+                            <?php if (!empty($pricingOptions)): ?>
+                                <ul class="list-unstyled mb-0">
+                                    <?php foreach ($pricingOptions as $p): ?>
+                                        <li class="d-flex justify-content-between py-2 border-bottom">
                                             <div>
-                                                <div class="fw-600"><?= htmlspecialchars($ps['partner_name'] ?? '') ?> <small class="text-muted">(<?= htmlspecialchars($ps['service_type'] ?? '') ?>)</small></div>
-                                                <div class="small text-muted"><?= htmlspecialchars($ps['contact'] ?? '') ?></div>
-                                                <div class="small mt-1"><?= nl2br(htmlspecialchars($ps['notes'] ?? '')) ?></div>
+                                                <div class="fw-600"><?= htmlspecialchars($p['label'] ?? '') ?></div>
+                                                <div class="small text-muted"><?= htmlspecialchars($p['description'] ?? '') ?></div>
                                             </div>
-                                        </div>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        <?php else: ?>
-                            <div class="text-muted">Chưa có đối tác liên kết.</div>
-                        <?php endif; ?>
+                                            <div class="fw-bold"><?= number_format($p['price'] ?? 0) ?> đ</div>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else: ?>
+                                <div class="text-muted">Chưa có gói giá.</div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>
