@@ -197,9 +197,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <p class="text-muted small">Ảnh đầu tiên sẽ là ảnh đại diện. Tối đa 10 ảnh.</p>
                             </div>
                             <!-- Hidden file inputs to store files for submission -->
-                            <input type="file" id="file-input-handler" class="d-none" multiple accept="image/*">
+                            <input type="file" id="file-input-handler-edit" class="d-none" multiple accept="image/*">
                             <input type="file" name="image" id="main-image-input" class="d-none">
-                            <input type="file" name="gallery_images[]" id="gallery-images-input" class="d-none" multiple>
+                            <input type="file" name="gallery_images[]" id="gallery-images-input-edit" class="d-none" multiple>
 
                             <div id="image-preview-container" class="row g-2 mt-3"></div>
                         </div>
@@ -320,10 +320,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     document.addEventListener('DOMContentLoaded', function() {
         // --- DOM Elements ---
         const dropZone = document.getElementById('image-drop-zone');
-        const fileInput = document.getElementById('file-input-handler');
+        // Use page-specific input IDs to avoid collisions with global create-page script
+        const fileInput = document.getElementById('file-input-handler-edit');
         const previewContainer = document.getElementById('image-preview-container');
         const mainImageInput = document.getElementById('main-image-input');
-        const galleryImagesInput = document.getElementById('gallery-images-input');
+        const galleryImagesInput = document.getElementById('gallery-images-input-edit');
         const deletedContainer = document.getElementById('deleted-images-container');
         const newPrimaryInput = document.getElementById('new-primary-image-url');
         // Note: viewing handled by global lightbox (provided by assets/admin/js/tours.js)

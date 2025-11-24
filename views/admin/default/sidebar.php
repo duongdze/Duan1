@@ -48,17 +48,17 @@ $currentAction = $_GET['action'] ?? '';
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= isActive('tour_logs') ?>" href="<?= BASE_URL_ADMIN ?>&action=tour_logs">
+                        <a class="nav-link <?= isActive('tours_logs') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_logs">
                             <i class="fas fa-book fa-fw me-2"></i> Nhật ký Tour
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= isActive('tours/history') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours/history">
+                        <a class="nav-link <?= isActive('tours_history') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_history">
                             <i class="fas fa-history fa-fw me-2"></i> Lịch sử Tour
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= isActive('tour_category') ?>" href="<?= BASE_URL_ADMIN ?>&action=tour_category">
+                        <a class="nav-link <?= isActive('tours_category') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_category">
                             <i class="fas fa-list fa-fw me-2"></i> Danh mục Tour
                         </a>
                     </li>

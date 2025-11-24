@@ -82,6 +82,25 @@
             margin-right: 1rem;
             pointer-events: auto;
         }
+
+        /* Make toast body take remaining space and keep close button small */
+        #toast-container .toast .toast-body {
+            flex: 1 1 auto;
+            padding-right: .5rem;
+        }
+
+        #toast-container .toast .btn-close {
+            flex: 0 0 auto;
+            width: 30px;
+            height: 18px;
+            padding: .25rem;
+            margin: 0 !important;
+        }
+
+        /* Ensure vertical centering inside toast */
+        #toast-container .toast .d-flex {
+            align-items: center;
+        }
     </style>
 </head>
 
