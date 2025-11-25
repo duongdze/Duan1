@@ -32,7 +32,7 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('tours') ? 'active' : '' ?>"
                 href="#" role="button"
-                data-bs-toggle="collapse" data-bs-target="#tourMenu"
+                
                 aria-expanded="<?= isParentActive('tours') ? 'true' : 'false' ?>"
                 aria-controls="tourMenu"
                 data-menu-key="tours"
@@ -75,7 +75,7 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('bookings') ? 'active' : '' ?>"
                 href="#" role="button"
-                data-bs-toggle="collapse" data-bs-target="#bookingMenu"
+                
                 aria-expanded="<?= isParentActive('bookings') ? 'true' : 'false' ?>"
                 aria-controls="bookingMenu"
                 data-menu-key="bookings"

@@ -55,11 +55,17 @@ match ($action) {
     'bookings/store'       => (new BookingController)->store(),
     'bookings/edit'        => (new BookingController)->edit(),
     'bookings/update'      => (new BookingController)->update(),
+    'bookings/delete'      => (new BookingController)->delete(),
+    'bookings/detail'      => (new BookingController)->detail(),
 
     // Guides
     'guides'               => (new GuideController)->index(),
     'guides/create'        => (new GuideController)->create(),
     'guides/store'         => (new GuideController)->store(),
+    'guides/detail'        => (new GuideController)->detail(),
+    'guides/edit'          => (new GuideController)->edit(),
+    'guides/update'        => (new GuideController)->update(),
+    'guides/delete'        => (new GuideController)->delete(),
 
     // Suppliers
     'suppliers'            => (new SupplierController)->index(),
@@ -69,5 +75,4 @@ match ($action) {
     'reports/financial'    => (new ReportController)->financial(),
     'reports/bookings'     => (new ReportController)->bookings(),
     'reports/feedback'     => (new ReportController)->feedback(),
-    
 };
