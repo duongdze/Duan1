@@ -7,7 +7,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 		<!-- Page Header -->
 		<div class="tour-logs-header">
 			<h2>Nhật ký Tour</h2>
-			<a href="<?= BASE_URL_ADMIN . '&action=tour_logs/create' ?>" class="btn btn-primary">
+			<a href="<?= BASE_URL_ADMIN . '&action=tours_logs/create' ?>" class="btn btn-primary">
 				<i class="fas fa-plus me-2"></i>Thêm nhật ký
 			</a>
 		</div>
@@ -85,10 +85,10 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
 										<td>
 											<div class="log-actions">
-												<a class="btn btn-sm btn-outline-primary" href="<?= BASE_URL_ADMIN . '&action=tour_logs/edit&id=' . urlencode($log['id']) ?>">
+												<a class="btn btn-sm btn-outline-primary" href="<?= BASE_URL_ADMIN . '&action=tours_logs/edit&id=' . urlencode($log['id']) ?>">
 													<i class="fas fa-edit"></i> Sửa
 												</a>
-												<form method="post" action="<?= BASE_URL_ADMIN . '&action=tour_logs/delete' ?>" onsubmit="return confirm('Bạn có chắc muốn xóa nhật ký này?')">
+												<form method="post" action="<?= BASE_URL_ADMIN . '&action=tours_logs/delete' ?>" onsubmit="return confirm('Bạn có chắc muốn xóa nhật ký này?')">
 													<input type="hidden" name="id" value="<?= htmlspecialchars($log['id']) ?>">
 													<button class="btn btn-sm btn-outline-danger">
 														<i class="fas fa-trash"></i> Xóa

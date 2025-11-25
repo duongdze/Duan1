@@ -42,12 +42,12 @@ match ($action) {
     'tours/itineraries/delete' => (new ItineraryController)->delete(),
 
     // 📝 Tour Logs (Nhật ký Tour)
-    'tour_logs'        => (new TourLogController)->index(),
-    'tour_logs/create' => (new TourLogController)->create(),
-    'tour_logs/store'  => (new TourLogController)->store(),
-    'tour_logs/edit'   => (new TourLogController)->edit(),
-    'tour_logs/update' => (new TourLogController)->update(),
-    'tour_logs/delete' => (new TourLogController)->delete(),
+    'tours_logs'        => (new TourLogController)->index(),
+    'tours_logs/create' => (new TourLogController)->create(),
+    'tours_logs/store'  => (new TourLogController)->store(),
+    'tours_logs/edit'   => (new TourLogController)->edit(),
+    'tours_logs/update' => (new TourLogController)->update(),
+    'tours_logs/delete' => (new TourLogController)->delete(),
 
     // Bookings
     'bookings'             => (new BookingController)->index(),
