@@ -1,15 +1,14 @@
 <?php
 require_once 'BaseModel.php';
 
-class TourPricing extends BaseModel
+class TourPolicyAssignment extends BaseModel
 {
-    protected $table = 'tour_pricing_options';
+    protected $table = 'tour_policy_assignments';
     protected $columns = [
         'id',
         'tour_id',
-        'label',
-        'description',
-        'created_at'
+        'policy_id',
+        'created_at',
     ];
 
     public function getByTourId($tourId)

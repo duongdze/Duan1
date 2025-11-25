@@ -10,9 +10,7 @@ class Tour extends BaseModel
         'category_id',
         'description',
         'base_price',
-        'policy',
         'supplier_id',
-        // 'picture' removed to match DB schema (use tour_gallery_images)
         'created_at',
         'updated_at'
     ];
@@ -196,44 +194,53 @@ class Tour extends BaseModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function createTour($tourData, $pricingOptions = [], $itineraries = [], $partners = [], $uploadedImages = [])
+    public function createTour($tourData, $pricingOptions = [], $dynamicPricing = [], $itineraries = [], $partners = [], $uploadedImages = [])
     {
         $this->beginTransaction(); // BẮT ĐẦU TRANSACTION
         try {
             // 1. INSERT TOUR CƠ BẢN
             $tourId = $this->insert($tourData);
 
-            // 2. INSERT PRICING OPTIONS
+            // 2. INSERT PRICING OPTIONS VÀ DYNAMIC PRICING
             if (!empty($pricingOptions)) {
                 $pricingModel = new TourPricing();
-                foreach ($pricingOptions as $option) {
-                    // Normalize price: accept integers like 1,2,3 or decimals with comma/dot
-                    $rawPrice = $option['price'] ?? '';
-                    if (is_string($rawPrice)) {
-                        $rawPrice = trim(str_replace(',', '.', $rawPrice));
-                    }
+                $dynamicPricingModel = new TourDynamicPricing();
+                $optionLabelToIdMap = [];
 
-                    if ($rawPrice === '' || $rawPrice === null) {
-                        $priceValue = 0;
-                    } else {
-                        // If not numeric, fallback to 0 to avoid SQL errors
-                        if (!is_numeric($rawPrice)) {
-                            $priceValue = 0;
-                        } else {
-                            // store with 2 decimal places
-                            $priceValue = number_format((float)$rawPrice, 2, '.', '');
+                // Insert options and create a map from label to the new ID
+                foreach ($pricingOptions as $option) {
+                    $optionLabel = $option['label'] ?? '';
+                    if (!empty($optionLabel)) {
+                        $optionId = $pricingModel->insert([
+                            'tour_id' => $tourId,
+                            'label' => $optionLabel,
+                            'description' => $option['description'] ?? '',
+                            'created_at' => date('Y-m-d H:i:s'),
+                        ]);
+                        $optionLabelToIdMap[$optionLabel] = $optionId;
+                    }
+                }
+
+                // Insert dynamic prices using the map
+                if (!empty($dynamicPricing) && !empty($optionLabelToIdMap)) {
+                    foreach ($dynamicPricing as $dp) {
+                        $optionLabel = $dp['option_label'] ?? '';
+                        if (isset($optionLabelToIdMap[$optionLabel])) {
+                            $optionId = $optionLabelToIdMap[$optionLabel];
+                            $dynamicPricingModel->insert([
+                                'tour_id' => $tourId,
+                                'pricing_option_id' => $optionId,
+                                'start_date' => $dp['start_date'] ?: null,
+                                'end_date' => $dp['end_date'] ?: null,
+                                'price' => (float)($dp['price'] ?? 0),
+                                'notes' => $dp['notes'] ?? '',
+                                'created_at' => date('Y-m-d H:i:s'),
+                            ]);
                         }
                     }
-
-                    $pricingModel->insert([
-                        'tour_id' => $tourId,
-                        'label' => $option['label'] ?? '',
-                        'price' => $priceValue,
-                        'description' => $option['description'] ?? '',
-                        'created_at' => date('Y-m-d H:i:s'),
-                    ]);
                 }
             }
+
 
             // 3. INSERT ITINERARIES
             if (!empty($itineraries)) {
@@ -314,9 +321,11 @@ class Tour extends BaseModel
             // Load related models
             $imageModel = new TourImage();
             $pricingModel = new TourPricing();
+            $dynamicPricingModel = new TourDynamicPricing();
             $itineraryModel = new TourItinerary();
             $partnerModel = new TourPartner();
             $versionModel = new TourVersion();
+            $policyAssignmentModel = new TourPolicyAssignment();
             $bookingModel = new Booking();
             $bookingCustomerModel = new BookingCustomer();
 
@@ -329,15 +338,15 @@ class Tour extends BaseModel
                 }
             }
 
-            // main image is stored in `tour_gallery_images` (handled above).
-            // If you keep a separate `tours.main_image` column, ensure DB and code are synchronized.
-
             // 2. Delete DB records in dependent tables
             $imageModel->deleteByTourId($id);
             $pricingModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+            $dynamicPricingModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $itineraryModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $partnerModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $versionModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+            $policyAssignmentModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+
 
             // 3. Delete bookings and their customers
             $bookings = $bookingModel->select('*', 'tour_id = :tour_id', ['tour_id' => $id]);

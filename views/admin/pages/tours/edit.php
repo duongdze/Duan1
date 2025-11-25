@@ -102,34 +102,75 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                     </div>
 
-                    <!-- Gói giá & dịch vụ -->
-                    <div class="card">
+                    <!-- Gói giá (loại đối tượng) -->
+                    <div class="card mb-3">
                         <div class="card-header bg-light d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
-                                <i class="fas fa-tags"></i> Giá theo đối tượng / gói dịch vụ
+                                <i class="fas fa-users"></i> Các loại giá (VD: người lớn, trẻ em)
                             </h5>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="add-pricing-tier">
-                                <i class="fas fa-plus"></i> Thêm gói
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="add-pricing-option">
+                                <i class="fas fa-plus"></i> Thêm loại giá
                             </button>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted small mb-3">Ghi rõ tên nhóm khách (VD: Người lớn, Trẻ em, Dịp lễ), giá áp dụng và ghi chú kèm dịch vụ.</p>
-                            <div id="pricing-tier-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($pricingOptions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
-                            <template id="pricing-tier-template">
-                                <div class="pricing-tier-item border rounded p-3 bg-light-subtle position-relative">
-                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-pricing-tier" aria-label="Xóa"></button>
+                            <p class="text-muted small mb-3">Định nghĩa các loại giá sẽ áp dụng cho tour, ví dụ: "Người lớn", "Trẻ em (6-12 tuổi)", "Trẻ em (dưới 6 tuổi)".</p>
+                            <div id="pricing-options-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($pricingOptions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
+                            <template id="pricing-option-template">
+                                <div class="pricing-option-item border rounded p-3 bg-light-subtle position-relative">
+                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-pricing-option" aria-label="Xóa"></button>
                                     <div class="row g-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-500">Nhóm khách / Gói</label>
-                                            <input type="text" class="form-control" name="pricing_label[]" data-field="label" placeholder="Người lớn">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-500">Giá áp dụng</label>
-                                            <input type="number" class="form-control" name="pricing_price[]" data-field="price" placeholder="1500000" min="0">
+                                        <div class="col-12">
+                                            <label class="form-label fw-500">Tên loại giá</label>
+                                            <input type="text" class="form-control" data-field="label" placeholder="Ví dụ: Người lớn">
                                         </div>
                                         <div class="col-12">
-                                            <label class="form-label fw-500">Ghi chú dịch vụ</label>
-                                            <textarea class="form-control" rows="2" name="pricing_description[]" data-field="description" placeholder="Bao gồm ăn sáng, xe đưa đón sân bay"></textarea>
+                                            <label class="form-label fw-500">Mô tả (tùy chọn)</label>
+                                            <textarea class="form-control" rows="2" data-field="description" placeholder="Mô tả chi tiết về loại giá này"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Bảng giá theo thời điểm -->
+                    <div class="card">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-dollar-sign"></i> Bảng giá theo thời điểm
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-outline-success" id="add-dynamic-price">
+                                <i class="fas fa-plus"></i> Thêm giá
+                            </button>
+                        </div>
+                        <div class="card-body">
+                             <p class="text-muted small mb-3">Áp dụng giá cụ thể cho từng loại giá ở trên theo các khoảng thời gian khác nhau (ví dụ: mùa cao điểm, ngày lễ).</p>
+                            <div id="dynamic-pricing-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($dynamicPricing, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
+                            <template id="dynamic-pricing-template">
+                                <div class="dynamic-pricing-item border rounded p-3 bg-light-subtle position-relative">
+                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-dynamic-price" aria-label="Xóa"></button>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Áp dụng cho loại giá</label>
+                                            <select class="form-select" data-field="option_label">
+                                                <!-- Options will be populated by JS -->
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Giá</label>
+                                            <input type="number" class="form-control" data-field="price" placeholder="1500000" min="0">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Từ ngày</label>
+                                            <input type="date" class="form-control" data-field="start_date">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Đến ngày</label>
+                                            <input type="date" class="form-control" data-field="end_date">
+                                        </div>
+                                         <div class="col-12">
+                                            <label class="form-label fw-500">Ghi chú (tùy chọn)</label>
+                                            <textarea class="form-control" rows="1" data-field="notes" placeholder="Ví dụ: Áp dụng cho ngày lễ 30/4"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -249,19 +290,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             </template>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Chính sách & Actions -->
-            <div class="card mt-3">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-file-alt"></i> Chính sách
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <label for="policy" class="form-label fw-500">Nhập chính sách</label>
-                    <textarea id="input-policy" name="policy" class="form-control" rows="5"><?= htmlspecialchars($tour['policy'] ?? '') ?></textarea>
                 </div>
             </div>
 
