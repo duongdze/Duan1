@@ -7,274 +7,175 @@ $allImages = $allImages ?? [];
 $pricingOptions = $pricingOptions ?? [];
 $itinerarySchedule = $itinerarySchedule ?? [];
 $partnerServices = $partnerServices ?? [];
+$versions = $versions ?? [];
+$policies = $assignedPolicies ?? [];
 
+// Helper for price formatting
+function formatPrice($price) {
+    if ($price >= 1000000000) {
+        return round($price / 1000000000, ($price / 1000000000) >= 10 ? 0 : 1) . ' tỷ';
+    } elseif ($price >= 1000000) {
+        return round($price / 1000000, 1) . ' tr';
+    } else {
+        return number_format($price, 0, ',', '.') . 'đ';
+    }
+}
+
+$mainImage = !empty($tour['main_image']) ? 
+    ((strpos($tour['main_image'], 'http') === 0) ? $tour['main_image'] : BASE_ASSETS_UPLOADS . $tour['main_image']) : 
+    BASE_URL . 'assets/admin/image/no-image.png';
+
+// Prepare gallery URLs for lightbox
+$galleryUrls = [];
+foreach ($allImages as $img) {
+    $url = $img['url'] ?? '';
+    if ($url) {
+        $galleryUrls[] = (strpos($url, 'http') === 0) ? $url : BASE_ASSETS_UPLOADS . $url;
+    }
+}
+if (empty($galleryUrls) && !empty($tour['main_image'])) {
+    $galleryUrls[] = $mainImage;
+}
 ?>
 
 <main class="wrapper">
     <div class="main-content">
-        <div class="page-header d-flex align-items-center justify-content-between">
-            <div>
-                <h1 class="h2 mb-0"><?= htmlspecialchars($tour['name'] ?? 'Tour') ?></h1>
-                <p class="text-muted small mb-0">Mã Tour: <?= htmlspecialchars($tour['id'] ?? '') ?></p>
-            </div>
-            <div class="d-flex gap-2">
-                <a href="<?= BASE_URL_ADMIN ?>&action=tours/edit&id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-edit"></i> Chỉnh sửa
-                </a>
-                <a href="<?= BASE_URL_ADMIN ?>&action=tours" class="btn btn-sm btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Quay lại
-                </a>
-                <a href="<?= BASE_URL_ADMIN ?>&action=tours/delete&id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xóa tour này không?');">
-                    <i class="fas fa-trash"></i> Xóa
-                </a>
-            </div>
-        </div>
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb-modern mb-4" aria-label="breadcrumb">
+            <a href="<?= BASE_URL_ADMIN ?>&action=dashboard">Dashboard</a>
+            <span class="separator">/</span>
+            <a href="<?= BASE_URL_ADMIN ?>&action=tours">Quản lý Tour</a>
+            <span class="separator">/</span>
+            <span class="active">Chi tiết Tour</span>
+        </nav>
 
-        <div class="row g-3 mt-3">
-            <?php
-            // prepare images and main image similar to list view
-            $galleryImages = [];
-            // $allImages may be an array of ['url' => '/uploads/...'] or full urls; normalize to relative paths when possible
-            if (!empty($allImages)) {
-                foreach ($allImages as $ai) {
-                    $url = $ai['url'] ?? '';
-                    if ($url === '') continue;
-                    // if the stored url already contains the uploads base, strip it to get relative
-                    if (strpos($url, BASE_ASSETS_UPLOADS) === 0) {
-                        $galleryImages[] = substr($url, strlen(BASE_ASSETS_UPLOADS));
-                    } else {
-                        // if it's a full http url, keep it
-                        $galleryImages[] = $url;
-                    }
-                }
-            }
-
-            // fallback: some controllers may provide main_image or gallery as comma-separated
-            if (empty($galleryImages) && !empty($tour['gallery_images'])) {
-                $parts = array_values(array_filter(array_map('trim', explode(',', $tour['gallery_images']))));
-                foreach ($parts as $p) {
-                    if ($p !== '') $galleryImages[] = $p;
-                }
-            }
-            if (empty($galleryImages) && !empty($tour['main_image'])) {
-                $galleryImages[] = $tour['main_image'];
-            }
-
-            $mainImage = $galleryImages[0] ?? null;
-            $thumbs = array_slice($galleryImages, 1);
-            $totalImages = count($galleryImages);
-            $maxThumbs = 3;
-            $thumbsToShow = array_slice($thumbs, 0, $maxThumbs);
-            $remaining = max(0, $totalImages - 1 - count($thumbsToShow));
-
-            // Build full gallery URLs for JS/lightbox
-            $galleryUrls = [];
-            foreach ($galleryImages as $g) {
-                if (empty($g)) continue;
-                if (strpos($g, 'http') === 0) {
-                    $galleryUrls[] = $g;
-                } else {
-                    $galleryUrls[] = BASE_ASSETS_UPLOADS . $g;
-                }
-            }
-
-            // formatted price like list view
-            $price = $tour['base_price'] ?? 0;
-            if ($price >= 1000000000) {
-                $priceShort = round($price / 1000000000, ($price / 1000000000) >= 10 ? 0 : 1) . ' tỷ';
-            } elseif ($price >= 1000000) {
-                $priceShort = round($price / 1000000, 1) . ' tr';
-            } else {
-                $priceShort = number_format($price, 0, ',', '.') . 'đ';
-            }
-            $createdDate = !empty($tour['created_at']) ? date('d/m/Y', strtotime($tour['created_at'])) : '';
-            $avgRating = number_format($tour['avg_rating'] ?? 0, 1);
-            $bookingCount = (int)($tour['booking_count'] ?? 0);
-            ?>
-            <div class="col-lg-7">
-                <div class="card mb-3 shadow-sm">
-                    <?php // attach same data-gallery JSON used in listing so shared JS works 
-                    ?>
-                    <div class="tour-card" data-gallery='<?= htmlspecialchars(json_encode($galleryUrls), ENT_QUOTES) ?>'>
-                        <div class="card-body p-0">
-                            <div class="tour-main position-relative" style="height:520px;">
-                                <?php
-                                if ($mainImage) {
-                                    $mainUrl = (strpos($mainImage, 'http') === 0) ? $mainImage : BASE_ASSETS_UPLOADS . $mainImage;
-                                } else {
-                                    $mainUrl = BASE_URL . 'assets/admin/image/no-image.png';
-                                }
-                                ?>
-                                <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="img-fluid w-100" style="height:520px; object-fit:cover;">
-                                <div class="position-absolute" style="left:18px; bottom:18px;">
-                                    <h3 class="text-white mb-1" style="text-shadow:0 2px 8px rgba(0,0,0,.6);"><?= htmlspecialchars($tour['name'] ?? '') ?></h3>
-                                    <div class="text-white small" style="text-shadow:0 2px 6px rgba(0,0,0,.6);">
-                                        <?= htmlspecialchars($tour['subtitle'] ?? ($tour['short_description'] ?? '')) ?>
+        <!-- Hero Section -->
+        <div class="tour-hero mb-4 position-relative rounded-xl overflow-hidden shadow-sm" style="height: 400px;">
+            <img src="<?= $mainImage ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="w-100 h-100 object-fit-cover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Phiên bản</th>
+                                                    <th>Thời gian</th>
+                                                    <th class="text-end">Giá riêng</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($versions as $ver): ?>
+                                                    <tr>
+                                                        <td class="fw-bold"><?= htmlspecialchars($ver['name']) ?></td>
+                                                        <td class="small">
+                                                            <?= date('d/m/Y', strtotime($ver['start_date'])) ?> - 
+                                                            <?= date('d/m/Y', strtotime($ver['end_date'])) ?>
+                                                        </td>
+                                                        <td class="text-end">
+                                                            <?php if (!empty($ver['price'])): ?>
+                                                                <span class="fw-bold text-primary"><?= number_format($ver['price']) ?>đ</span>
+                                                            <?php else: ?>
+                                                                <span class="text-muted">Theo giá gốc</span>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
                                     </div>
-                                </div>
-                                <div class="position-absolute" style="right:18px; top:18px;">
-                                    <div class="badge bg-primary"><?= htmlspecialchars($tour['category_name'] ?? '') ?></div>
-                                </div>
-                                <div class="position-absolute" style="right:18px; bottom:18px;">
-                                    <div class="bg-white p-2 rounded shadow-sm text-dark">
-                                        <div class="fw-bold fs-5"><?= $priceShort ?></div>
-                                        <div class="small text-muted">Giá khởi điểm</div>
+                                <?php endif; ?>
+                            </div>
+
+                            <!-- Policies Tab -->
+                                    <div class="empty-state py-5">
+                                        <div class="empty-state-icon"><i class="fas fa-shield-alt"></i></div>
+                                        <div class="empty-state-title">Chưa có chính sách</div>
+                                        <div class="empty-state-description">Chưa có thông tin về chính sách và điều khoản.</div>
                                     </div>
-                                </div>
-                            </div>
-
-                            <?php if (!empty($thumbsToShow)): ?>
-                                <div class="tour-thumbs d-flex gap-2 p-3 align-items-center" style="overflow:auto">
-                                    <?php foreach ($thumbsToShow as $i => $timg):
-                                        $turl = (strpos($timg, 'http') === 0) ? $timg : BASE_ASSETS_UPLOADS . $timg;
-                                    ?>
-                                        <div class="thumb-item me-2" style="width:92px; height:64px; overflow:hidden; border-radius:6px;">
-                                            <img src="<?= $turl ?>" alt="thumb-<?= $i ?>" style="width:100%; height:100%; object-fit:cover;" data-index="<?= $i + 1 ?>">
-                                        </div>
-                                    <?php endforeach; ?>
-                                    <?php if ($remaining > 0): ?>
-                                        <div class="thumb-item me-2 d-flex align-items-center justify-content-center bg-secondary text-white" style="width:92px; height:64px; border-radius:6px;">+<?= $remaining ?></div>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-12">
-                        <div class="card mb-3">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">Giới thiệu</h5>
-                            </div>
-                            <div class="card-body">
-                                <?php if (!empty($tour['description'])): ?>
-                                    <div class="text-muted" style="white-space:pre-line"><?= nl2br(htmlspecialchars($tour['description'])) ?></div>
-                                <?php else: ?>
-                                    <div class="text-muted">Không có mô tả.</div>
                                 <?php endif; ?>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="col-12">
-                        <div class="card mb-3">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">Chính sách & Lưu ý</h5>
-                            </div>
-                            <div class="card-body">
-                                <?php if (!empty($assignedPolicies)): ?>
-                                    <ul class="list-group list-group-flush">
-                                        <?php foreach ($assignedPolicies as $policy): ?>
-                                            <li class="list-group-item px-0">
-                                                <div class="fw-bold text-primary mb-1"><?= htmlspecialchars($policy['policy_name']) ?></div>
-                                                <div class="text-muted small"><?= nl2br(htmlspecialchars($policy['policy_description'])) ?></div>
-                                            </li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                <?php else: ?>
-                                    <div class="text-muted">Không có chính sách đặc biệt.</div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header bg-white">
-                                <h5 class="mb-0">Lịch trình</h5>
-                            </div>
-                            <div class="card-body">
-                                <?php if (!empty($itinerarySchedule)): ?>
-                                    <?php foreach ($itinerarySchedule as $it): ?>
-                                        <div class="mb-3">
-                                            <h6 class="mb-1"><?= htmlspecialchars($it['day_label'] ?? ('Ngày ' . ($it['day_number'] ?? ''))) ?></h6>
-                                            <div class="text-muted small mb-1"><?= htmlspecialchars($it['time_start'] ?? '') ?> - <?= htmlspecialchars($it['time_end'] ?? '') ?></div>
-                                            <strong><?= htmlspecialchars($it['title'] ?? '') ?></strong>
-                                            <p class="mb-0"><?= nl2br(htmlspecialchars($it['description'] ?? '')) ?></p>
-                                        </div>
-                                        <hr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <div class="text-muted">Chưa có lịch trình.</div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-5">
-                <div class="position-sticky" style="top:90px;">
-                    <div class="card mb-3 shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div>
-                                    <div class="text-muted small">Mã Tour</div>
-                                    <div class="fw-bold"><?= htmlspecialchars($tour['id'] ?? '') ?></div>
-                                </div>
-                                <div class="text-end">
-                                    <div class="small text-muted">Đánh giá</div>
-                                    <div class="fw-bold"><?= $avgRating ?> / 5</div>
-                                    <div class="small text-muted">(<?= $bookingCount ?> lượt đặt)</div>
-                                </div>
-                            </div>
-
-                            <hr>
-
-                            <div class="d-flex justify-content-between mb-2">
-                                <div class="text-muted">Giá</div>
-                                <div class="fw-bold fs-5"><?= $priceShort ?></div>
-                            </div>
-
-                            <div class="d-flex justify-content-between mb-2">
-                                <div class="text-muted">Thời lượng</div>
-                                <div class="fw-bold"><?= htmlspecialchars($tour['duration'] ?? ($tour['days'] ?? '')) ?></div>
-                            </div>
-
-                            <div class="d-flex justify-content-between mb-2">
-                                <div class="text-muted">Số chỗ</div>
-                                <div class="fw-bold"><?= htmlspecialchars($tour['capacity'] ?? $tour['seats'] ?? 'N/A') ?></div>
-                            </div>
-
-                            <div class="d-flex justify-content-between mb-3">
-                                <div class="text-muted">Ngày khởi hành</div>
-                                <div class="fw-bold"><?= htmlspecialchars($tour['start_date'] ?? '-') ?></div>
-                            </div>
-
-                            <div class="d-grid gap-2">
-                                <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&tour_id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-primary">Tạo đặt chỗ</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pricing Options -->
-                    <div class="card mb-3 shadow-sm">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0">Các gói giá</h5>
-                        </div>
-                        <div class="card-body">
-                            <?php if (!empty($pricingOptions)): ?>
-                                <ul class="list-unstyled mb-0">
-                                    <?php foreach ($pricingOptions as $p): ?>
-                                        <li class="d-flex justify-content-between py-2 border-bottom">
-                                            <div>
-                                                <div class="fw-600"><?= htmlspecialchars($p['label'] ?? '') ?></div>
-                                                <div class="small text-muted"><?= htmlspecialchars($p['description'] ?? '') ?></div>
+                            <!-- Gallery Tab -->
+                            <div class="tab-pane fade" id="gallery" role="tabpanel">
+                                <?php if (!empty($galleryUrls)): ?>
+                                    <div class="row g-3" id="tour-gallery" data-gallery='<?= json_encode($galleryUrls) ?>'>
+                                        <?php foreach ($galleryUrls as $index => $url): ?>
+                                            <div class="col-6 col-md-4 col-lg-3">
+                                                <div class="ratio ratio-1x1 rounded overflow-hidden shadow-sm cursor-pointer gallery-item" onclick="openLightbox(<?= $index ?>)">
+                                                    <img src="<?= $url ?>" class="w-100 h-100 object-fit-cover transition-transform hover-scale">
+                                                </div>
                                             </div>
-                                            <div class="fw-bold"><?= number_format($p['price'] ?? 0) ?> đ</div>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            <?php else: ?>
-                                <div class="text-muted">Chưa có gói giá.</div>
-                            <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="empty-state py-5">
+                                        <div class="empty-state-icon"><i class="fas fa-images"></i></div>
+                                        <div class="empty-state-title">Thư viện trống</div>
+                                        <div class="empty-state-description">Chưa có hình ảnh nào trong thư viện.</div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Sidebar (Right) -->
+            <div class="col-lg-4">
+                <div class="sidebar-widget">
+                    <div class="widget-title">Thao tác nhanh</div>
+                    <div class="d-grid gap-2">
+                        <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&tour_id=<?= $tour['id'] ?>" class="btn-modern btn-primary-gradient">
+                            <i class="fas fa-calendar-plus"></i> Tạo đặt chỗ mới
+                        </a>
+                        <a href="#" class="btn-modern btn-outline-secondary">
+                            <i class="fas fa-share-alt"></i> Chia sẻ tour
+                        </a>
+                        <a href="#" class="btn-modern btn-outline-secondary">
+                            <i class="fas fa-print"></i> In thông tin
+                        </a>
+                    </div>
+                </div>
+
+                <?php if (!empty($partnerServices)): ?>
+                    <div class="sidebar-widget">
+                        <div class="widget-title">Đối tác dịch vụ</div>
+                        <div class="d-flex flex-column gap-3">
+                            <?php foreach ($partnerServices as $partner): ?>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-light p-2 text-primary">
+                                        <?php
+                                        $icon = match($partner['service_type'] ?? '') {
+                                            'hotel' => 'fa-hotel',
+                                            'transport' => 'fa-bus',
+                                            'restaurant' => 'fa-utensils',
+                                            'guide' => 'fa-user-tie',
+                                            default => 'fa-handshake'
+                                        };
+                                        ?>
+                                        <i class="fas <?= $icon ?>"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold small"><?= htmlspecialchars($partner['name']) ?></div>
+                                        <div class="text-muted small" style="font-size: 0.75rem;"><?= htmlspecialchars($partner['contact']) ?></div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 </main>
+
+<script>
+    // Simple lightbox function (reusing existing logic if available, or simple implementation)
+    function openLightbox(index) {
+        // Trigger the existing lightbox logic if present in tours.js
+        // Or implement a simple one here if needed
+        const gallery = document.getElementById('tour-gallery');
+        if (gallery && window.createLightbox) {
+            // Assuming createLightbox is global or accessible
+            // This part depends on how tours.js is structured
+        }
+    }
+</script>
 
 <?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>

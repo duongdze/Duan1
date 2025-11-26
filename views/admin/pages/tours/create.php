@@ -5,169 +5,283 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
 <main class="wrapper">
     <div class="main-content">
-        <div class="page-header">
-            <h1 class="h2">Thêm Tour Mới</h1>
-            <p class="text-muted">Tạo tour mới cho hệ thống</p>
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb-modern mb-4" aria-label="breadcrumb">
+            <a href="<?= BASE_URL_ADMIN ?>&action=dashboard">Dashboard</a>
+            <span class="separator">/</span>
+            <a href="<?= BASE_URL_ADMIN ?>&action=tours">Quản lý Tour</a>
+            <span class="separator">/</span>
+            <span class="active">Thêm Tour Mới</span>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="page-header-modern">
+            <div>
+                <h1>Thêm Tour Mới</h1>
+                <p class="text-muted">Điền thông tin chi tiết để tạo tour du lịch mới</p>
+            </div>
+            <div class="header-actions">
+                <a href="<?= BASE_URL_ADMIN ?>&action=tours" class="btn-modern btn-secondary">
+                    <i class="fas fa-times"></i> Hủy bỏ
+                </a>
+                <button type="submit" form="tour-form" class="btn-modern btn-primary-gradient">
+                    <i class="fas fa-save"></i> Lưu Tour
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="progress-steps mb-4">
+            <div class="step active">
+                <div class="step-number">1</div>
+                <div class="step-label">Thông tin cơ bản</div>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-label">Giá & Lịch trình</div>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-label">Hình ảnh</div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-label">Hoàn tất</div>
+            </div>
         </div>
 
         <?php if (!empty($_SESSION['error'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= htmlspecialchars($_SESSION['error']) ?>
+            <div class="alert alert-modern alert-error mb-4" role="alert">
+                <div class="alert-icon"><i class="fas fa-exclamation-circle"></i></div>
+                <div class="alert-content">
+                    <div class="alert-title">Đã xảy ra lỗi</div>
+                    <div><?= htmlspecialchars($_SESSION['error']) ?></div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
-        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=tours/store" enctype="multipart/form-data" class="tour-form">
-            <div class="row g-3">
+        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=tours/store" enctype="multipart/form-data" class="tour-form" id="tour-form">
+            <!-- Hidden inputs for serialized data -->
+            <input type="hidden" name="tour_pricing_options" id="tour_pricing_options">
+            <input type="hidden" name="tour_dynamic_pricing" id="tour_dynamic_pricing">
+            <input type="hidden" name="tour_itinerary" id="tour_itinerary">
+            <input type="hidden" name="tour_partners" id="tour_partners">
+            <input type="hidden" name="tour_versions" id="tour_versions">
+
+            <div class="row g-4">
                 <!-- Main Column (Left) -->
                 <div class="col-lg-8">
                     <!-- 1. Thông tin cơ bản -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin cơ bản</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Tên Tour <span class="text-danger">*</span></label>
-                                <input type="text" name="name" class="form-control" required placeholder="Nhập tên tour...">
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="fas fa-info"></i></div>
+                            <div class="section-title">
+                                <h3>Thông tin cơ bản</h3>
+                                <p>Tên tour, danh mục và mô tả tổng quan</p>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Mô tả chi tiết</label>
-                                <textarea name="description" class="form-control" rows="5" placeholder="Mô tả chi tiết về tour..."></textarea>
+                        </div>
+
+                        <div class="card-modern mb-4">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="form-floating-modern">
+                                            <input type="text" name="name" id="name" class="form-control" required placeholder=" ">
+                                            <label for="name">Tên Tour <span class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating-modern">
+                                            <select name="category_id" id="category_id" class="form-select form-control" required>
+                                                <option value="">-- Chọn danh mục --</option>
+                                                <?php if (!empty($categories)): ?>
+                                                    <?php foreach ($categories as $cat): ?>
+                                                        <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </select>
+                                            <label for="category_id">Danh mục <span class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating-modern">
+                                            <input type="number" name="base_price" id="base_price" class="form-control" required min="0" step="1000" placeholder=" ">
+                                            <label for="base_price">Giá cơ bản (VNĐ) <span class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-floating-modern">
+                                            <textarea name="description" id="description" class="form-control" style="height: 200px" placeholder=" "></textarea>
+                                            <label for="description">Mô tả chi tiết</label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- 2. Cấu hình giá -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0"><i class="fas fa-tags"></i> Cấu hình giá</h5>
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="fas fa-tags"></i></div>
+                            <div class="section-title">
+                                <h3>Cấu hình giá</h3>
+                                <p>Các tùy chọn giá và giá theo thời điểm</p>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <!-- Pricing Options -->
-                            <div class="mb-4">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0 fw-bold">Các loại giá (VD: Người lớn, Trẻ em)</h6>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-pricing-option">
-                                        <i class="fas fa-plus"></i> Thêm loại
+
+                        <div class="card-modern mb-4">
+                            <div class="card-body">
+                                <div class="dynamic-section-header">
+                                    <div class="dynamic-section-title">Gói dịch vụ cơ bản</div>
+                                    <button type="button" class="add-item-btn" id="add-pricing-option">
+                                        <i class="fas fa-plus"></i> Thêm gói
                                     </button>
                                 </div>
                                 <div id="pricing-options-list" class="d-flex flex-column gap-3" data-initial="[]"></div>
                             </div>
+                        </div>
 
-                            <hr>
-
-                            <!-- Dynamic Pricing -->
-                            <div>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0 fw-bold">Bảng giá theo thời điểm</h6>
-                                    <button type="button" class="btn btn-sm btn-outline-success" id="add-dynamic-price">
-                                        <i class="fas fa-plus"></i> Thêm giá
+                        <div class="card-modern mb-4">
+                            <div class="card-body">
+                                <div class="dynamic-section-header">
+                                    <div class="dynamic-section-title">Điều chỉnh giá theo thời gian</div>
+                                    <button type="button" class="add-item-btn" id="add-dynamic-pricing">
+                                        <i class="fas fa-plus"></i> Thêm điều chỉnh
                                     </button>
                                 </div>
-                                <p class="text-muted small mb-2">Áp dụng giá cụ thể cho từng loại giá ở trên theo các khoảng thời gian khác nhau.</p>
                                 <div id="dynamic-pricing-list" class="d-flex flex-column gap-3" data-initial="[]"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- 3. Lịch trình -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Lịch trình</h5>
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="fas fa-map-marked-alt"></i></div>
+                            <div class="section-title">
+                                <h3>Lịch trình Tour</h3>
+                                <p>Chi tiết hoạt động từng ngày</p>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <p class="text-muted small">Thêm từng ngày/hoạt động cụ thể để khách dễ theo dõi.</p>
-                            <div id="itinerary-list" class="d-flex flex-column gap-3 mb-3" data-initial="[]"></div>
-                            <button type="button" class="btn btn-outline-primary w-100" id="add-itinerary-item">
-                                <i class="fas fa-plus"></i> Thêm ngày / hoạt động
-                            </button>
+
+                        <div class="card-modern mb-4">
+                            <div class="card-body">
+                                <div class="dynamic-section-header">
+                                    <div class="dynamic-section-title">Danh sách ngày</div>
+                                    <button type="button" class="add-item-btn" id="add-itinerary-item">
+                                        <i class="fas fa-plus"></i> Thêm ngày
+                                    </button>
+                                </div>
+                                <div id="itinerary-list" class="d-flex flex-column gap-3" data-initial="[]"></div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 4. Chính sách -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0"><i class="fas fa-file-contract"></i> Chính sách Tour</h5>
+                    <!-- 4. Hình ảnh -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="fas fa-images"></i></div>
+                            <div class="section-title">
+                                <h3>Thư viện ảnh</h3>
+                                <p>Hình ảnh quảng bá cho tour</p>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <?php if (!empty($policies)): ?>
-                                <div class="row g-3">
-                                    <?php foreach ($policies as $policy): ?>
-                                        <div class="col-md-6">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="policies[]" value="<?= $policy['id'] ?>" id="policy_<?= $policy['id'] ?>">
-                                                <label class="form-check-label" for="policy_<?= $policy['id'] ?>">
-                                                    <strong><?= htmlspecialchars($policy['name']) ?></strong>
-                                                    <div class="text-muted small"><?= htmlspecialchars($policy['description']) ?></div>
-                                                </label>
+
+                        <div class="image-upload-zone">
+                            <div class="upload-area" id="dropZone" onclick="document.getElementById('gallery_images').click()">
+                                <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
+                                <p class="mb-1">Kéo thả hình ảnh vào đây hoặc click để chọn</p>
+                                <span class="badge-modern badge-info">Hỗ trợ JPG, PNG, WEBP. Tối đa 5MB/file</span>
+                                <input type="file" name="gallery_images[]" id="gallery_images" multiple accept="image/*">
+                            </div>
+                            <div class="image-preview-grid" id="imagePreview">
+                                <!-- Previews will appear here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Chính sách & Đối tác -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="fas fa-handshake"></i></div>
+                            <div class="section-title">
+                                <h3>Chính sách & Đối tác</h3>
+                                <p>Thông tin bổ sung và quy định</p>
+                            </div>
+                        </div>
+
+                        <div class="card-modern mb-4">
+                            <div class="card-body">
+                                <h5 class="mb-3">Chính sách áp dụng</h5>
+                                <?php if (!empty($policies)): ?>
+                                    <div class="row g-3">
+                                        <?php foreach ($policies as $policy): ?>
+                                            <div class="col-md-6">
+                                                <div class="form-check p-3 border rounded bg-light">
+                                                    <input class="form-check-input" type="checkbox" name="policies[]" value="<?= $policy['id'] ?>" id="policy_<?= $policy['id'] ?>">
+                                                    <label class="form-check-label fw-medium" for="policy_<?= $policy['id'] ?>">
+                                                        <?= htmlspecialchars($policy['name']) ?>
+                                                    </label>
+                                                    <div class="small text-muted mt-1"><?= htmlspecialchars($policy['description']) ?></div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    <?php endforeach; ?>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="text-muted">Chưa có chính sách nào.</div>
+                                <?php endif; ?>
+
+                                <hr class="my-4">
+
+                                <div class="dynamic-section-header">
+                                    <div class="dynamic-section-title">Đối tác dịch vụ</div>
+                                    <button type="button" class="add-item-btn" id="add-partner-item">
+                                        <i class="fas fa-plus"></i> Thêm đối tác
+                                    </button>
                                 </div>
-                            <?php else: ?>
-                                <div class="text-muted">Chưa có chính sách nào được định nghĩa.</div>
-                            <?php endif; ?>
+                                <div id="partners-list" class="d-flex flex-column gap-3" data-initial="[]"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Phiên bản Tour -->
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="fas fa-layer-group"></i></div>
+                            <div class="section-title">
+                                <h3>Phiên bản Tour</h3>
+                                <p>Quản lý các phiên bản/lịch khởi hành khác nhau</p>
+                            </div>
+                        </div>
+
+                        <div class="card-modern mb-4">
+                            <div class="card-body">
+                                <div class="dynamic-section-header">
+                                    <div class="dynamic-section-title">Danh sách phiên bản</div>
+                                    <button type="button" class="add-item-btn" id="add-version-item">
+                                        <i class="fas fa-plus"></i> Thêm phiên bản
+                                    </button>
+                                </div>
+                                <div id="versions-list" class="d-flex flex-column gap-3" data-initial="[]"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sidebar (Right) -->
                 <div class="col-lg-4">
-                    <!-- Actions -->
-                    <div class="card mb-3 shadow-sm">
-                        <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-save"></i> Tạo Tour Mới
-                                </button>
-                                <a href="?action=tours" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left"></i> Hủy bỏ
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Category & Price -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0">Phân loại & Giá</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
-                                <select name="category_id" class="form-select" required>
-                                    <option value="">-- Chọn danh mục --</option>
-                                    <?php foreach ($categories as $cat): ?>
-                                        <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Giá khởi điểm (VNĐ) <span class="text-danger">*</span></label>
-                                <input type="number" name="base_price" class="form-control" required min="0" placeholder="0">
-                                <div class="form-text">Giá hiển thị trên danh sách tour.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Images -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0"><i class="fas fa-images"></i> Thư viện ảnh</h5>
-                        </div>
-                        <div class="card-body">
-                            <div id="image-drop-zone" class="p-4 bg-light rounded border-dashed text-center mb-3" style="cursor: pointer;">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
-                                <p class="text-muted small mt-2 mb-0">Kéo thả hoặc nhấp để chọn ảnh</p>
-                                <p class="text-muted small">Ảnh đầu tiên sẽ là ảnh đại diện.</p>
-                            </div>
-                            
-                            <input type="file" id="file-input-handler" class="d-none" multiple accept="image/*">
-                            <input type="file" name="image_url[]" id="gallery-images-input" class="d-none" multiple>
-
-                            <div id="image-preview-container" class="row g-2"></div>
+                    <div class="sidebar-widget">
+                        <div class="widget-title">Thao tác</div>
+                        <div class="widget-actions">
+                            <button type="submit" class="btn-modern btn-primary-gradient w-100 mb-2">
+                                <i class="fas fa-save"></i> Lưu & Xuất bản
+                            </button>
+                            <button type="button" class="btn-modern btn-secondary w-100" onclick="history.back()">
+                                <i class="fas fa-times"></i> Hủy bỏ
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -176,158 +290,267 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     </div>
 </main>
 
+<!-- Auto-save Indicator -->
+<div class="auto-save-indicator" id="autoSaveIndicator">
+    <div class="auto-save-spinner"></div>
+    <span>Đang lưu nháp...</span>
+</div>
+
 <!-- Templates -->
 <template id="pricing-option-template">
-    <div class="pricing-option-item border rounded p-3 bg-light-subtle position-relative">
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-pricing-option" aria-label="Xóa"></button>
-        <div class="row g-2">
-            <div class="col-12">
-                <label class="form-label fw-500">Tên loại giá</label>
-                <input type="text" class="form-control" data-field="label" placeholder="Ví dụ: Người lớn">
+    <div class="dynamic-item">
+        <button type="button" class="remove-item-btn remove-pricing-option"><i class="fas fa-times"></i></button>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <div class="form-floating-modern">
+                    <input type="text" data-field="label" class="form-control" placeholder=" ">
+                    <label>Tên gói (VD: Người lớn, Trẻ em)</label>
+                </div>
             </div>
             <div class="col-12">
-                <label class="form-label fw-500">Mô tả (tùy chọn)</label>
-                <textarea class="form-control" rows="2" data-field="description" placeholder="Mô tả chi tiết về loại giá này"></textarea>
+                <div class="form-floating-modern">
+                    <input type="text" data-field="description" class="form-control" placeholder=" ">
+                    <label>Mô tả ngắn</label>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <template id="dynamic-pricing-template">
-    <div class="dynamic-pricing-item border rounded p-3 bg-light-subtle position-relative">
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-dynamic-price" aria-label="Xóa"></button>
-        <div class="row g-2">
+    <div class="dynamic-item">
+        <button type="button" class="remove-item-btn remove-dynamic-pricing"><i class="fas fa-times"></i></button>
+        <div class="row g-3">
             <div class="col-md-6">
-                <label class="form-label fw-500">Áp dụng cho loại giá</label>
-                <select class="form-select" data-field="option_label">
-                    <!-- Options will be populated by JS -->
-                </select>
+                <div class="form-floating-modern">
+                    <input type="text" data-field="option_label" class="form-control" placeholder=" ">
+                    <label>Áp dụng cho gói (VD: Người lớn)</label>
+                </div>
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-500">Giá</label>
-                <input type="number" class="form-control" data-field="price" placeholder="1500000" min="0">
+                <div class="form-floating-modern">
+                    <input type="number" data-field="price" class="form-control" placeholder=" ">
+                    <label>Giá điều chỉnh (VNĐ)</label>
+                </div>
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-500">Từ ngày</label>
-                <input type="date" class="form-control" data-field="start_date">
+                <div class="form-floating-modern">
+                    <input type="date" data-field="start_date" class="form-control" placeholder=" ">
+                    <label>Từ ngày</label>
+                </div>
             </div>
             <div class="col-md-6">
-                <label class="form-label fw-500">Đến ngày</label>
-                <input type="date" class="form-control" data-field="end_date">
-            </div>
-            <div class="col-12">
-                <label class="form-label fw-500">Ghi chú (tùy chọn)</label>
-                <textarea class="form-control" rows="1" data-field="notes" placeholder="Ví dụ: Áp dụng cho ngày lễ 30/4"></textarea>
+                <div class="form-floating-modern">
+                    <input type="date" data-field="end_date" class="form-control" placeholder=" ">
+                    <label>Đến ngày</label>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <template id="itinerary-item-template">
-    <div class="itinerary-item border rounded p-3 position-relative bg-light-subtle">
-        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-itinerary-item" aria-label="Xóa"></button>
-        <div class="row g-2">
-            <div class="col-md-4">
-                <label class="form-label fw-500">Ngày / Chặng</label>
-                <input type="text" name="tour_itinerary_day" data-field="day" class="form-control" placeholder="Ngày 1">
+    <div class="dynamic-item">
+        <button type="button" class="remove-item-btn remove-itinerary-item"><i class="fas fa-times"></i></button>
+        <div class="row g-3">
+            <div class="col-md-2">
+                <div class="form-floating-modern">
+                    <input type="text" data-field="day" class="form-control" placeholder=" ">
+                    <label>Ngày (VD: Ngày 1)</label>
+                </div>
             </div>
-            <div class="col-md-4">
-                <label class="form-label fw-500">Giờ bắt đầu</label>
-                <input type="time" name="tour_itinerary_time_start" data-field="time_start" class="form-control">
+            <div class="col-md-10">
+                <div class="form-floating-modern">
+                    <input type="text" data-field="title" class="form-control" placeholder=" ">
+                    <label>Tiêu đề hoạt động</label>
+                </div>
             </div>
-            <div class="col-md-4">
-                <label class="form-label fw-500">Giờ kết thúc</label>
-                <input type="time" name="tour_itinerary_time_end[]" data-field="time_end" class="form-control">
+            <div class="col-md-6">
+                <div class="form-floating-modern">
+                    <input type="time" data-field="time_start" class="form-control" placeholder=" ">
+                    <label>Giờ bắt đầu</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating-modern">
+                    <input type="time" data-field="time_end" class="form-control" placeholder=" ">
+                    <label>Giờ kết thúc</label>
+                </div>
             </div>
             <div class="col-12">
-                <label class="form-label fw-500">Tiêu đề hoạt động</label>
-                <input type="text" name="tour_itinerary_title" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội">
-            </div>
-            <div class="col-12">
-                <label class="form-label fw-500">Chi tiết</label>
-                <textarea name="tour_itinerary_description" data-field="description" class="form-control" rows="3" placeholder="Tham quan, ăn uống, trải nghiệm..."></textarea>
+                <div class="form-floating-modern">
+                    <textarea data-field="description" class="form-control" style="height: 100px" placeholder=" "></textarea>
+                    <label>Mô tả chi tiết</label>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
-<!-- Image Viewer Modal -->
-<div id="image-viewer-modal" class="modal-viewer" style="display:none;">
-    <span class="close-viewer">&times;</span>
-    <img class="modal-viewer-content" id="modal-image">
-</div>
+<template id="partner-item-template">
+    <div class="dynamic-item">
+        <button type="button" class="remove-item-btn remove-partner-item"><i class="fas fa-times"></i></button>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-floating-modern">
+                    <select data-field="service_type" class="form-select form-control">
+                        <option value="hotel">Khách sạn</option>
+                        <option value="transport">Vận chuyển</option>
+                        <option value="restaurant">Nhà hàng</option>
+                        <option value="guide">Hướng dẫn viên</option>
+                        <option value="other">Khác</option>
+                    </select>
+                    <label>Loại dịch vụ</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating-modern">
+                    <input type="text" data-field="name" class="form-control" placeholder=" ">
+                    <label>Tên đối tác</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-floating-modern">
+                    <input type="text" data-field="contact" class="form-control" placeholder=" ">
+                    <label>Thông tin liên hệ</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
 
-<style>
-    .image-preview-card {
-        position: relative;
-    }
+<template id="version-item-template">
+    <div class="dynamic-item">
+        <button type="button" class="remove-item-btn remove-version-item"><i class="fas fa-times"></i></button>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="form-floating-modern">
+                    <input type="text" data-field="name" class="form-control" placeholder=" ">
+                    <label>Tên phiên bản (VD: Mùa hè 2024)</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating-modern">
+                    <input type="date" data-field="start_date" class="form-control" placeholder=" ">
+                    <label>Ngày bắt đầu</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating-modern">
+                    <input type="date" data-field="end_date" class="form-control" placeholder=" ">
+                    <label>Ngày kết thúc</label>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-floating-modern">
+                    <input type="number" data-field="price" class="form-control" min="0" step="1000" placeholder=" ">
+                    <label>Giá riêng (VNĐ) - Để trống nếu dùng giá gốc</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-floating-modern">
+                    <textarea data-field="notes" class="form-control" style="height: 80px" placeholder=" "></textarea>
+                    <label>Ghi chú</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
 
-    .image-preview-card .actions-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        opacity: 0;
-        transition: opacity 0.2s ease-in-out;
-    }
+<!-- Image Preview Template (JS will use this) -->
+<template id="image-preview-template">
+    <div class="image-preview-card">
+        <img src="" alt="Preview">
+        <div class="image-preview-overlay">
+            <button type="button" class="image-preview-action delete" title="Xóa ảnh">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    </div>
+</template>
 
-    .image-preview-card:hover .actions-overlay {
-        opacity: 1;
-    }
+<script src="<?= BASE_ASSETS_ADMIN ?>js/tours.js"></script>
+<script>
+    // Additional JS for modern features
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image upload preview
+        const fileInput = document.getElementById('gallery_images');
+        const previewGrid = document.getElementById('imagePreview');
+        const dropZone = document.getElementById('dropZone');
 
-    .actions-overlay .action-btn {
-        cursor: pointer;
-        padding: 5px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        transition: background 0.2s;
-    }
+        if (fileInput && previewGrid) {
+            fileInput.addEventListener('change', function(e) {
+                handleFiles(this.files);
+            });
 
-    .actions-overlay .action-btn:hover {
-        background: rgba(255, 255, 255, 0.4);
-    }
+            // Drag & Drop
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
 
-    /* Modal Styles */
-    .modal-viewer {
-        position: fixed;
-        z-index: 9999;
-        padding-top: 50px;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.9);
-    }
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+            });
 
-    .modal-viewer-content {
-        margin: auto;
-        display: block;
-        width: auto;
-        height: auto;
-        max-width: 90%;
-        max-height: 90%;
-    }
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                fileInput.files = e.dataTransfer.files;
+                handleFiles(e.dataTransfer.files);
+            });
+        }
 
-    .close-viewer {
-        position: absolute;
-        top: 15px;
-        right: 35px;
-        color: #f1f1f1;
-        font-size: 40px;
-        font-weight: bold;
-        transition: 0.3s;
-        cursor: pointer;
-    }
-</style>
+        function handleFiles(files) {
+            previewGrid.innerHTML = ''; // Clear existing
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'image-preview-card';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview">
+                            <div class="image-preview-overlay">
+                                <button type="button" class="image-preview-action delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                        // Simple delete (just removes preview, doesn't update input files list easily without DataTransfer)
+                        div.querySelector('.delete').addEventListener('click', function() {
+                            div.remove();
+                        });
+                        previewGrid.appendChild(div);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
 
-<?php
-include_once PATH_VIEW_ADMIN . 'default/footer.php';
-?>
+        // Auto-save simulation
+        const form = document.getElementById('tour-form');
+        const indicator = document.getElementById('autoSaveIndicator');
+        let timeout;
+
+        if (form && indicator) {
+            form.addEventListener('input', function() {
+                clearTimeout(timeout);
+                indicator.className = 'auto-save-indicator show saving';
+                indicator.innerHTML = '<div class="auto-save-spinner"></div><span>Đang lưu nháp...</span>';
+                
+                timeout = setTimeout(function() {
+                    indicator.className = 'auto-save-indicator show saved';
+                    indicator.innerHTML = '<i class="fas fa-check-circle"></i><span>Đã lưu nháp</span>';
+                    
+                    setTimeout(() => {
+                        indicator.classList.remove('show');
+                    }, 2000);
+                }, 1000);
+            });
+        }
+    });
+</script>
+
+<?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>

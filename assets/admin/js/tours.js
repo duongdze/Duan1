@@ -365,6 +365,24 @@ document.addEventListener("DOMContentLoaded", function () {
           upsertHidden("tour_dynamic_pricing", JSON.stringify(dynamicPricingArr));
           upsertHidden("tour_itinerary", JSON.stringify(itinArr));
           upsertHidden("tour_partners", JSON.stringify(partnerArr));
+
+          // versions
+          const versionsList = document.getElementById("versions-list");
+          const versionsArr = [];
+          if (versionsList) {
+            versionsList
+              .querySelectorAll(".version-item")
+              .forEach(function (item) {
+                const obj = {};
+                item.querySelectorAll("[data-field]").forEach(function (f) {
+                  const key = f.dataset.field;
+                  if (!key) return;
+                  obj[key] = f.value;
+                });
+                if (obj.name) versionsArr.push(obj);
+              });
+          }
+          upsertHidden("tour_versions", JSON.stringify(versionsArr));
         } catch (err) {
           console.error("Error serializing dynamic sections:", err);
           e.preventDefault(); // Prevent submission on error
@@ -538,6 +556,14 @@ document.addEventListener("DOMContentLoaded", function () {
     addBtnId: "add-partner-item",
     removeSelector: ".remove-partner-item",
     itemClass: "partner-item",
+  });
+
+  setupDynamicSection({
+    listId: "versions-list",
+    templateId: "version-item-template",
+    addBtnId: "add-version-item",
+    removeSelector: ".remove-version-item",
+    itemClass: "version-item",
   });
 
   var imageInput = document.getElementById("image");

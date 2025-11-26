@@ -173,6 +173,25 @@ class TourController
 
             // Images were inserted inside createTour; main image is derived from `tour_gallery_images`.
 
+            // Handle versions
+            $versions = json_decode($_POST['tour_versions'] ?? '[]', true);
+            if (!empty($versions) && is_array($versions)) {
+                $versionModel = new TourVersion();
+                foreach ($versions as $v) {
+                    if (!empty($v['name'])) {
+                        $versionModel->insert([
+                            'tour_id' => $tourId,
+                            'name' => $v['name'],
+                            'start_date' => !empty($v['start_date']) ? $v['start_date'] : null,
+                            'end_date' => !empty($v['end_date']) ? $v['end_date'] : null,
+                            'price' => (float)($v['price'] ?? 0),
+                            'notes' => $v['notes'] ?? '',
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                    }
+                }
+            }
+
             $_SESSION['success'] = 'Tour đã được tạo thành công!';
             header('Location: ' . BASE_URL_ADMIN . '&action=tours');
             exit;
@@ -239,6 +258,10 @@ class TourController
                 'main' => !empty($img['main_img']) ? 1 : 0,
             ];
         }, $images ?: []);
+
+        // Load versions
+        $versionModel = new TourVersion();
+        $versions = $versionModel->select('*', 'tour_id = :tour_id ORDER BY start_date DESC', ['tour_id' => $id]);
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
@@ -467,6 +490,27 @@ class TourController
                     'policy_id' => $policyId,
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
+            }
+
+            // Handle versions
+            $versionModel = new TourVersion();
+            $versionModel->delete('tour_id = :tid', ['tid' => $id]);
+            
+            $versions = json_decode($_POST['tour_versions'] ?? '[]', true);
+            if (!empty($versions) && is_array($versions)) {
+                foreach ($versions as $v) {
+                    if (!empty($v['name'])) {
+                        $versionModel->insert([
+                            'tour_id' => $id,
+                            'name' => $v['name'],
+                            'start_date' => !empty($v['start_date']) ? $v['start_date'] : null,
+                            'end_date' => !empty($v['end_date']) ? $v['end_date'] : null,
+                            'price' => (float)($v['price'] ?? 0),
+                            'notes' => $v['notes'] ?? '',
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                    }
+                }
             }
 
             $this->model->commit();
