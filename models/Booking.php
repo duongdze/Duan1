@@ -81,4 +81,62 @@ class Booking extends BaseModel
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Lấy thông tin booking theo ID
+     * @param int $id
+     * @return array|false
+     */
+    public function getById($id)
+    {
+        return $this->find('*', 'id = :id', ['id' => $id]);
+    }
+
+    /**
+     * Lấy thông tin booking chi tiết kèm tour và customer
+     * @param int $id
+     * @return array|false
+     */
+    public function getBookingWithDetails($id)
+    {
+        $sql = "SELECT 
+                    B.*, 
+                    T.name AS tour_name,
+                    T.base_price AS tour_base_price,
+                    U.full_name AS customer_name,
+                    U.email AS customer_email,
+                    U.phone AS customer_phone
+                FROM bookings AS B 
+                LEFT JOIN tours AS T ON B.tour_id = T.id
+                LEFT JOIN users AS U ON B.customer_id = U.user_id
+                WHERE B.id = :id";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Xóa booking và các dữ liệu liên quan
+     * @param int $id
+     * @return bool
+     */
+    public function deleteBooking($id)
+    {
+        try {
+            $this->beginTransaction();
+
+            // Xóa booking customers trước
+            $bookingCustomerModel = new BookingCustomer();
+            $bookingCustomerModel->deleteByBooking($id);
+
+            // Xóa booking
+            $this->delete('id = :id', ['id' => $id]);
+
+            $this->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->rollBack();
+            return false;
+        }
+    }
 }

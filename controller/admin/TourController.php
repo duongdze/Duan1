@@ -141,7 +141,6 @@ class TourController
                 'supplier_id' => (int)$_POST['supplier_id'],
                 'description' => $_POST['description'] ?? '',
                 'base_price' => (float)$_POST['base_price'],
-                'policy' => $_POST['policy'] ?? '',
             ];
 
             // Handle image uploads
@@ -174,30 +173,14 @@ class TourController
 
             // Parse JSON data from form
             $pricingOptions = json_decode($_POST['tour_pricing_options'] ?? '[]', true);
+            $dynamicPricing = json_decode($_POST['tour_dynamic_pricing'] ?? '[]', true);
             $itineraries = json_decode($_POST['tour_itinerary'] ?? '[]', true);
             $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
 
             // Create tour with all related data
-            $tourId = $this->model->createTour($tourData, $pricingOptions, $itineraries, $partners, $uploadedImages);
+            $tourId = $this->model->createTour($tourData, $pricingOptions, $dynamicPricing, $itineraries, $partners, $uploadedImages);
 
-            // Update tours.main_image only (images were already inserted inside createTour)
-            if (!empty($uploadedImages) && $tourId) {
-                $mainImagePath = null;
-                foreach ($uploadedImages as $image) {
-                    if (!empty($image['is_main'])) {
-                        $mainImagePath = $image['path'];
-                        break;
-                    }
-                }
-
-                if ($mainImagePath) {
-                    $this->model->update(
-                        ['main_image' => $mainImagePath],
-                        'id = :id',
-                        ['id' => $tourId]
-                    );
-                }
-            }
+            // Images were inserted inside createTour; main image is derived from `tour_gallery_images`.
 
             $_SESSION['success'] = 'Tour đã được tạo thành công!';
             header('Location: ' . BASE_URL_ADMIN . '&action=tours');
@@ -211,11 +194,292 @@ class TourController
 
     public function edit()
     {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            $_SESSION['error'] = 'ID Tour không hợp lệ.';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            return;
+        }
+
+        // Load main tour
+        $tour = $this->model->find('*', 'id = :id', ['id' => $id]);
+        if (!$tour) {
+            $_SESSION['error'] = 'Không tìm thấy Tour.';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            return;
+        }
+
+        // Load dropdown data
+        $categoryModel = new TourCategory();
+        $categories = $categoryModel->select();
+
+        $supplierModel = new Supplier();
+        $suppliers = $supplierModel->select();
+
+        // Related entities
+        $pricingModel = new TourPricing();
+        $pricingOptions = $pricingModel->getByTourId($id);
+
+        $dynamicPricingModel = new TourDynamicPricing();
+        $dynamicPricing = $dynamicPricingModel->getByTourId($id);
+
+        $itineraryModel = new TourItinerary();
+        $itinerarySchedule = $itineraryModel->select('*', 'tour_id = :tid', ['tid' => $id], 'day_number ASC');
+
+        $partnerModel = new TourPartner();
+        $partnerServices = $partnerModel->getByTourId($id);
+
+        $imageModel = new TourImage();
+        $images = $imageModel->getByTourId($id);
+
+        // Map images to objects {id, url} for the edit view (use public URL)
+        $allImages = array_map(function ($img) {
+            return [
+                'id' => $img['id'] ?? null,
+                // public URL for preview
+                'url' => BASE_ASSETS_UPLOADS . ($img['image_url'] ?? ''),
+                // relative path stored in DB, used for delete/matching on server-side
+                'path' => $img['image_url'] ?? '',
+                'main' => !empty($img['main_img']) ? 1 : 0,
+            ];
+        }, $images ?: []);
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
 
-    public function update() {}
+
+
+    public function update()
+    {
+        $id = $_POST['id'] ?? null;
+        if (!$id) {
+            $_SESSION['error'] = 'ID Tour không hợp lệ.';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            return;
+        }
+
+        // Basic validation
+        $requiredFields = ['name', 'category_id', 'supplier_id', 'base_price'];
+        foreach ($requiredFields as $field) {
+            if (empty($_POST[$field])) {
+                $_SESSION['error'] = "Trường {$field} là bắt buộc.";
+                header('Location: ' . BASE_URL_ADMIN . '&action=tours/edit&id=' . urlencode($id));
+                return;
+            }
+        }
+
+        try {
+            $this->model->beginTransaction();
+
+            // Prepare tour basic data for update
+            $tourData = [
+                'name' => trim($_POST['name']),
+                'category_id' => (int)$_POST['category_id'],
+                'supplier_id' => (int)$_POST['supplier_id'],
+                'description' => $_POST['description'] ?? '',
+                'base_price' => (float)$_POST['base_price'],
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+
+            // Update tour basic info
+            $this->model->update($tourData, 'id = :id', ['id' => $id]);
+
+            $imageModel = new TourImage();
+
+            // 1) Handle deleted images (could be IDs or URLs)
+            $deleted = $_POST['deleted_images'] ?? [];
+            if (!empty($deleted) && is_array($deleted)) {
+                foreach ($deleted as $del) {
+                    // If numeric -> treat as id
+                    if (ctype_digit((string)$del)) {
+                        $img = $imageModel->find('*', 'id = :id', ['id' => $del]);
+                        if ($img) {
+                            $path = PATH_ASSETS_UPLOADS . ($img['image_url'] ?? '');
+                            if (!empty($img['image_url']) && file_exists($path)) {
+                                @unlink($path);
+                            }
+                            $imageModel->delete('id = :id', ['id' => $del]);
+                        }
+                    } else {
+                        // treat as URL (relative path)
+                        $img = $imageModel->find('*', 'image_url = :url AND tour_id = :tid', ['url' => $del, 'tid' => $id]);
+                        if ($img) {
+                            $path = PATH_ASSETS_UPLOADS . ($img['image_url'] ?? '');
+                            if (!empty($img['image_url']) && file_exists($path)) {
+                                @unlink($path);
+                            }
+                            $imageModel->delete('id = :id', ['id' => $img['id']]);
+                        }
+                    }
+                }
+            }
+
+            // 2) Handle primary image selection (existing image id or url)
+            $newPrimary = $_POST['new_primary_image_url'] ?? '';
+            if (!empty($newPrimary)) {
+                // reset previous main flags
+                $stmt = BaseModel::getPdo()->prepare("UPDATE tour_gallery_images SET main_img = 0 WHERE tour_id = :tid");
+                $stmt->execute(['tid' => $id]);
+
+                if (ctype_digit((string)$newPrimary)) {
+                    $imageModel->update(['main_img' => 1], 'id = :id', ['id' => $newPrimary]);
+                } else {
+                    // try match by url
+                    $imageModel->update(['main_img' => 1], 'image_url = :url AND tour_id = :tid', ['url' => $newPrimary, 'tid' => $id]);
+                }
+            }
+
+            // 3) Handle uploaded files: main single `image` and gallery `gallery_images[]`
+            $uploadDir = PATH_ASSETS_UPLOADS . 'tours/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            // If a new primary file was uploaded (single file input named `image`)
+            if (!empty($_FILES['image']['tmp_name'])) {
+                if (is_uploaded_file($_FILES['image']['tmp_name'])) {
+                    $originalName = $_FILES['image']['name'];
+                    $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                    $newName = uniqid('tour_') . '.' . $extension;
+                    $filePath = $uploadDir . $newName;
+                    if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
+                        // clear previous main flags
+                        $stmt = BaseModel::getPdo()->prepare("UPDATE tour_gallery_images SET main_img = 0 WHERE tour_id = :tid");
+                        $stmt->execute(['tid' => $id]);
+
+                        // insert new image as main (append sort_order at end)
+                        $maxOrder = 0;
+                        $row = BaseModel::getPdo()->prepare("SELECT MAX(sort_order) as mo FROM tour_gallery_images WHERE tour_id = :tid");
+                        $row->execute(['tid' => $id]);
+                        $r = $row->fetch();
+                        if ($r && isset($r['mo'])) $maxOrder = (int)$r['mo'];
+
+                        $imageModel->insert([
+                            'tour_id' => $id,
+                            'image_url' => 'tours/' . $newName,
+                            'caption' => '',
+                            'main_img' => 1,
+                            'sort_order' => $maxOrder + 1,
+                        ]);
+                    }
+                }
+            }
+
+            // Multiple gallery uploads
+            if (!empty($_FILES['gallery_images']) && !empty($_FILES['gallery_images']['tmp_name'])) {
+                foreach ($_FILES['gallery_images']['tmp_name'] as $index => $tmpName) {
+                    if (!empty($tmpName) && is_uploaded_file($tmpName)) {
+                        $originalName = $_FILES['gallery_images']['name'][$index];
+                        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                        $newName = uniqid('tour_') . '.' . $extension;
+                        $filePath = $uploadDir . $newName;
+                        if (move_uploaded_file($tmpName, $filePath)) {
+                            // insert as non-main by default
+                            $maxOrder = 0;
+                            $row = BaseModel::getPdo()->prepare("SELECT MAX(sort_order) as mo FROM tour_gallery_images WHERE tour_id = :tid");
+                            $row->execute(['tid' => $id]);
+                            $r = $row->fetch();
+                            if ($r && isset($r['mo'])) $maxOrder = (int)$r['mo'];
+
+                            $imageModel->insert([
+                                'tour_id' => $id,
+                                'image_url' => 'tours/' . $newName,
+                                'caption' => '',
+                                'main_img' => 0,
+                                'sort_order' => $maxOrder + 1,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Parse JSON arrays for pricing/itineraries/partners and update related tables
+            $pricingOptions = json_decode($_POST['tour_pricing_options'] ?? '[]', true);
+            $dynamicPricing = json_decode($_POST['tour_dynamic_pricing'] ?? '[]', true);
+            $itineraries = json_decode($_POST['tour_itinerary'] ?? '[]', true);
+            $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
+
+            // For simplicity: delete existing related rows and re-insert
+            $pricingModel = new TourPricing();
+            $dynamicPricingModel = new TourDynamicPricing();
+            $itineraryModel = new TourItinerary();
+            $partnerModel = new TourPartner();
+
+            $pricingModel->delete('tour_id = :tid', ['tid' => $id]);
+            $dynamicPricingModel->delete('tour_id = :tid', ['tid' => $id]);
+
+            foreach ($pricingOptions as $opt) {
+                $optionId = $pricingModel->insert([
+                    'tour_id' => $id,
+                    'label' => $opt['label'] ?? '',
+                    'description' => $opt['description'] ?? '',
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                foreach ($dynamicPricing as $dp) {
+                    if ($dp['option_label'] == $opt['label']) {
+                        $dynamicPricingModel->insert([
+                            'tour_id' => $id,
+                            'pricing_option_id' => $optionId,
+                            'start_date' => $dp['start_date'] ?? null,
+                            'end_date' => $dp['end_date'] ?? null,
+                            'price' => (float)$dp['price'],
+                            'notes' => $dp['notes'] ?? '',
+                            'created_at' => date('Y-m-d H:i:s'),
+                        ]);
+                    }
+                }
+            }
+
+            $itineraryModel->delete('tour_id = :tid', ['tid' => $id]);
+            foreach ($itineraries as $index => $it) {
+                $dayNumber = $index + 1;
+                if (isset($it['day']) && preg_match('/(\d+)/', $it['day'], $m)) {
+                    $dayNumber = (int)$m[1];
+                }
+                $itineraryModel->insert([
+                    'tour_id' => $id,
+                    'day_label' => $it['day'] ?? '',
+                    'day_number' => $dayNumber,
+                    'time_start' => $it['time_start'] ?? null,
+                    'time_end' => $it['time_end'] ?? null,
+                    'title' => $it['title'] ?? '',
+                    'description' => $it['description'] ?? '',
+                    'activities' => $it['activities'] ?? '',
+                    'image_url' => $it['image_url'] ?? '',
+                ]);
+            }
+
+            $partnerModel->delete('tour_id = :tid', ['tid' => $id]);
+            foreach ($partners as $p) {
+                $partnerModel->insert([
+                    'tour_id' => $id,
+                    'service_type' => $p['service_type'] ?? 'other',
+                    'partner_name' => $p['name'] ?? '',
+                    'contact' => $p['contact'] ?? '',
+                    'notes' => $p['notes'] ?? '',
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            $this->model->commit();
+
+            $_SESSION['success'] = 'Cập nhật tour thành công.';
+            // Prefer returning to provided `return_to` (only if internal), otherwise fallback to tours list
+            $returnTo = $_POST['return_to'] ?? '';
+            if ($returnTo && strpos($returnTo, BASE_URL_ADMIN) === 0) {
+                header('Location: ' . $returnTo);
+            } else {
+                header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            }
+            exit;
+        } catch (Exception $e) {
+            $this->model->rollBack();
+            $_SESSION['error'] = 'Có lỗi khi cập nhật tour: ' . $e->getMessage();
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours/edit&id=' . urlencode($id));
+            exit;
+        }
+    }
 
     public function delete()
     {
@@ -240,6 +504,73 @@ class TourController
     }
     public function detail()
     {
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            $_SESSION['error'] = 'ID Tour không hợp lệ.';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            return;
+        }
+
+        // Load main tour (reuse model)
+        $tour = $this->model->find('*', 'id = :id', ['id' => $id]);
+        if (!$tour) {
+            $_SESSION['error'] = 'Không tìm thấy Tour.';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            return;
+        }
+
+        // Load related data for detail view
+        $pricingModel = new TourPricing();
+        $pricingOptions = $pricingModel->getByTourId($id);
+
+        $dynamicPricingModel = new TourDynamicPricing();
+        $dynamicPricing = $dynamicPricingModel->getByTourId($id);
+
+        $itineraryModel = new TourItinerary();
+        $itinerarySchedule = $itineraryModel->select('*', 'tour_id = :tid', ['tid' => $id], 'day_number ASC');
+
+        $partnerModel = new TourPartner();
+        $partnerServices = $partnerModel->getByTourId($id);
+
+        $imageModel = new TourImage();
+        $images = $imageModel->getByTourId($id);
+        $allImages = array_map(function ($img) {
+            return [
+                'id' => $img['id'] ?? null,
+                'url' => BASE_ASSETS_UPLOADS . ($img['image_url'] ?? ''),
+                'main' => !empty($img['main_img']) ? 1 : 0,
+            ];
+        }, $images ?: []);
+
+        // Also compute avg rating and booking count if not present
+        if (!isset($tour['avg_rating'])) {
+            $stmt = BaseModel::getPdo()->prepare("SELECT AVG(rating) as avg_rating FROM tour_feedbacks WHERE tour_id = :tid");
+            $stmt->execute(['tid' => $id]);
+            $tour['avg_rating'] = $stmt->fetch()['avg_rating'] ?? 0;
+        }
+        if (!isset($tour['booking_count'])) {
+            $stmt = BaseModel::getPdo()->prepare("SELECT COUNT(*) as bc FROM bookings WHERE tour_id = :tid");
+            $stmt->execute(['tid' => $id]);
+            $tour['booking_count'] = $stmt->fetch()['bc'] ?? 0;
+        }
+
+        // Enrich tour with supplier contact/name if missing
+        try {
+            $supplierModel = new Supplier();
+            $supplier = $supplierModel->find('*', 'id = :id', ['id' => $tour['supplier_id'] ?? 0]);
+            $tour['supplier_name'] = $tour['supplier_name'] ?? ($supplier['name'] ?? '');
+            // prefer explicit supplier_contact, fallback to supplier phone or contact
+            $tour['supplier_contact'] = $tour['supplier_contact'] ?? ($supplier['contact'] ?? ($supplier['phone'] ?? ''));
+        } catch (Exception $e) {
+            // ignore if supplier lookup fails
+        }
+
+        // Normalize commonly expected fields for the detail view
+        $tour['subtitle'] = $tour['subtitle'] ?? ($tour['short_description'] ?? '');
+        $tour['duration'] = $tour['duration'] ?? ($tour['days'] ?? '');
+        $tour['capacity'] = $tour['capacity'] ?? ($tour['seats'] ?? '');
+        $tour['start_date'] = $tour['start_date'] ?? ($tour['next_start_date'] ?? '');
+
         require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
     }
 }

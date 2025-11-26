@@ -33,7 +33,7 @@ match ($action) {
     'tours/versions/create' => (new TourVersionController)->create(),
     'tours/versions/store'  => (new TourVersionController)->store(),
     'tours/versions/delete' => (new TourVersionController)->delete(),
-    'tour_category'         => (new TourCategoryController)->index(),
+    'tours_category'         => (new TourCategoryController)->index(),
 
 
     'tours/itineraries'     => (new ItineraryController)->index(),
@@ -41,13 +41,13 @@ match ($action) {
     'tours/itineraries/store'  => (new ItineraryController)->store(),
     'tours/itineraries/delete' => (new ItineraryController)->delete(),
 
-    // 📝 Tour Logs (Nhật ký Tour)
-    'tour_logs'        => (new TourLogController)->index(),
-    'tour_logs/create' => (new TourLogController)->create(),
-    'tour_logs/store'  => (new TourLogController)->store(),
-    'tour_logs/edit'   => (new TourLogController)->edit(),
-    'tour_logs/update' => (new TourLogController)->update(),
-    'tour_logs/delete' => (new TourLogController)->delete(),
+    // Tour Logs
+    'tours_logs'        => (new TourLogController)->index(),
+    'tours_logs/create' => (new TourLogController)->create(),
+    'tours_logs/store'  => (new TourLogController)->store(),
+    'tours_logs/edit'   => (new TourLogController)->edit(),
+    'tours_logs/update' => (new TourLogController)->update(),
+    'tours_logs/delete' => (new TourLogController)->delete(),
 
     // Bookings
     'bookings'             => (new BookingController)->index(),
@@ -55,11 +55,17 @@ match ($action) {
     'bookings/store'       => (new BookingController)->store(),
     'bookings/edit'        => (new BookingController)->edit(),
     'bookings/update'      => (new BookingController)->update(),
+    'bookings/delete'      => (new BookingController)->delete(),
+    'bookings/detail'      => (new BookingController)->detail(),
 
     // Guides
     'guides'               => (new GuideController)->index(),
     'guides/create'        => (new GuideController)->create(),
     'guides/store'         => (new GuideController)->store(),
+    'guides/detail'        => (new GuideController)->detail(),
+    'guides/edit'          => (new GuideController)->edit(),
+    'guides/update'        => (new GuideController)->update(),
+    'guides/delete'        => (new GuideController)->delete(),
 
     // Guides Work
     'guide/schedule'   => (new GuideWorkController)->schedule(),
@@ -70,6 +76,7 @@ match ($action) {
     'suppliers/create'     => (new SupplierController)->create(),
     'suppliers/store'      => (new SupplierController)->store(),
     // Reports
+    'reports'              => (new ReportController)->index(),
     'reports/financial'    => (new ReportController)->financial(),
     'reports/bookings'     => (new ReportController)->bookings(),
     'reports/feedback'     => (new ReportController)->feedback(),

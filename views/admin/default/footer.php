@@ -1,7 +1,5 @@
 </main>
 </div>
-<!-- CKEditor 4 -->
-<script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
 <!-- Tours JS -->
 <script src="<?= BASE_ASSETS_ADMIN ?>js/tours.js"></script>
 <!-- Bootstrap and other scripts -->

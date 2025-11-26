@@ -32,7 +32,7 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('tours') ? 'active' : '' ?>"
                 href="#" role="button"
-                data-bs-toggle="collapse" data-bs-target="#tourMenu"
+                
                 aria-expanded="<?= isParentActive('tours') ? 'true' : 'false' ?>"
                 aria-controls="tourMenu"
                 data-menu-key="tours"
@@ -48,17 +48,17 @@ $currentAction = $_GET['action'] ?? '';
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= isActive('tours/logs') ?>" href="<?= BASE_URL_ADMIN ?>&action=tour_logs">
+                        <a class="nav-link <?= isActive('tours_logs') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_logs">
                             <i class="fas fa-book fa-fw me-2"></i> Nhật ký Tour
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= isActive('tours/history') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours/history">
+                        <a class="nav-link <?= isActive('tours_history') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_history">
                             <i class="fas fa-history fa-fw me-2"></i> Lịch sử Tour
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= isActive('tour_category') ?>" href="<?= BASE_URL_ADMIN ?>&action=tour_category">
+                        <a class="nav-link <?= isActive('tours_category') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_category">
                             <i class="fas fa-list fa-fw me-2"></i> Danh mục Tour
                         </a>
                     </li>
@@ -75,7 +75,7 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('bookings') ? 'active' : '' ?>"
                 href="#" role="button"
-                data-bs-toggle="collapse" data-bs-target="#bookingMenu"
+                
                 aria-expanded="<?= isParentActive('bookings') ? 'true' : 'false' ?>"
                 aria-controls="bookingMenu"
                 data-menu-key="bookings"

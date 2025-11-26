@@ -8,7 +8,6 @@ class TourPricing extends BaseModel
         'id',
         'tour_id',
         'label',
-        'price',
         'description',
         'created_at'
     ];
