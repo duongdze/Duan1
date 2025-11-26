@@ -105,9 +105,13 @@ $currentAction = $_GET['action'] ?? '';
                 <i class="fas fa-user-tie fa-fw me-2"></i> Quản lý HDV
             </a>
         </li>
-
         <li class="nav-item">
-            <a class="nav-link <?= isActive('schedules') ?>" href="<?= BASE_URL_ADMIN ?>&action=schedules">
+            <a class="nav-link <?= isActive('guide/schedule') ?>" href="<?= BASE_URL_ADMIN ?>&action=guide/schedule">
+                <i class="fas fa-calendar-day fa-fw me-2"></i> Lịch làm việc của HDV
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?= isActive('schedule') ?>" href="<?= BASE_URL_ADMIN ?>&action=schedule">
                 <i class="fas fa-calendar-alt fa-fw me-2"></i> Lịch khởi hành
             </a>
         </li>
@@ -123,5 +127,6 @@ $currentAction = $_GET['action'] ?? '';
                 <i class="fas fa-cogs fa-fw me-2"></i> Cài đặt
             </a>
         </li>
+
     </ul>
 </aside>

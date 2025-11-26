@@ -1,4 +1,4 @@
-<?php
+    <?php
 require_once 'BaseModel.php';
 
 class TourPricing extends BaseModel

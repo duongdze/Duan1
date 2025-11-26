@@ -48,6 +48,10 @@ class TourLogController
             'guide_rating'      => $_POST['guide_rating'] ?? null,
         ];
 
+        // enforce guide_id from session to prevent spoofing
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        $data['guide_id'] = $_SESSION['guide_id'] ?? $data['guide_id'];
+
         $this->model->create($data);
         header('Location:' . BASE_URL_ADMIN . '&action=tours_logs');
         exit;
@@ -96,6 +100,10 @@ class TourLogController
             'handling_notes'    => $_POST['handling_notes'] ?? '',
             'guide_rating'      => $_POST['guide_rating'] ?? null,
         ];
+
+        // enforce guide_id from session
+        if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+        $data['guide_id'] = $_SESSION['guide_id'] ?? $data['guide_id'];
 
         $this->model->updateLog($id, $data);
         header('Location:' . BASE_URL_ADMIN . '&action=tours_logs');

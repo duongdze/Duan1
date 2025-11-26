@@ -67,6 +67,10 @@ match ($action) {
     'guides/update'        => (new GuideController)->update(),
     'guides/delete'        => (new GuideController)->delete(),
 
+    // Guides Work
+    'guide/schedule'   => (new GuideWorkController)->schedule(),
+    'guide/tourDetail' => (new GuideWorkController)->tourDetail(),
+
     // Suppliers
     'suppliers'            => (new SupplierController)->index(),
     'suppliers/create'     => (new SupplierController)->create(),
