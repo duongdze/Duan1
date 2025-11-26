@@ -38,27 +38,36 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <td><?= $booking['customer_name'] ?></td>
                                         <td><?= $booking['tour_name'] ?></td>
                                         <td><?= $booking['booking_date'] ?></td>
-                                        <td><?= $booking['total_price'] ?></td>
-                                        <td><span class="badge bg-warning text-dark"> <?php $statusText = 'Chờ Xác Nhận';
-                                                                                        if ($booking['status'] === 'hoan_tat') {
-                                                                                            $statusText = 'Hoàn Tất';
-                                                                                        } elseif ($booking['status'] === 'da_coc') {
-                                                                                            $statusText = 'Đã Cọc';
-                                                                                        } elseif ($booking['status'] === 'da_huy') {
-                                                                                            $statusText = 'Đã Hủy';
-                                                                                        }
-                                                                                        ?>
-                                                <span class="badge bg-warning text-dark"><?= $statusText ?></span></td>
+                                        <td><?= number_format($booking['total_price'], 0, ',', '.') ?> ₫</td>
                                         <td>
-                                            <a href="<?= BASE_URL_ADMIN . '&action=booking/detail&id=' . $booking['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
-                                            <a href="<?= BASE_URL_ADMIN . '&action=booking/edit&id=' . $booking['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
-                                            <a href="<?= BASE_URL_ADMIN . '&action=booking/delete&id=' . $booking['id'] ?>" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                            <?php
+                                            $statusText = 'Chờ Xác Nhận';
+                                            $statusClass = 'warning';
+                                            if ($booking['status'] === 'hoan_tat') {
+                                                $statusText = 'Hoàn Tất';
+                                                $statusClass = 'success';
+                                            } elseif ($booking['status'] === 'da_coc') {
+                                                $statusText = 'Đã Cọc';
+                                                $statusClass = 'info';
+                                            } elseif ($booking['status'] === 'da_huy') {
+                                                $statusText = 'Đã Hủy';
+                                                $statusClass = 'danger';
+                                            }
+                                            ?>
+                                            <span class="badge bg-<?= $statusClass ?>"><?= $statusText ?></span>
+                                        </td>
+                                        <td>
+                                            <a href="<?= BASE_URL_ADMIN . '&action=bookings/detail&id=' . $booking['id'] ?>" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye"></i></a>
+                                            <a href="<?= BASE_URL_ADMIN . '&action=bookings/edit&id=' . $booking['id'] ?>" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></a>
+                                            <a href="<?= BASE_URL_ADMIN . '&action=bookings/delete&id=' . $booking['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa booking này?')"><i class="fas fa-trash"></i></a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
+                <?php else: ?>
+                    <p class="text-muted">Chưa có booking nào.</p>
                 <?php endif; ?>
             </div>
         </div>

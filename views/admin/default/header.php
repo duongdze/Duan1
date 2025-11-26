@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/admin-dashboard.css">
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/sidebar.css">
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/tours.css">
+    <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/tour_logs.css">
     <!-- <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/style.css"> -->
 
     <style>

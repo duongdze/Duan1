@@ -15,7 +15,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
             <div class="card mx-auto" style="max-width:1000px;">
                 <div class="card-body">
-                    <form method="post" action="<?= BASE_URL_ADMIN . '&action=tour_logs/update' ?>">
+                    <form method="post" action="<?= BASE_URL_ADMIN . '&action=tours_logs/update' ?>">
                         <input type="hidden" name="id" value="<?= htmlspecialchars($log['id']) ?>">
 
                         <div class="row g-3">
