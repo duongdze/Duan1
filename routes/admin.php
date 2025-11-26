@@ -33,7 +33,7 @@ match ($action) {
     'tours/versions/create' => (new TourVersionController)->create(),
     'tours/versions/store'  => (new TourVersionController)->store(),
     'tours/versions/delete' => (new TourVersionController)->delete(),
-    'tour_category'         => (new TourCategoryController)->index(),
+    'tours_category'         => (new TourCategoryController)->index(),
 
 
     'tours/itineraries'     => (new ItineraryController)->index(),
@@ -41,7 +41,7 @@ match ($action) {
     'tours/itineraries/store'  => (new ItineraryController)->store(),
     'tours/itineraries/delete' => (new ItineraryController)->delete(),
 
-    // 📝 Tour Logs (Nhật ký Tour)
+    // Tour Logs
     'tours_logs'        => (new TourLogController)->index(),
     'tours_logs/create' => (new TourLogController)->create(),
     'tours_logs/store'  => (new TourLogController)->store(),
@@ -72,6 +72,7 @@ match ($action) {
     'suppliers/create'     => (new SupplierController)->create(),
     'suppliers/store'      => (new SupplierController)->store(),
     // Reports
+    'reports'              => (new ReportController)->index(),
     'reports/financial'    => (new ReportController)->financial(),
     'reports/bookings'     => (new ReportController)->bookings(),
     'reports/feedback'     => (new ReportController)->feedback(),

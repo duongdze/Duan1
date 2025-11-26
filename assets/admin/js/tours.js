@@ -280,12 +280,12 @@ document.addEventListener("DOMContentLoaded", function () {
     tourForms.forEach(function (form) {
       form.addEventListener("submit", function (e) {
         try {
-          // pricing
-          const pricingList = document.getElementById("pricing-tier-list");
-          const pricingArr = [];
-          if (pricingList) {
-            pricingList
-              .querySelectorAll(".pricing-tier-item")
+          // pricing options
+          const pricingOptionsList = document.getElementById("pricing-options-list");
+          const pricingOptionsArr = [];
+          if (pricingOptionsList) {
+            pricingOptionsList
+              .querySelectorAll(".pricing-option-item")
               .forEach(function (item) {
                 const obj = {};
                 item.querySelectorAll("[data-field]").forEach(function (f) {
@@ -293,9 +293,27 @@ document.addEventListener("DOMContentLoaded", function () {
                   if (!key) return;
                   obj[key] = f.value;
                 });
-                if (Object.keys(obj).length) pricingArr.push(obj);
+                if (obj.label) pricingOptionsArr.push(obj);
               });
           }
+
+          // dynamic pricing
+          const dynamicPricingList = document.getElementById("dynamic-pricing-list");
+          const dynamicPricingArr = [];
+          if (dynamicPricingList) {
+            dynamicPricingList
+              .querySelectorAll(".dynamic-pricing-item")
+              .forEach(function (item) {
+                const obj = {};
+                item.querySelectorAll("[data-field]").forEach(function (f) {
+                  const key = f.dataset.field;
+                  if (!key) return;
+                  obj[key] = f.value;
+                });
+                if (obj.option_label && obj.price) dynamicPricingArr.push(obj);
+              });
+          }
+
 
           // itinerary
           const itinList = document.getElementById("itinerary-list");
@@ -343,24 +361,65 @@ document.addEventListener("DOMContentLoaded", function () {
             input.value = value;
           }
 
-          upsertHidden("tour_pricing_options", JSON.stringify(pricingArr));
+          upsertHidden("tour_pricing_options", JSON.stringify(pricingOptionsArr));
+          upsertHidden("tour_dynamic_pricing", JSON.stringify(dynamicPricingArr));
           upsertHidden("tour_itinerary", JSON.stringify(itinArr));
           upsertHidden("tour_partners", JSON.stringify(partnerArr));
         } catch (err) {
           console.error("Error serializing dynamic sections:", err);
+          e.preventDefault(); // Prevent submission on error
         }
       });
     });
   })();
 
   function setupDynamicSection(config) {
-    var listEl = document.getElementById(config.listId);
-    var template = document.getElementById(config.templateId);
-    var addBtn = document.getElementById(config.addBtnId);
+    const listEl = document.getElementById(config.listId);
+    const template = document.getElementById(config.templateId);
+    const addBtn = document.getElementById(config.addBtnId);
 
     if (!listEl || !template || !addBtn) {
       return;
     }
+    
+    // This is a special handler for the dynamic pricing section to populate its dropdown
+    const updateDynamicPriceOptions = () => {
+        if (config.listId !== 'dynamic-pricing-list') return;
+
+        const pricingOptionsList = document.getElementById('pricing-options-list');
+        if (!pricingOptionsList) return;
+
+        // Get current option values
+        const availableOptions = Array.from(pricingOptionsList.querySelectorAll('.pricing-option-item'))
+            .map(item => item.querySelector('[data-field="label"]')?.value)
+            .filter(Boolean);
+
+        // Update all select dropdowns in the dynamic pricing list
+        const allDynamicSelects = listEl.querySelectorAll('[data-field="option_label"]');
+        allDynamicSelects.forEach(select => {
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- Chọn loại giá --</option>'; // Reset
+            availableOptions.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt;
+                option.textContent = opt;
+                select.appendChild(option);
+            });
+            select.value = currentVal; // try to restore previous value
+        });
+    };
+    
+    // Listen for changes in the main pricing options to update the dynamic ones
+    const pricingOptionsList = document.getElementById('pricing-options-list');
+    if (pricingOptionsList) {
+        // Use a MutationObserver or event delegation on a parent container
+        pricingOptionsList.addEventListener('input', (e) => {
+             if (e.target && e.target.matches('[data-field="label"]')) {
+                updateDynamicPriceOptions();
+            }
+        });
+    }
+
 
     function resetItem(item) {
       item.querySelectorAll("[data-field]").forEach(function (field) {
@@ -377,11 +436,18 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!removeBtn) return;
 
       removeBtn.addEventListener("click", function () {
-        var items = listEl.querySelectorAll("." + config.itemClass);
+        const parentList = this.closest('div[id]');
+        const items = parentList.querySelectorAll("." + config.itemClass);
+        
         if (items.length > 1) {
           item.remove();
         } else {
           resetItem(item);
+        }
+
+        // After removing an item from pricing-options, update dynamic pricing dropdowns
+        if (config.listId === 'pricing-options-list') {
+            updateDynamicPriceOptions();
         }
       });
     }
@@ -393,11 +459,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!key) return;
         var value = values[key];
         if (value === undefined || value === null) return;
-        if (field.tagName === "SELECT") {
-          field.value = value;
-        } else {
-          field.value = value;
-        }
+        field.value = value;
       });
     }
 
@@ -405,30 +467,40 @@ document.addEventListener("DOMContentLoaded", function () {
       var clone = template.content.cloneNode(true);
       var item =
         clone.querySelector("." + config.itemClass) || clone.children[0];
+      
+      listEl.appendChild(item); // Append first to make it part of the DOM
       hydrateItem(item, values);
-      listEl.appendChild(item);
       bindRemove(item);
-    }
 
-    var existingItems = listEl.querySelectorAll("." + config.itemClass);
-    if (existingItems.length) {
-      existingItems.forEach(bindRemove);
+      // If we are adding to the dynamic pricing list, populate the dropdown
+      if (config.listId === 'dynamic-pricing-list') {
+          updateDynamicPriceOptions();
+          // If there's initial data, set the value after populating
+          if(values && values.option_label) {
+              const select = item.querySelector('[data-field="option_label"]');
+              if(select) select.value = values.option_label;
+          }
+      }
+
+      // If we add a new pricing option, we must update the dynamic list
+      if (config.listId === 'pricing-options-list') {
+        updateDynamicPriceOptions();
+      }
+    }
+    
+    // --- Initialization ---
+    const initialData = listEl.dataset.initial ? JSON.parse(listEl.dataset.initial || '[]') : [];
+
+    if (initialData.length > 0) {
+        initialData.forEach(data => appendNewItem(data));
     } else {
-      var initialData = [];
-      try {
-        initialData = listEl.dataset.initial
-          ? JSON.parse(listEl.dataset.initial)
-          : [];
-      } catch (error) {
-        initialData = [];
-      }
-      if (initialData.length) {
-        initialData.forEach(function (data) {
-          appendNewItem(data);
-        });
-      } else {
-        appendNewItem();
-      }
+        appendNewItem(); // Add one empty item by default
+    }
+    
+    // Initial population for dynamic pricing in case of pre-filled data (e.g., edit page)
+    if (config.listId === 'dynamic-pricing-list' || config.listId === 'pricing-options-list') {
+        // Use a timeout to ensure all sections are loaded before linking them
+        setTimeout(updateDynamicPriceOptions, 50); 
     }
 
     addBtn.addEventListener("click", function () {
@@ -437,11 +509,19 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   setupDynamicSection({
-    listId: "pricing-tier-list",
-    templateId: "pricing-tier-template",
-    addBtnId: "add-pricing-tier",
-    removeSelector: ".remove-pricing-tier",
-    itemClass: "pricing-tier-item",
+    listId: "pricing-options-list",
+    templateId: "pricing-option-template",
+    addBtnId: "add-pricing-option",
+    removeSelector: ".remove-pricing-option",
+    itemClass: "pricing-option-item",
+  });
+
+  setupDynamicSection({
+    listId: "dynamic-pricing-list",
+    templateId: "dynamic-pricing-template",
+    addBtnId: "add-dynamic-price",
+    removeSelector: ".remove-dynamic-price",
+    itemClass: "dynamic-pricing-item",
   });
 
   setupDynamicSection({

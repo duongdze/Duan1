@@ -15,7 +15,7 @@ class TourLogController
     public function index()
     {
         $logs = $this->model->all();
-        require_once PATH_VIEW_ADMIN . 'pages/tour_logs/index.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours_logs/index.php';
     }
 
     public function create()
@@ -27,7 +27,7 @@ class TourLogController
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
 
-        require_once PATH_VIEW_ADMIN . 'pages/tour_logs/create.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours_logs/create.php';
     }
 
     public function store()
@@ -49,7 +49,7 @@ class TourLogController
         ];
 
         $this->model->create($data);
-        header('Location:' . BASE_URL_ADMIN . '&action=tour_logs');
+        header('Location:' . BASE_URL_ADMIN . '&action=tours_logs');
         exit;
     }
 
@@ -71,7 +71,7 @@ class TourLogController
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
 
-        require_once PATH_VIEW_ADMIN . 'pages/tour_logs/edit.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours_logs/edit.php';
     }
 
     public function update()
@@ -98,7 +98,7 @@ class TourLogController
         ];
 
         $this->model->updateLog($id, $data);
-        header('Location:' . BASE_URL_ADMIN . '&action=tour_logs');
+        header('Location:' . BASE_URL_ADMIN . '&action=tours_logs');
         exit;
     }
 
@@ -108,7 +108,7 @@ class TourLogController
         if ($id) {
             $this->model->deleteById($id);
         }
-        header('Location:' . BASE_URL_ADMIN . '&action=tour_logs');
+        header('Location:' . BASE_URL_ADMIN . '&action=tours_logs');
         exit;
     }
 }

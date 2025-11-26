@@ -141,7 +141,6 @@ class TourController
                 'supplier_id' => (int)$_POST['supplier_id'],
                 'description' => $_POST['description'] ?? '',
                 'base_price' => (float)$_POST['base_price'],
-                'policy' => $_POST['policy'] ?? '',
             ];
 
             // Handle image uploads
@@ -174,11 +173,12 @@ class TourController
 
             // Parse JSON data from form
             $pricingOptions = json_decode($_POST['tour_pricing_options'] ?? '[]', true);
+            $dynamicPricing = json_decode($_POST['tour_dynamic_pricing'] ?? '[]', true);
             $itineraries = json_decode($_POST['tour_itinerary'] ?? '[]', true);
             $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
 
             // Create tour with all related data
-            $tourId = $this->model->createTour($tourData, $pricingOptions, $itineraries, $partners, $uploadedImages);
+            $tourId = $this->model->createTour($tourData, $pricingOptions, $dynamicPricing, $itineraries, $partners, $uploadedImages);
 
             // Images were inserted inside createTour; main image is derived from `tour_gallery_images`.
 
@@ -219,6 +219,9 @@ class TourController
         // Related entities
         $pricingModel = new TourPricing();
         $pricingOptions = $pricingModel->getByTourId($id);
+
+        $dynamicPricingModel = new TourDynamicPricing();
+        $dynamicPricing = $dynamicPricingModel->getByTourId($id);
 
         $itineraryModel = new TourItinerary();
         $itinerarySchedule = $itineraryModel->select('*', 'tour_id = :tid', ['tid' => $id], 'day_number ASC');
@@ -275,7 +278,6 @@ class TourController
                 'supplier_id' => (int)$_POST['supplier_id'],
                 'description' => $_POST['description'] ?? '',
                 'base_price' => (float)$_POST['base_price'],
-                'policy' => $_POST['policy'] ?? '',
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
 
@@ -393,39 +395,40 @@ class TourController
 
             // Parse JSON arrays for pricing/itineraries/partners and update related tables
             $pricingOptions = json_decode($_POST['tour_pricing_options'] ?? '[]', true);
+            $dynamicPricing = json_decode($_POST['tour_dynamic_pricing'] ?? '[]', true);
             $itineraries = json_decode($_POST['tour_itinerary'] ?? '[]', true);
             $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
 
-            // For simplicity: delete existing related rows and re-insert (safer to implement upsert later)
+            // For simplicity: delete existing related rows and re-insert
             $pricingModel = new TourPricing();
+            $dynamicPricingModel = new TourDynamicPricing();
             $itineraryModel = new TourItinerary();
             $partnerModel = new TourPartner();
 
             $pricingModel->delete('tour_id = :tid', ['tid' => $id]);
+            $dynamicPricingModel->delete('tour_id = :tid', ['tid' => $id]);
+
             foreach ($pricingOptions as $opt) {
-                // Normalize price input from frontend
-                $rawPrice = $opt['price'] ?? '';
-                if (is_string($rawPrice)) {
-                    $rawPrice = trim(str_replace(',', '.', $rawPrice));
-                }
-
-                if ($rawPrice === '' || $rawPrice === null) {
-                    $priceValue = 0;
-                } else {
-                    if (!is_numeric($rawPrice)) {
-                        $priceValue = 0;
-                    } else {
-                        $priceValue = number_format((float)$rawPrice, 2, '.', '');
-                    }
-                }
-
-                $pricingModel->insert([
+                $optionId = $pricingModel->insert([
                     'tour_id' => $id,
                     'label' => $opt['label'] ?? '',
-                    'price' => $priceValue,
                     'description' => $opt['description'] ?? '',
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
+
+                foreach ($dynamicPricing as $dp) {
+                    if ($dp['option_label'] == $opt['label']) {
+                        $dynamicPricingModel->insert([
+                            'tour_id' => $id,
+                            'pricing_option_id' => $optionId,
+                            'start_date' => $dp['start_date'] ?? null,
+                            'end_date' => $dp['end_date'] ?? null,
+                            'price' => (float)$dp['price'],
+                            'notes' => $dp['notes'] ?? '',
+                            'created_at' => date('Y-m-d H:i:s'),
+                        ]);
+                    }
+                }
             }
 
             $itineraryModel->delete('tour_id = :tid', ['tid' => $id]);
@@ -519,6 +522,9 @@ class TourController
         // Load related data for detail view
         $pricingModel = new TourPricing();
         $pricingOptions = $pricingModel->getByTourId($id);
+
+        $dynamicPricingModel = new TourDynamicPricing();
+        $dynamicPricing = $dynamicPricingModel->getByTourId($id);
 
         $itineraryModel = new TourItinerary();
         $itinerarySchedule = $itineraryModel->select('*', 'tour_id = :tid', ['tid' => $id], 'day_number ASC');

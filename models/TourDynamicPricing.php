@@ -1,15 +1,18 @@
 <?php
 require_once 'BaseModel.php';
 
-class TourPricing extends BaseModel
+class TourDynamicPricing extends BaseModel
 {
-    protected $table = 'tour_pricing_options';
+    protected $table = 'tour_dynamic_pricing';
     protected $columns = [
         'id',
         'tour_id',
-        'label',
-        'description',
-        'created_at'
+        'pricing_option_id',
+        'start_date',
+        'end_date',
+        'price',
+        'notes',
+        'created_at',
     ];
 
     public function getByTourId($tourId)
