@@ -24,6 +24,15 @@ class AuthorController
             if ($user) {
                 // Đăng nhập thành công với mật khẩu đã được băm
                 $_SESSION['user'] = $user;
+                // nếu user là HDV, ghép guide_id vào session
+                if (!empty($user['role']) && $user['role'] === 'hdv') {
+                    require_once PATH_MODEL . 'Guide.php';
+                    $guideModel = new Guide();
+                    $guideRow = $guideModel->find('*', 'user_id = :uid', ['uid' => $user['user_id']]);
+                    if ($guideRow) {
+                        $_SESSION['guide_id'] = $guideRow['id'];
+                    }
+                }
                 header('Location: ' . BASE_URL_ADMIN); // Chuyển hướng về dashboard
                 exit;
             }
@@ -44,6 +53,15 @@ class AuthorController
                 // Đăng nhập cho người dùng
                 $userData['password_hash'] = $newHash; // Cập nhật lại hash trong session
                 $_SESSION['user'] = $userData;
+                // nếu user là HDV, ghép guide_id vào session
+                if (!empty($userData['role']) && $userData['role'] === 'hdv') {
+                    require_once PATH_MODEL . 'Guide.php';
+                    $guideModel = new Guide();
+                    $guideRow = $guideModel->find('*', 'user_id = :uid', ['uid' => $userData['user_id']]);
+                    if ($guideRow) {
+                        $_SESSION['guide_id'] = $guideRow['id'];
+                    }
+                }
                 header('Location: ' . BASE_URL_ADMIN);
                 exit;
             }
@@ -57,6 +75,7 @@ class AuthorController
     {
         // Hủy session một cách an toàn
         unset($_SESSION['user']);
+        unset($_SESSION['guide_id']);
         session_destroy();
         // Chuyển hướng thẳng về trang login
         header('location: ' . BASE_URL_ADMIN . '&action=login');

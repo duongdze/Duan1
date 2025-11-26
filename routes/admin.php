@@ -61,6 +61,10 @@ match ($action) {
     'guides/create'        => (new GuideController)->create(),
     'guides/store'         => (new GuideController)->store(),
 
+    // Guides Work
+    'guide/schedule'   => (new GuideWorkController)->schedule(),
+    'guide/tourDetail' => (new GuideWorkController)->tourDetail(),
+
     // Suppliers
     'suppliers'            => (new SupplierController)->index(),
     'suppliers/create'     => (new SupplierController)->create(),
@@ -69,5 +73,4 @@ match ($action) {
     'reports/financial'    => (new ReportController)->financial(),
     'reports/bookings'     => (new ReportController)->bookings(),
     'reports/feedback'     => (new ReportController)->feedback(),
-    
 };
