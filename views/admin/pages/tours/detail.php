@@ -163,10 +163,17 @@ $partnerServices = $partnerServices ?? [];
                                 <h5 class="mb-0">Chính sách & Lưu ý</h5>
                             </div>
                             <div class="card-body">
-                                <?php if (!empty($tour['policy'])): ?>
-                                    <div class="text-muted" style="white-space:pre-line"><?= nl2br(htmlspecialchars($tour['policy'])) ?></div>
+                                <?php if (!empty($assignedPolicies)): ?>
+                                    <ul class="list-group list-group-flush">
+                                        <?php foreach ($assignedPolicies as $policy): ?>
+                                            <li class="list-group-item px-0">
+                                                <div class="fw-bold text-primary mb-1"><?= htmlspecialchars($policy['policy_name']) ?></div>
+                                                <div class="text-muted small"><?= nl2br(htmlspecialchars($policy['policy_description'])) ?></div>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
                                 <?php else: ?>
-                                    <div class="text-muted">Không có chính sách.</div>
+                                    <div class="text-muted">Không có chính sách đặc biệt.</div>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -237,28 +244,14 @@ $partnerServices = $partnerServices ?? [];
 
                             <div class="d-grid gap-2">
                                 <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&tour_id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-primary">Tạo đặt chỗ</a>
-                                <a href="<?= BASE_URL_ADMIN ?>&action=tours/edit&id=<?= urlencode($tour['id'] ?? '') ?>" class="btn btn-outline-secondary">Chỉnh sửa tour</a>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card mb-3">
+                    <!-- Pricing Options -->
+                    <div class="card mb-3 shadow-sm">
                         <div class="card-header bg-white">
-                            <h6 class="mb-0">Thông tin nhà cung cấp</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="small text-muted">Nhà cung cấp</div>
-                            <div class="fw-bold mb-2"><?= htmlspecialchars($tour['supplier_name'] ?? '-') ?></div>
-                            <div class="small text-muted">Liên hệ</div>
-                            <div class="mb-2"><?= nl2br(htmlspecialchars($tour['supplier_contact'] ?? ($tour['supplier_phone'] ?? ''))) ?></div>
-                            <div class="small text-muted">Tạo lúc</div>
-                            <div class="text-muted"><?= $createdDate ?></div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header bg-white">
-                            <h6 class="mb-0">Gói giá</h6>
+                            <h5 class="mb-0">Các gói giá</h5>
                         </div>
                         <div class="card-body">
                             <?php if (!empty($pricingOptions)): ?>

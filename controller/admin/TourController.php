@@ -26,10 +26,7 @@ class TourController
             $filters['category_id'] = (int)$_GET['category_id'];
         }
 
-        // Supplier filter
-        if (!empty($_GET['supplier_id'])) {
-            $filters['supplier_id'] = (int)$_GET['supplier_id'];
-        }
+
 
         // Date range filters
         if (!empty($_GET['date_from'])) {
@@ -67,12 +64,8 @@ class TourController
             'total_pages' => $result['total_pages'],
         ];
 
-        // Get filter options for dropdowns
         $categoryModel = new TourCategory();
         $categories = $categoryModel->select();
-
-        $supplierModel = new Supplier();
-        $suppliers = $supplierModel->select();
 
         // Get statistics for header
         $stats = $this->getTourStatistics();
@@ -107,11 +100,9 @@ class TourController
     }
     public function create()
     {
-
-
-        // Load suppliers for supplier dropdown
-        $supplierModel = new Supplier();
-        $suppliers = $supplierModel->select();
+        // Load policies
+        $policyModel = new TourPolicy();
+        $policies = $policyModel->select();
 
         // Load categories for category dropdown
         $categoryModel = new TourCategory();
@@ -124,7 +115,7 @@ class TourController
     public function store()
     {
         // Validate required fields
-        $requiredFields = ['name', 'category_id', 'supplier_id', 'base_price'];
+        $requiredFields = ['name', 'category_id', 'base_price'];
         foreach ($requiredFields as $field) {
             if (empty($_POST[$field])) {
                 $_SESSION['error'] = "Trường {$field} là bắt buộc.";
@@ -138,7 +129,6 @@ class TourController
             $tourData = [
                 'name' => trim($_POST['name']),
                 'category_id' => (int)$_POST['category_id'],
-                'supplier_id' => (int)$_POST['supplier_id'],
                 'description' => $_POST['description'] ?? '',
                 'base_price' => (float)$_POST['base_price'],
             ];
@@ -176,9 +166,10 @@ class TourController
             $dynamicPricing = json_decode($_POST['tour_dynamic_pricing'] ?? '[]', true);
             $itineraries = json_decode($_POST['tour_itinerary'] ?? '[]', true);
             $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
+            $policyIds = $_POST['policies'] ?? [];
 
             // Create tour with all related data
-            $tourId = $this->model->createTour($tourData, $pricingOptions, $dynamicPricing, $itineraries, $partners, $uploadedImages);
+            $tourId = $this->model->createTour($tourData, $pricingOptions, $dynamicPricing, $itineraries, $partners, $uploadedImages, $policyIds);
 
             // Images were inserted inside createTour; main image is derived from `tour_gallery_images`.
 
@@ -213,8 +204,13 @@ class TourController
         $categoryModel = new TourCategory();
         $categories = $categoryModel->select();
 
-        $supplierModel = new Supplier();
-        $suppliers = $supplierModel->select();
+        // Load policies
+        $policyModel = new TourPolicy();
+        $policies = $policyModel->select();
+
+        $policyAssignmentModel = new TourPolicyAssignment();
+        $assignedPolicies = $policyAssignmentModel->getByTourId($id);
+        $assignedPolicyIds = array_column($assignedPolicies, 'policy_id');
 
         // Related entities
         $pricingModel = new TourPricing();
@@ -259,7 +255,7 @@ class TourController
         }
 
         // Basic validation
-        $requiredFields = ['name', 'category_id', 'supplier_id', 'base_price'];
+        $requiredFields = ['name', 'category_id', 'base_price'];
         foreach ($requiredFields as $field) {
             if (empty($_POST[$field])) {
                 $_SESSION['error'] = "Trường {$field} là bắt buộc.";
@@ -275,7 +271,6 @@ class TourController
             $tourData = [
                 'name' => trim($_POST['name']),
                 'category_id' => (int)$_POST['category_id'],
-                'supplier_id' => (int)$_POST['supplier_id'],
                 'description' => $_POST['description'] ?? '',
                 'base_price' => (float)$_POST['base_price'],
                 'updated_at' => date('Y-m-d H:i:s'),
@@ -462,6 +457,18 @@ class TourController
                 ]);
             }
 
+            // Update policies
+            $policyAssignmentModel = new TourPolicyAssignment();
+            $policyAssignmentModel->delete('tour_id = :tid', ['tid' => $id]);
+            $policyIds = $_POST['policies'] ?? [];
+            foreach ($policyIds as $policyId) {
+                $policyAssignmentModel->insert([
+                    'tour_id' => $id,
+                    'policy_id' => $policyId,
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+
             $this->model->commit();
 
             $_SESSION['success'] = 'Cập nhật tour thành công.';
@@ -532,6 +539,18 @@ class TourController
         $partnerModel = new TourPartner();
         $partnerServices = $partnerModel->getByTourId($id);
 
+        $policyAssignmentModel = new TourPolicyAssignment();
+        $assignedPolicies = $policyAssignmentModel->getByTourId($id);
+        // Fetch full policy details
+        $policyModel = new TourPolicy();
+        $policies = [];
+        foreach ($assignedPolicies as $ap) {
+            $p = $policyModel->findById($ap['policy_id']);
+            if ($p) {
+                $policies[] = $p;
+            }
+        }
+
         $imageModel = new TourImage();
         $images = $imageModel->getByTourId($id);
         $allImages = array_map(function ($img) {
@@ -554,16 +573,7 @@ class TourController
             $tour['booking_count'] = $stmt->fetch()['bc'] ?? 0;
         }
 
-        // Enrich tour with supplier contact/name if missing
-        try {
-            $supplierModel = new Supplier();
-            $supplier = $supplierModel->find('*', 'id = :id', ['id' => $tour['supplier_id'] ?? 0]);
-            $tour['supplier_name'] = $tour['supplier_name'] ?? ($supplier['name'] ?? '');
-            // prefer explicit supplier_contact, fallback to supplier phone or contact
-            $tour['supplier_contact'] = $tour['supplier_contact'] ?? ($supplier['contact'] ?? ($supplier['phone'] ?? ''));
-        } catch (Exception $e) {
-            // ignore if supplier lookup fails
-        }
+
 
         // Normalize commonly expected fields for the detail view
         $tour['subtitle'] = $tour['subtitle'] ?? ($tour['short_description'] ?? '');

@@ -10,7 +10,6 @@ class Tour extends BaseModel
         'category_id',
         'description',
         'base_price',
-        'supplier_id',
         'created_at',
         'updated_at'
     ];
@@ -39,7 +38,7 @@ class Tour extends BaseModel
 
         // Keyword search
         if (!empty($filters['keyword'])) {
-            $whereConditions[] = "(t.name LIKE :keyword OR t.description LIKE :keyword OR s.name LIKE :keyword)";
+            $whereConditions[] = "(t.name LIKE :keyword OR t.description LIKE :keyword)";
             $params[':keyword'] = '%' . $filters['keyword'] . '%';
         }
 
@@ -49,11 +48,7 @@ class Tour extends BaseModel
             $params[':category_id'] = $filters['category_id'];
         }
 
-        // Supplier filter
-        if (!empty($filters['supplier_id'])) {
-            $whereConditions[] = "t.supplier_id = :supplier_id";
-            $params[':supplier_id'] = $filters['supplier_id'];
-        }
+
 
         // Date range filter
         if (!empty($filters['date_from'])) {
@@ -110,7 +105,6 @@ class Tour extends BaseModel
 
         // Count query
         $countSql = "SELECT COUNT(DISTINCT t.id) FROM {$this->table} AS t
-                     LEFT JOIN `suppliers` AS s ON t.supplier_id = s.id
                      LEFT JOIN `tour_categories` AS tc ON t.category_id = tc.id
                      LEFT JOIN (
                          SELECT tour_id, AVG(rating) as avg_rating
@@ -129,8 +123,7 @@ class Tour extends BaseModel
         // Main query with complex joins
         $sql = "SELECT
                     t.*,
-                    s.id AS supplier_id,
-                    s.name AS supplier_name,
+                    t.*,
                     tc.name as category_name,
                     COALESCE(tf.avg_rating, 0) as avg_rating,
                     COALESCE(tb.booking_count, 0) as booking_count,
@@ -138,7 +131,6 @@ class Tour extends BaseModel
                     GROUP_CONCAT(tgi.image_url ORDER BY tgi.sort_order SEPARATOR ',') as gallery_images,
                     0 as availability_percentage
                 FROM {$this->table} AS t
-                LEFT JOIN `suppliers` AS s ON t.supplier_id = s.id
                 LEFT JOIN `tour_categories` AS tc ON t.category_id = tc.id
                 LEFT JOIN (
                     SELECT tour_id, AVG(rating) as avg_rating
@@ -152,7 +144,7 @@ class Tour extends BaseModel
                 ) tb ON t.id = tb.tour_id
                 LEFT JOIN `tour_gallery_images` tgi ON t.id = tgi.tour_id
                 $whereClause
-                GROUP BY t.id, s.id, s.name, tc.name, tf.avg_rating, tb.booking_count
+                GROUP BY t.id, tc.name, tf.avg_rating, tb.booking_count
                 ORDER BY $orderBy
                 LIMIT :limit OFFSET :offset";
 
@@ -194,7 +186,7 @@ class Tour extends BaseModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function createTour($tourData, $pricingOptions = [], $dynamicPricing = [], $itineraries = [], $partners = [], $uploadedImages = [])
+    public function createTour($tourData, $pricingOptions = [], $dynamicPricing = [], $itineraries = [], $partners = [], $uploadedImages = [], $policyIds = [])
     {
         $this->beginTransaction(); // BẮT ĐẦU TRANSACTION
         try {
@@ -291,6 +283,18 @@ class Tour extends BaseModel
                         'partner_name' => $partner['name'] ?? '',
                         'contact' => $partner['contact'] ?? '',
                         'notes' => $partner['notes'] ?? '',
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
+                }
+            }
+
+            // 6. INSERT POLICIES
+            if (!empty($policyIds)) {
+                $policyAssignmentModel = new TourPolicyAssignment();
+                foreach ($policyIds as $policyId) {
+                    $policyAssignmentModel->insert([
+                        'tour_id' => $tourId,
+                        'policy_id' => $policyId,
                         'created_at' => date('Y-m-d H:i:s'),
                     ]);
                 }

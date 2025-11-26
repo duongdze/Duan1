@@ -13,6 +13,14 @@ class TourPolicyAssignment extends BaseModel
 
     public function getByTourId($tourId)
     {
-        return $this->select('*', 'tour_id = :tour_id', ['tour_id' => $tourId], 'id ASC');
+        $sql = "SELECT tpa.*, tp.name as policy_name, tp.description as policy_description
+                FROM {$this->table} tpa
+                JOIN tour_policies tp ON tpa.policy_id = tp.id
+                WHERE tpa.tour_id = :tour_id
+                ORDER BY tpa.id ASC";
+        
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

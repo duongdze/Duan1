@@ -40,271 +40,237 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <input type="hidden" name="new_primary_image_url" id="new-primary-image-url">
 
             <div class="row g-3">
-                <!-- Left Column -->
-                <div class="col-lg-6">
-                    <!-- Thông tin cơ bản -->
+                <!-- Main Column (Left) -->
+                <div class="col-lg-8">
+                    <!-- 1. Thông tin cơ bản -->
                     <div class="card mb-3">
                         <div class="card-header bg-light">
-                            <h5 class="mb-0">
-                                <i class="fas fa-info-circle"></i> Thông tin cơ bản
-                            </h5>
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin cơ bản</h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label for="name" class="form-label fw-500">Tên Tour</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Nhập tên tour" value="<?= htmlspecialchars($tour['name']) ?>">
+                                <label class="form-label fw-bold">Tên Tour <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" required value="<?= htmlspecialchars($tour['name']) ?>">
                             </div>
-
                             <div class="mb-3">
-                                <label for="category_id" class="form-label fw-500">Danh Mục Tour</label>
-                                <select class="form-select" id="category_id" name="category_id">
-                                    <option value="">-- Chọn Danh Mục Tour --</option>
-                                    <?php if (!empty($categories)): ?>
-                                        <?php foreach ($categories as $category): ?>
-                                            <option value="<?= htmlspecialchars($category['id']) ?>" <?= ($tour['category_id'] == $category['id']) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($category['name']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="supplier_id" class="form-label fw-500">Nhà Cung Cấp</label>
-                                <select class="form-select" id="supplier_id" name="supplier_id">
-                                    <option value="">-- Chọn Nhà Cung Cấp --</option>
-                                    <?php if (!empty($suppliers)): ?>
-                                        <?php foreach ($suppliers as $s): ?>
-                                            <option value="<?= htmlspecialchars($s['id']) ?>" <?= $tour['supplier_id'] == $s['id'] ? 'selected' : '' ?>><?= htmlspecialchars($s['name']) ?></option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="base_price" class="form-label fw-500">Giá Cơ Bản</label>
-                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="1" value="<?= htmlspecialchars($tour['base_price']) ?>">
-                                <small class="text-muted">Đơn giá mặc định áp dụng khi không có gói riêng.</small>
+                                <label class="form-label fw-bold">Mô tả chi tiết</label>
+                                <textarea name="description" class="form-control" rows="5"><?= htmlspecialchars($tour['description']) ?></textarea>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Thông tin khác -->
+                    <!-- 2. Cấu hình giá -->
                     <div class="card mb-3">
                         <div class="card-header bg-light">
-                            <h5 class="mb-0">
-                                <i class="fas fa-align-left"></i> Mô tả
-                            </h5>
+                            <h5 class="mb-0"><i class="fas fa-tags"></i> Cấu hình giá</h5>
                         </div>
                         <div class="card-body">
-                            <label for="description" class="form-label fw-500">Nhập mô tả</label>
-                            <textarea id="input-description" name="description" class="form-control" rows="6"><?= htmlspecialchars($tour['description'] ?? '') ?></textarea>
+                            <!-- Pricing Options -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 fw-bold">Các loại giá (VD: Người lớn, Trẻ em)</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-pricing-option">
+                                        <i class="fas fa-plus"></i> Thêm loại
+                                    </button>
+                                </div>
+                                <div id="pricing-options-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($pricingOptions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Dynamic Pricing -->
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 fw-bold">Bảng giá theo thời điểm</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-success" id="add-dynamic-price">
+                                        <i class="fas fa-plus"></i> Thêm giá
+                                    </button>
+                                </div>
+                                <p class="text-muted small mb-2">Áp dụng giá cụ thể cho từng loại giá ở trên theo các khoảng thời gian khác nhau.</p>
+                                <div id="dynamic-pricing-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($dynamicPricing, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Gói giá (loại đối tượng) -->
+                    <!-- 3. Lịch trình -->
                     <div class="card mb-3">
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-users"></i> Các loại giá (VD: người lớn, trẻ em)
-                            </h5>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="add-pricing-option">
-                                <i class="fas fa-plus"></i> Thêm loại giá
-                            </button>
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Lịch trình</h5>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted small mb-3">Định nghĩa các loại giá sẽ áp dụng cho tour, ví dụ: "Người lớn", "Trẻ em (6-12 tuổi)", "Trẻ em (dưới 6 tuổi)".</p>
-                            <div id="pricing-options-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($pricingOptions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
-                            <template id="pricing-option-template">
-                                <div class="pricing-option-item border rounded p-3 bg-light-subtle position-relative">
-                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-pricing-option" aria-label="Xóa"></button>
-                                    <div class="row g-2">
-                                        <div class="col-12">
-                                            <label class="form-label fw-500">Tên loại giá</label>
-                                            <input type="text" class="form-control" data-field="label" placeholder="Ví dụ: Người lớn">
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label fw-500">Mô tả (tùy chọn)</label>
-                                            <textarea class="form-control" rows="2" data-field="description" placeholder="Mô tả chi tiết về loại giá này"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
+                            <p class="text-muted small">Thêm từng ngày/hoạt động cụ thể để khách dễ theo dõi.</p>
+                            <div id="itinerary-list" class="d-flex flex-column gap-3 mb-3" data-initial='<?= json_encode($itinerarySchedule, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
+                            <button type="button" class="btn btn-outline-primary w-100" id="add-itinerary-item">
+                                <i class="fas fa-plus"></i> Thêm ngày / hoạt động
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Bảng giá theo thời điểm -->
-                    <div class="card">
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-dollar-sign"></i> Bảng giá theo thời điểm
-                            </h5>
-                            <button type="button" class="btn btn-sm btn-outline-success" id="add-dynamic-price">
-                                <i class="fas fa-plus"></i> Thêm giá
-                            </button>
+                    <!-- 4. Chính sách -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-file-contract"></i> Chính sách Tour</h5>
                         </div>
                         <div class="card-body">
-                             <p class="text-muted small mb-3">Áp dụng giá cụ thể cho từng loại giá ở trên theo các khoảng thời gian khác nhau (ví dụ: mùa cao điểm, ngày lễ).</p>
-                            <div id="dynamic-pricing-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($dynamicPricing, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
-                            <template id="dynamic-pricing-template">
-                                <div class="dynamic-pricing-item border rounded p-3 bg-light-subtle position-relative">
-                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-dynamic-price" aria-label="Xóa"></button>
-                                    <div class="row g-2">
+                            <?php if (!empty($policies)): ?>
+                                <div class="row g-3">
+                                    <?php foreach ($policies as $policy): ?>
                                         <div class="col-md-6">
-                                            <label class="form-label fw-500">Áp dụng cho loại giá</label>
-                                            <select class="form-select" data-field="option_label">
-                                                <!-- Options will be populated by JS -->
-                                            </select>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="policies[]" value="<?= $policy['id'] ?>" id="policy_<?= $policy['id'] ?>" <?= in_array($policy['id'], $assignedPolicyIds) ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="policy_<?= $policy['id'] ?>">
+                                                    <strong><?= htmlspecialchars($policy['name']) ?></strong>
+                                                    <div class="text-muted small"><?= htmlspecialchars($policy['description']) ?></div>
+                                                </label>
+                                            </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-500">Giá</label>
-                                            <input type="number" class="form-control" data-field="price" placeholder="1500000" min="0">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-500">Từ ngày</label>
-                                            <input type="date" class="form-control" data-field="start_date">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-500">Đến ngày</label>
-                                            <input type="date" class="form-control" data-field="end_date">
-                                        </div>
-                                         <div class="col-12">
-                                            <label class="form-label fw-500">Ghi chú (tùy chọn)</label>
-                                            <textarea class="form-control" rows="1" data-field="notes" placeholder="Ví dụ: Áp dụng cho ngày lễ 30/4"></textarea>
-                                        </div>
-                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
-                            </template>
+                            <?php else: ?>
+                                <div class="text-muted">Chưa có chính sách nào được định nghĩa.</div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column -->
-                <div class="col-lg-6">
-                    <!-- Lịch trình -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0">
-                                <i class="fas fa-calendar"></i> Lịch trình
-                            </h5>
-                        </div>
+                <!-- Sidebar (Right) -->
+                <div class="col-lg-4">
+                    <!-- Actions -->
+                    <div class="card mb-3 shadow-sm">
                         <div class="card-body">
-                            <p class="text-muted small">Thêm từng ngày/hoạt động cụ thể để khách dễ theo dõi.</p>
-                            <div id="itinerary-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($itinerarySchedule, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
-                            <button type="button" class="btn btn-outline-primary w-100" id="add-itinerary-item">
-                                <i class="fas fa-plus"></i> Thêm ngày / hoạt động
-                            </button>
-                            <template id="itinerary-item-template">
-                                <div class="itinerary-item border rounded p-3 position-relative bg-light-subtle">
-                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-itinerary-item" aria-label="Xóa"></button>
-                                    <div class="row g-2">
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-500">Ngày / Chặng</label>
-                                            <input type="text" name="itinerary_day[]" data-field="day" class="form-control" placeholder="Ngày 1">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-500">Giờ bắt đầu</label>
-                                            <input type="time" name="itinerary_time_start[]" data-field="time_start" class="form-control">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-500">Giờ kết thúc</label>
-                                            <input type="time" name="itinerary_time_end[]" data-field="time_end" class="form-control">
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label fw-500">Tiêu đề hoạt động</label>
-                                            <input type="text" name="itinerary_title[]" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội">
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label fw-500">Chi tiết</label>
-                                            <textarea name="itinerary_description[]" data-field="description" class="form-control" rows="3" placeholder="Tham quan, ăn uống, trải nghiệm..."></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save"></i> Lưu thay đổi
+                                </button>
+                                <a href="?action=tours" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Hủy bỏ
+                                </a>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Hình ảnh -->
+                    <!-- Category & Price -->
                     <div class="card mb-3">
                         <div class="card-header bg-light">
-                            <h5 class="mb-0">
-                                <i class="fas fa-images"></i> Hình ảnh
-                            </h5>
+                            <h5 class="mb-0">Phân loại & Giá</h5>
                         </div>
                         <div class="card-body">
-                            <div id="image-drop-zone" class="p-4 bg-light rounded border-dashed text-center" style="cursor: pointer;">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
-                                <p class="text-muted small mt-2 mb-0">Kéo và thả ảnh vào đây, hoặc nhấp để chọn</p>
-                                <p class="text-muted small">Ảnh đầu tiên sẽ là ảnh đại diện. Tối đa 10 ảnh.</p>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Danh mục <span class="text-danger">*</span></label>
+                                <select name="category_id" class="form-select" required>
+                                    <option value="">-- Chọn danh mục --</option>
+                                    <?php foreach ($categories as $cat): ?>
+                                        <option value="<?= $cat['id'] ?>" <?= $cat['id'] == $tour['category_id'] ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
-                            <!-- Hidden file inputs to store files for submission -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Giá khởi điểm (VNĐ) <span class="text-danger">*</span></label>
+                                <input type="number" name="base_price" class="form-control" required min="0" value="<?= $tour['base_price'] ?>">
+                                <div class="form-text">Giá hiển thị trên danh sách tour.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Images -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-images"></i> Thư viện ảnh</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="image-drop-zone" class="p-4 bg-light rounded border-dashed text-center mb-3" style="cursor: pointer;">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted"></i>
+                                <p class="text-muted small mt-2 mb-0">Kéo thả hoặc nhấp để chọn ảnh</p>
+                                <p class="text-muted small">Ảnh đầu tiên sẽ là ảnh đại diện.</p>
+                            </div>
+                            
                             <input type="file" id="file-input-handler-edit" class="d-none" multiple accept="image/*">
                             <input type="file" name="image" id="main-image-input" class="d-none">
                             <input type="file" name="gallery_images[]" id="gallery-images-input-edit" class="d-none" multiple>
 
-                            <div id="image-preview-container" class="row g-2 mt-3"></div>
-                        </div>
-                    </div>
-
-                    <!-- Đối tác cung ứng -->
-                    <div class="card">
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-handshake"></i> Nhà cung cấp dịch vụ kèm theo
-                            </h5>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="add-partner-item">
-                                <i class="fas fa-plus"></i> Thêm đối tác
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-muted small mb-3">Liệt kê các dịch vụ: Khách sạn, xe, nhà hàng, vé tham quan,... để đội vận hành dễ theo dõi.</p>
-                            <div id="partner-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($partnerServices, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
-                            <template id="partner-item-template">
-                                <div class="partner-item border rounded p-3 bg-light-subtle position-relative">
-                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-partner-item" aria-label="Xóa"></button>
-                                    <div class="row g-2">
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-500">Loại dịch vụ</label>
-                                            <select class="form-select" name="partner_service[]" data-field="service_type">
-                                                <option value="hotel">Khách sạn</option>
-                                                <option value="transport">Vận chuyển</option>
-                                                <option value="restaurant">Nhà hàng</option>
-                                                <option value="ticket">Vé tham quan</option>
-                                                <option value="other">Khác</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-500">Đối tác</label>
-                                            <input type="text" class="form-control" name="partner_name[]" data-field="name" placeholder="The Cliff Resort">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-500">Liên hệ</label>
-                                            <input type="text" class="form-control" name="partner_contact[]" data-field="contact" placeholder="Mr A - 098xxx">
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label fw-500">Ghi chú</label>
-                                            <textarea class="form-control" rows="2" name="partner_notes[]" data-field="notes" placeholder="Yêu cầu đặt trước 3 ngày..."></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
+                            <div id="image-preview-container" class="row g-2"></div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Form Actions -->
-            <div class="mt-3 d-flex gap-2 mb-4">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Lưu thay đổi
-                </button>
-                <a href="?action=tours" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Hủy
-                </a>
-            </div>
         </form>
     </div>
 </main>
+
+<!-- Templates -->
+<template id="pricing-option-template">
+    <div class="pricing-option-item border rounded p-3 bg-light-subtle position-relative">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-pricing-option" aria-label="Xóa"></button>
+        <div class="row g-2">
+            <div class="col-12">
+                <label class="form-label fw-500">Tên loại giá</label>
+                <input type="text" class="form-control" data-field="label" placeholder="Ví dụ: Người lớn">
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-500">Mô tả (tùy chọn)</label>
+                <textarea class="form-control" rows="2" data-field="description" placeholder="Mô tả chi tiết về loại giá này"></textarea>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="dynamic-pricing-template">
+    <div class="dynamic-pricing-item border rounded p-3 bg-light-subtle position-relative">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-dynamic-price" aria-label="Xóa"></button>
+        <div class="row g-2">
+            <div class="col-md-6">
+                <label class="form-label fw-500">Áp dụng cho loại giá</label>
+                <select class="form-select" data-field="option_label">
+                    <!-- Options will be populated by JS -->
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-500">Giá</label>
+                <input type="number" class="form-control" data-field="price" placeholder="1500000" min="0">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-500">Từ ngày</label>
+                <input type="date" class="form-control" data-field="start_date">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-500">Đến ngày</label>
+                <input type="date" class="form-control" data-field="end_date">
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-500">Ghi chú (tùy chọn)</label>
+                <textarea class="form-control" rows="1" data-field="notes" placeholder="Ví dụ: Áp dụng cho ngày lễ 30/4"></textarea>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="itinerary-item-template">
+    <div class="itinerary-item border rounded p-3 position-relative bg-light-subtle">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-itinerary-item" aria-label="Xóa"></button>
+        <div class="row g-2">
+            <div class="col-md-4">
+                <label class="form-label fw-500">Ngày / Chặng</label>
+                <input type="text" name="itinerary_day[]" data-field="day" class="form-control" placeholder="Ngày 1">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-500">Giờ bắt đầu</label>
+                <input type="time" name="itinerary_time_start[]" data-field="time_start" class="form-control">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-500">Giờ kết thúc</label>
+                <input type="time" name="itinerary_time_end[]" data-field="time_end" class="form-control">
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-500">Tiêu đề hoạt động</label>
+                <input type="text" name="itinerary_title[]" data-field="title" class="form-control" placeholder="Khởi hành từ Hà Nội">
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-500">Chi tiết</label>
+                <textarea name="itinerary_description[]" data-field="description" class="form-control" rows="3" placeholder="Tham quan, ăn uống, trải nghiệm..."></textarea>
+            </div>
+        </div>
+    </div>
+</template>
 
 <style>
     .image-preview-card {

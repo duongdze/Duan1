@@ -96,17 +96,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Nhà Cung Cấp</label>
-                            <select class="form-select" name="supplier_id">
-                                <option value="">Tất cả</option>
-                                <?php foreach ($suppliers ?? [] as $supplier): ?>
-                                    <option value="<?= $supplier['id'] ?>" <?= (($_GET['supplier_id'] ?? '') == $supplier['id']) ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($supplier['name']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
                             <label class="form-label">Giá từ (VNĐ)</label>
                             <input type="number" class="form-control" name="price_min" value="<?= htmlspecialchars($_GET['price_min'] ?? '') ?>" placeholder="0">
                         </div>
@@ -271,10 +260,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                     <i class="fas fa-calendar-alt icon-i" aria-hidden="true"></i>
                                                     <?= date('d/m/Y', strtotime($tour['created_at'] ?? 'now')) ?>
                                                 </div>
-                                                <div class="tour-hotel">
-                                                    <i class="fas fa-building icon-i" aria-hidden="true"></i>
-                                                    <?= htmlspecialchars($tour['supplier_name'] ?? '') ?>
-                                                </div>
                                             </div>
 
                                             <div class="tour-actions">
@@ -300,7 +285,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         $filterParams = array_filter([
                             'keyword' => $_GET['keyword'] ?? '',
                             'category_id' => $_GET['category_id'] ?? '',
-                            'supplier_id' => $_GET['supplier_id'] ?? '',
+
                             'date_from' => $_GET['date_from'] ?? '',
                             'date_to' => $_GET['date_to'] ?? '',
                             'price_min' => $_GET['price_min'] ?? '',
