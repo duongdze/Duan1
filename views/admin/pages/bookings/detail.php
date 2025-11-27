@@ -77,8 +77,33 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                             $statusClass = 'danger';
                                             $statusText = 'Đã Hủy';
                                         }
+
+                                        // Kiểm tra quyền sửa
+                                        $userRole = $_SESSION['user']['role'] ?? 'customer';
+                                        $userId = $_SESSION['user']['user_id'] ?? null;
+                                        $bookingModel = new Booking();
+                                        $canEdit = $bookingModel->canUserEditBooking($booking['id'], $userId, $userRole);
                                         ?>
-                                        <span class="badge bg-<?= $statusClass ?>"><?= $statusText ?></span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span id="status-badge" class="badge bg-<?= $statusClass ?>" data-status="<?= $booking['status'] ?>"><?= $statusText ?></span>
+
+                                            <?php if ($canEdit): ?>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li><a class="dropdown-item status-change-btn" href="#" data-status="cho_xac_nhan" data-booking-id="<?= $booking['id'] ?>">Chờ xác nhận</a></li>
+                                                        <li><a class="dropdown-item status-change-btn" href="#" data-status="da_coc" data-booking-id="<?= $booking['id'] ?>">Đã cọc</a></li>
+                                                        <li><a class="dropdown-item status-change-btn" href="#" data-status="hoan_tat" data-booking-id="<?= $booking['id'] ?>">Hoàn tất</a></li>
+                                                        <li>
+                                                            <hr class="dropdown-divider">
+                                                        </li>
+                                                        <li><a class="dropdown-item status-change-btn text-danger" href="#" data-status="da_huy" data-booking-id="<?= $booking['id'] ?>">Hủy</a></li>
+                                                    </ul>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -141,57 +166,72 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <div class="col-lg-6">
                 <!-- Danh sách khách đi kèm -->
                 <div class="card mb-3">
-                    <div class="card-header bg-light">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <i class="fas fa-users"></i> Danh sách khách đi kèm (<?= count($companions) ?>)
                         </h5>
+                        <?php if ($canEdit): ?>
+                            <button type="button" class="btn btn-sm btn-primary" id="add-companion-btn" data-booking-id="<?= $booking['id'] ?>">
+                                <i class="fas fa-plus"></i> Thêm khách
+                            </button>
+                        <?php endif; ?>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($companions)): ?>
                             <div class="d-flex flex-column gap-3">
                                 <?php foreach ($companions as $index => $companion): ?>
-                                    <div class="border rounded p-3 bg-light">
+                                    <div class="border rounded p-3 bg-light position-relative">
+                                        <?php if ($canEdit): ?>
+                                            <div class="position-absolute top-0 end-0 m-2">
+                                                <button class="btn btn-sm btn-outline-primary edit-companion-btn me-1" data-companion-id="<?= $companion['id'] ?>">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger delete-companion-btn" data-companion-id="<?= $companion['id'] ?>" data-booking-id="<?= $booking['id'] ?>">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        <?php endif; ?>
                                         <h6 class="mb-2">Khách #<?= $index + 1 ?></h6>
                                         <table class="table table-sm table-borderless mb-0">
                                             <tbody>
                                                 <tr>
                                                     <td class="fw-bold" style="width: 40%;">Họ tên:</td>
-                                                    <td><?= htmlspecialchars($companion['name']) ?></td>
+                                                    <td data-field="name"><?= htmlspecialchars($companion['name']) ?></td>
                                                 </tr>
                                                 <?php if (!empty($companion['gender'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Giới tính:</td>
-                                                        <td><?= htmlspecialchars($companion['gender']) ?></td>
+                                                        <td data-field="gender"><?= htmlspecialchars($companion['gender']) ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['birth_date'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Ngày sinh:</td>
-                                                        <td><?= htmlspecialchars($companion['birth_date']) ?></td>
+                                                        <td data-field="birth_date"><?= htmlspecialchars($companion['birth_date']) ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['phone'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Điện thoại:</td>
-                                                        <td><?= htmlspecialchars($companion['phone']) ?></td>
+                                                        <td data-field="phone"><?= htmlspecialchars($companion['phone']) ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['id_card'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">CMND/Hộ chiếu:</td>
-                                                        <td><?= htmlspecialchars($companion['id_card']) ?></td>
+                                                        <td data-field="id_card"><?= htmlspecialchars($companion['id_card']) ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['room_type'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Loại phòng:</td>
-                                                        <td><?= htmlspecialchars($companion['room_type']) ?></td>
+                                                        <td data-field="room_type"><?= htmlspecialchars($companion['room_type']) ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['special_request'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Yêu cầu đặc biệt:</td>
-                                                        <td><?= htmlspecialchars($companion['special_request']) ?></td>
+                                                        <td data-field="special_request"><?= htmlspecialchars($companion['special_request']) ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                             </tbody>
@@ -218,6 +258,67 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                     </div>
                 <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="companionModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="companionModalTitle">Thêm Khách Đi Kèm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="companionForm">
+                        <input type="hidden" id="companion-id" name="companion_id">
+                        <input type="hidden" id="companion-booking-id" name="booking_id" value="<?= $booking['id'] ?>">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Họ tên <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="companion-name" name="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Giới tính</label>
+                                <select class="form-select" id="companion-gender" name="gender">
+                                    <option value="">Chọn</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Ngày sinh</label>
+                                <input type="date" class="form-control" id="companion-birth-date" name="birth_date">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Điện thoại</label>
+                                <input type="tel" class="form-control" id="companion-phone" name="phone">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">CMND/Hộ chiếu</label>
+                                <input type="text" class="form-control" id="companion-id-card" name="id_card">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Loại phòng</label>
+                                <select class="form-select" id="companion-room-type" name="room_type">
+                                    <option value="">Chọn loại phòng</option>
+                                    <option value="đơn">Phòng đơn</option>
+                                    <option value="đôi">Phòng đôi</option>
+                                    <option value="ghép">Ghép phòng</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Yêu cầu đặc biệt</label>
+                                <textarea class="form-control" id="companion-special-request" name="special_request"
+                                    rows="3"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="saveCompanionBtn">Lưu</button>
+                </div>
             </div>
         </div>
     </div>

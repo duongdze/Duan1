@@ -11,7 +11,20 @@ class BookingController
 
     public function index()
     {
-        $bookings = $this->model->getAll();
+        // Lấy thông tin user hiện tại
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $userId = $_SESSION['user']['user_id'] ?? null;
+
+        // Lọc bookings theo role
+        if ($userRole === 'hdv') {
+            $guideModel = new Guide();
+            $guide = $guideModel->getByUserId($userId);
+            $guideId = $guide['id'] ?? null;
+            $bookings = $this->model->getAllByRole('hdv', $guideId);
+        } else {
+            $bookings = $this->model->getAllByRole('admin');
+        }
+
         require_once PATH_VIEW_ADMIN . 'pages/bookings/index.php';
     }
 
@@ -125,6 +138,16 @@ class BookingController
             exit;
         }
 
+        // Kiểm tra quyền
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $userId = $_SESSION['user']['user_id'] ?? null;
+
+        if (!$this->model->canUserEditBooking($id, $userId, $userRole)) {
+            $_SESSION['error'] = 'Bạn không có quyền sửa booking này';
+            header('Location:' . BASE_URL_ADMIN . '&action=bookings');
+            exit;
+        }
+
         $booking = $this->model->getBookingWithDetails($id);
 
         if (!$booking) {
@@ -158,6 +181,16 @@ class BookingController
 
         if (!$id) {
             $_SESSION['error'] = 'Không tìm thấy booking';
+            header('Location:' . BASE_URL_ADMIN . '&action=bookings');
+            exit;
+        }
+
+        // Kiểm tra quyền
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $userId = $_SESSION['user']['user_id'] ?? null;
+
+        if (!$this->model->canUserEditBooking($id, $userId, $userRole)) {
+            $_SESSION['error'] = 'Bạn không có quyền sửa booking này';
             header('Location:' . BASE_URL_ADMIN . '&action=bookings');
             exit;
         }
@@ -232,6 +265,14 @@ class BookingController
             exit;
         }
 
+        // Kiểm tra quyền - chỉ admin mới được xóa
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if ($userRole !== 'admin') {
+            $_SESSION['error'] = 'Chỉ admin mới có quyền xóa booking';
+            header('Location:' . BASE_URL_ADMIN . '&action=bookings');
+            exit;
+        }
+
         try {
             $result = $this->model->deleteBooking($id);
 
@@ -245,6 +286,199 @@ class BookingController
         }
 
         header('Location:' . BASE_URL_ADMIN . '&action=bookings');
+        exit;
+    }
+
+    /**
+     * AJAX endpoint để cập nhật trạng thái booking
+     */
+    public function updateStatus()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            exit;
+        }
+
+        $bookingId = $_POST['booking_id'] ?? null;
+        $newStatus = $_POST['status'] ?? null;
+
+        if (!$bookingId || !$newStatus) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc']);
+            exit;
+        }
+
+        // Kiểm tra quyền
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $userId = $_SESSION['user']['user_id'] ?? null;
+
+        if (!$this->model->canUserEditBooking($bookingId, $userId, $userRole)) {
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền cập nhật booking này']);
+            exit;
+        }
+
+        // Validate status
+        $validStatuses = ['cho_xac_nhan', 'da_coc', 'hoan_tat', 'da_huy'];
+        if (!in_array($newStatus, $validStatuses)) {
+            echo json_encode(['success' => false, 'message' => 'Trạng thái không hợp lệ']);
+            exit;
+        }
+
+        // Cập nhật trạng thái
+        $result = $this->model->updateStatus($bookingId, $newStatus);
+
+        if ($result) {
+            // Lấy tên trạng thái để hiển thị
+            $statusNames = [
+                'cho_xac_nhan' => 'Chờ xác nhận',
+                'da_coc' => 'Đã cọc',
+                'hoan_tat' => 'Hoàn tất',
+                'da_huy' => 'Hủy'
+            ];
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Cập nhật trạng thái thành công',
+                'status' => $newStatus,
+                'status_text' => $statusNames[$newStatus] ?? $newStatus
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Không thể cập nhật trạng thái']);
+        }
+        exit;
+    }
+    public function addCompanion()
+    {
+        header('Content-Type: application/json');
+        // Kiểm tra quyền
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $userId = $_SESSION['user']['user_id'] ?? null;
+        $bookingId = $_POST['booking_id'] ?? null;
+        if (!$bookingId) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin booking']);
+            exit;
+        }
+        // Kiểm tra quyền sửa booking này
+        if (!$this->model->canUserEditBooking($bookingId, $userId, $userRole)) {
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền thêm khách cho booking này']);
+            exit;
+        }
+        // Lấy dữ liệu từ form
+        $data = [
+            'booking_id' => $bookingId,
+            'name' => $_POST['name'] ?? '',
+            'gender' => $_POST['gender'] ?? null,
+            'birth_date' => $_POST['birth_date'] ?? null,
+            'phone' => $_POST['phone'] ?? null,
+            'id_card' => $_POST['id_card'] ?? null,
+            'room_type' => $_POST['room_type'] ?? null,
+            'special_request' => $_POST['special_request'] ?? null
+        ];
+        // Validate
+        if (empty($data['name'])) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng nhập họ tên khách']);
+            exit;
+        }
+        // Thêm vào database
+        try {
+            $companionModel = new BookingCustomer();
+            $companionId = $companionModel->insert($data);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Thêm khách đi kèm thành công',
+                'companion_id' => $companionId,
+                'companion' => $data
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+    /**
+     * Cập nhật thông tin khách đi kèm
+     * AJAX endpoint
+     */
+    public function updateCompanion()
+    {
+        header('Content-Type: application/json');
+        $companionId = $_POST['companion_id'] ?? null;
+        $bookingId = $_POST['booking_id'] ?? null;
+        if (!$companionId || !$bookingId) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin']);
+            exit;
+        }
+        // Kiểm tra quyền
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $userId = $_SESSION['user']['user_id'] ?? null;
+        if (!$this->model->canUserEditBooking($bookingId, $userId, $userRole)) {
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền sửa khách này']);
+            exit;
+        }
+        // Lấy dữ liệu từ form
+        $data = [
+            'name' => $_POST['name'] ?? '',
+            'gender' => $_POST['gender'] ?? null,
+            'birth_date' => $_POST['birth_date'] ?? null,
+            'phone' => $_POST['phone'] ?? null,
+            'id_card' => $_POST['id_card'] ?? null,
+            'room_type' => $_POST['room_type'] ?? null,
+            'special_request' => $_POST['special_request'] ?? null
+        ];
+
+        // Validate
+        if (empty($data['name'])) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng nhập họ tên khách']);
+            exit;
+        }
+        // Cập nhật database
+        try {
+            $companionModel = new BookingCustomer();
+            $companionModel->update($companionId, $data);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Cập nhật thông tin khách thành công',
+                'companion' => $data
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+    /**
+     * Xóa khách đi kèm
+     * AJAX endpoint
+     */
+    public function deleteCompanion()
+    {
+        header('Content-Type: application/json');
+        $companionId = $_POST['companion_id'] ?? null;
+        $bookingId = $_POST['booking_id'] ?? null;
+        if (!$companionId || !$bookingId) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin']);
+            exit;
+        }
+        // Kiểm tra quyền
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $userId = $_SESSION['user']['user_id'] ?? null;
+        if (!$this->model->canUserEditBooking($bookingId, $userId, $userRole)) {
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền xóa khách này']);
+            exit;
+        }
+        // Xóa khỏi database
+        try {
+            $companionModel = new BookingCustomer();
+            $companionModel->delete($companionId);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Xóa khách đi kèm thành công'
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
         exit;
     }
 }

@@ -36,10 +36,10 @@ match ($action) {
     'tours_category'         => (new TourCategoryController)->index(),
 
 
-    'tours/itineraries'     => (new ItineraryController)->index(),
-    'tours/itineraries/create' => (new ItineraryController)->create(),
-    'tours/itineraries/store'  => (new ItineraryController)->store(),
-    'tours/itineraries/delete' => (new ItineraryController)->delete(),
+    'tours/itineraries'         => (new ItineraryController)->index(),
+    'tours/itineraries/create'  => (new ItineraryController)->create(),
+    'tours/itineraries/store'   => (new ItineraryController)->store(),
+    'tours/itineraries/delete'  => (new ItineraryController)->delete(),
 
     // Tour Logs
     'tours_logs'        => (new TourLogController)->index(),
@@ -50,13 +50,17 @@ match ($action) {
     'tours_logs/delete' => (new TourLogController)->delete(),
 
     // Bookings
-    'bookings'             => (new BookingController)->index(),
-    'bookings/create'      => (new BookingController)->create(),
-    'bookings/store'       => (new BookingController)->store(),
-    'bookings/edit'        => (new BookingController)->edit(),
-    'bookings/update'      => (new BookingController)->update(),
-    'bookings/delete'      => (new BookingController)->delete(),
-    'bookings/detail'      => (new BookingController)->detail(),
+    'bookings'                  => (new BookingController)->index(),
+    'bookings/create'           => (new BookingController)->create(),
+    'bookings/store'            => (new BookingController)->store(),
+    'bookings/edit'             => (new BookingController)->edit(),
+    'bookings/update'           => (new BookingController)->update(),
+    'bookings/delete'           => (new BookingController)->delete(),
+    'bookings/detail'           => (new BookingController)->detail(),
+    'bookings/update-status'    => (new BookingController)->updateStatus(), // AJAX endpoint
+    'bookings/add-companion'    => (new BookingController)->addCompanion(),
+    'bookings/update-companion' => (new BookingController)->updateCompanion(),
+    'bookings/delete-companion' => (new BookingController)->deleteCompanion(),
 
     // Guides
     'guides'               => (new GuideController)->index(),
@@ -66,6 +70,12 @@ match ($action) {
     'guides/edit'          => (new GuideController)->edit(),
     'guides/update'        => (new GuideController)->update(),
     'guides/delete'        => (new GuideController)->delete(),
+
+    // Tour Assignments (Guide-Tour management)
+    'guides/tour-assignments' => (new TourAssignmentController)->index(),
+    'guides/assign-tour'      => (new TourAssignmentController)->assign(),
+    'guides/remove-tour'      => (new TourAssignmentController)->remove(),
+    'guides/get-tours'        => (new TourAssignmentController)->getGuideTours(), // AJAX
 
     // Guides Work
     'guide/schedule'   => (new GuideWorkController)->schedule(),

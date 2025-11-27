@@ -121,67 +121,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                 <!-- Right Column -->
                 <div class="col-lg-6">
-                    <!-- Thông tin khách đi kèm -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="fas fa-users"></i> Danh sách khách đi kèm
-                            </h5>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="booking-add-companion-btn">
-                                <i class="fas fa-plus"></i> Thêm khách
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <p class="text-muted small mb-3">Thêm thông tin chi tiết của các khách đi kèm (họ tên, giới tính, ngày sinh, liên hệ,...)</p>
-                            <div id="booking-companion-list" class="d-flex flex-column gap-3" data-initial="[]"></div>
-                            <template id="companion-template">
-                                <div class="companion-item border rounded p-3 bg-light-subtle position-relative">
-                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-companion" aria-label="Xóa"></button>
-                                    <div class="row g-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">Họ tên</label>
-                                            <input type="text" class="form-control" name="companion_name[]" data-field="name" placeholder="Nguyễn Văn A" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">Giới tính</label>
-                                            <select class="form-select" name="companion_gender[]" data-field="gender">
-                                                <option value="">Chọn</option>
-                                                <option value="Nam">Nam</option>
-                                                <option value="Nữ">Nữ</option>
-                                                <option value="Khác">Khác</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">Ngày sinh</label>
-                                            <input type="date" class="form-control" name="companion_birth_date[]" data-field="birth_date">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">Điện thoại</label>
-                                            <input type="tel" class="form-control" name="companion_phone[]" data-field="phone" placeholder="09xxxxxxxx">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">CMND/Hộ chiếu</label>
-                                            <input type="text" class="form-control" name="companion_id_card[]" data-field="id_card" placeholder="012345678">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">Loại phòng</label>
-                                            <select class="form-select" name="companion_room_type[]" data-field="room_type">
-                                                <option value="">Chọn loại phòng</option>
-                                                <option value="đơn">Phòng đơn</option>
-                                                <option value="đôi">Phòng đôi</option>
-                                                <option value="ghép">Ghép phòng</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label fw-bold">Yêu cầu đặc biệt</label>
-                                            <textarea class="form-control" rows="2" name="companion_special_request[]" data-field="special_request" placeholder="Dị ứng thực phẩm, yêu cầu đặc biệt,..."></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
                     <!-- Tóm tắt đơn -->
                     <div class="card">
                         <div class="card-header bg-light">

@@ -139,4 +139,109 @@ class Booking extends BaseModel
             return false;
         }
     }
+
+    /**
+     * Kiểm tra user có quyền sửa booking không
+     * @param int $bookingId
+     * @param int $userId
+     * @param string $userRole - 'admin' hoặc 'hdv'
+     * @return bool
+     */
+    public function canUserEditBooking($bookingId, $userId, $userRole)
+    {
+        // Admin có toàn quyền
+        if ($userRole === 'admin') {
+            return true;
+        }
+
+        // HDV chỉ được sửa booking của tour mình phụ trách
+        if ($userRole === 'hdv') {
+            // Lấy thông tin booking
+            $booking = $this->getById($bookingId);
+            if (!$booking) {
+                return false;
+            }
+
+            // Lấy guide_id từ user_id
+            $guideModel = new Guide();
+            $guide = $guideModel->getByUserId($userId);
+            if (!$guide) {
+                return false;
+            }
+
+            // Kiểm tra HDV có phụ trách tour này không
+            $assignmentModel = new TourAssignment();
+            return $assignmentModel->isGuideAssignedToTour($guide['id'], $booking['tour_id']);
+        }
+
+        return false;
+    }
+
+    /**
+     * Lấy danh sách bookings của tour mà HDV phụ trách
+     * @param int $guideId
+     * @return array
+     */
+    public function getBookingsForGuide($guideId)
+    {
+        $sql = "SELECT 
+                    B.*, 
+                    T.name AS tour_name, 
+                    U.full_name AS customer_name
+                FROM {$this->table} AS B 
+                INNER JOIN tour_assignments AS TA ON B.tour_id = TA.tour_id
+                LEFT JOIN tours AS T ON B.tour_id = T.id
+                LEFT JOIN users AS U ON B.customer_id = U.user_id
+                WHERE TA.guide_id = :guide_id
+                ORDER BY B.booking_date DESC, B.id DESC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['guide_id' => $guideId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy tất cả bookings với filter theo role
+     * @param string $userRole - 'admin' hoặc 'hdv'
+     * @param int|null $guideId - Chỉ cần nếu role là 'hdv'
+     * @return array
+     */
+    public function getAllByRole($userRole, $guideId = null)
+    {
+        if ($userRole === 'admin') {
+            // Admin xem tất cả
+            return $this->getAll();
+        } elseif ($userRole === 'hdv' && $guideId) {
+            // HDV chỉ xem bookings của tour mình phụ trách
+            return $this->getBookingsForGuide($guideId);
+        }
+
+        return [];
+    }
+
+    /**
+     * Cập nhật trạng thái booking
+     * @param int $bookingId
+     * @param string $newStatus
+     * @return bool
+     */
+    public function updateStatus($bookingId, $newStatus)
+    {
+        try {
+            // Validate status
+            $validStatuses = ['cho_xac_nhan', 'da_coc', 'hoan_tat', 'da_huy'];
+            if (!in_array($newStatus, $validStatuses)) {
+                return false;
+            }
+
+            return $this->update(
+                ['status' => $newStatus],
+                'id = :id',
+                ['id' => $bookingId]
+            );
+        } catch (Exception $e) {
+            error_log('Error updating booking status: ' . $e->getMessage());
+            return false;
+        }
+    }
 }
