@@ -32,7 +32,7 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('tours') ? 'active' : '' ?>"
                 href="#" role="button"
-                
+
                 aria-expanded="<?= isParentActive('tours') ? 'true' : 'false' ?>"
                 aria-controls="tourMenu"
                 data-menu-key="tours"
@@ -75,7 +75,7 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('bookings') ? 'active' : '' ?>"
                 href="#" role="button"
-                
+
                 aria-expanded="<?= isParentActive('bookings') ? 'true' : 'false' ?>"
                 aria-controls="bookingMenu"
                 data-menu-key="bookings"
@@ -90,11 +90,13 @@ $currentAction = $_GET['action'] ?? '';
                             <i class="fas fa-list fa-fw me-2"></i> Quản lý Booking
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= isActive('bookings/create') ?>" href="<?= BASE_URL_ADMIN ?>&action=bookings/create">
-                            <i class="fas fa-plus-circle fa-fw me-2"></i> Thêm Booking Mới
-                        </a>
-                    </li>
+                    <?php if (in_array($_SESSION['user']['role'] ?? '', ['hdv', 'admin'])): ?>
+                        <li class="nav-item">
+                            <a class="nav-link <?= isActive('guides/available-tours') ?>" href="<?= BASE_URL_ADMIN ?>&action=guides/available-tours">
+                                <i class="fas fa-hand-paper fa-fw me-2"></i> Tour Khả Dụng
+                            </a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </li>

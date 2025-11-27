@@ -40,6 +40,7 @@ match ($action) {
     'tours/itineraries/create'  => (new ItineraryController)->create(),
     'tours/itineraries/store'   => (new ItineraryController)->store(),
     'tours/itineraries/delete'  => (new ItineraryController)->delete(),
+    
 
     // Tour Logs
     'tours_logs'        => (new TourLogController)->index(),
@@ -80,6 +81,8 @@ match ($action) {
     // Guides Work
     'guide/schedule'   => (new GuideWorkController)->schedule(),
     'guide/tourDetail' => (new GuideWorkController)->tourDetail(),
+    'guides/available-tours' => (new TourAssignmentController)->availableTours(),
+    'guides/claim-tour'      => (new TourAssignmentController)->claimTour(), // AJAX
 
     // Suppliers
     'suppliers'            => (new SupplierController)->index(),

@@ -154,4 +154,76 @@ class TourAssignmentController
         echo json_encode(['success' => true, 'guides' => $guides]);
         exit;
     }
+    /**
+     * Hiển thị trang danh sách tour khả dụng (chỉ cho HDV)
+     */
+    public function availableTours()
+    {
+        // Chỉ HDV và Admin mới được xem
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if (!in_array($userRole, ['hdv', 'admin'])) {
+            $_SESSION['error'] = 'Bạn không có quyền truy cập trang này';
+            header('Location:' . BASE_URL_ADMIN);
+            exit;
+        }
+
+        $tourAssignmentModel = new TourAssignment();
+        $availableTours = $tourAssignmentModel->getAvailableTours();
+
+        include_once PATH_VIEW_ADMIN . 'pages/guides/available-tours.php';
+    }
+    /**
+     * HDV nhận tour (AJAX endpoint)
+     */
+    public function claimTour()
+    {
+        header('Content-Type: application/json');
+
+        // Kiểm tra quyền
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $guideId = $_SESSION['user']['user_id'] ?? null;
+
+        if (!in_array($userRole, ['hdv', 'admin'])) {
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền nhận tour']);
+            exit;
+        }
+
+        $tourId = $_POST['tour_id'] ?? null;
+
+        if (!$tourId) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin tour']);
+            exit;
+        }
+
+        try {
+            $tourAssignmentModel = new TourAssignment();
+
+            // Kiểm tra tour đã có HDV chưa (race condition protection)
+            if ($tourAssignmentModel->tourHasGuide($tourId)) {
+                echo json_encode(['success' => false, 'message' => 'Tour này đã có HDV khác nhận rồi']);
+                exit;
+            }
+
+            // Kiểm tra HDV đã nhận tour này chưa
+            if ($tourAssignmentModel->isGuideAssignedToTour($guideId, $tourId)) {
+                echo json_encode(['success' => false, 'message' => 'Bạn đã nhận tour này rồi']);
+                exit;
+            }
+
+            // Assign tour cho HDV
+            $result = $tourAssignmentModel->assignTourToGuide($guideId, $tourId);
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Nhận tour thành công! Tour đã được thêm vào danh sách của bạn.'
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể nhận tour']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
 }

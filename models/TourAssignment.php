@@ -190,4 +190,44 @@ class TourAssignment extends BaseModel
         $stmt->execute(['guide_id' => $guideId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    /**
+     * Lấy danh sách tour chưa có HDV
+     * @return array
+     */
+    public function getAvailableTours()
+    {
+        $sql = "SELECT t.*, 
+            COUNT(DISTINCT b.id) as booking_count,
+            MIN(b.booking_date) as nearest_booking_date
+            FROM tours t
+            LEFT JOIN bookings b ON t.id = b.tour_id
+            WHERE t.id NOT IN (
+                SELECT DISTINCT tour_id 
+                FROM tour_assignments 
+                WHERE status = 'active'
+            )
+            GROUP BY t.id
+            ORDER BY nearest_booking_date ASC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    /**
+     * Kiểm tra tour đã có HDV chưa
+     * @param int $tourId
+     * @return bool
+     */
+    public function tourHasGuide($tourId)
+    {
+        $sql = "SELECT COUNT(*) as count 
+            FROM tour_assignments 
+            WHERE tour_id = :tour_id 
+            AND status = 'active'";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['count'] > 0;
+    }
 }
