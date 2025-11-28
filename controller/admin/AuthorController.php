@@ -24,6 +24,8 @@ class AuthorController
             if ($user) {
                 // Đăng nhập thành công với mật khẩu đã được băm
                 $_SESSION['user'] = $user;
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['user_id'] = $user['user_id'];
                 // nếu user là HDV, ghép guide_id vào session
                 if (!empty($user['role']) && $user['role'] === 'hdv') {
                     require_once PATH_MODEL . 'Guide.php';

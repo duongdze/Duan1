@@ -7,6 +7,14 @@ class GuideWorkModel {
         return BaseModel::getPdo();
     }
 
+    public static function getGuideByUserId($userId) {
+        $pdo = self::ensurePdo();
+        $sql = "SELECT * FROM guides WHERE user_id = ? LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$userId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
     public static function getAllGuides() {
         $pdo = self::ensurePdo();
         $sql = "SELECT G.*, U.full_name, U.email, U.phone
@@ -47,14 +55,6 @@ class GuideWorkModel {
         $sql = "SELECT * FROM itineraries WHERE tour_id = ? ORDER BY day_number ASC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$tourId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public static function getLogsByTourAndGuide($tourId, $guideId) {
-        $pdo = self::ensurePdo();
-        $sql = "SELECT * FROM tour_logs WHERE tour_id = ? AND guide_id = ? ORDER BY date ASC";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$tourId, $guideId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

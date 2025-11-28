@@ -55,7 +55,8 @@ match ($action) {
     'bookings/store'       => (new BookingController)->store(),
     'bookings/edit'        => (new BookingController)->edit(),
     'bookings/update'      => (new BookingController)->update(),
-
+    // Xem danh sách khách trong đoàn
+    'booking/detail' => (new BookingCustomerController)->listByBooking(),
     // Guides
     'guides'               => (new GuideController)->index(),
     'guides/create'        => (new GuideController)->create(),
