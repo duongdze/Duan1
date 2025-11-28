@@ -17,4 +17,8 @@ class TourPolicy extends BaseModel
     {
         parent::__construct();
     }
+    public function findById($id)
+    {
+        return $this->find('*', 'id = :id', ['id' => $id]);
+    }
 }

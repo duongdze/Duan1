@@ -7,12 +7,24 @@ class Booking extends BaseModel
     protected $columns = [
         'id',
         'tour_id',
-        'customer_id',
+        'departure_id',
         'version_id',
-        'booking_date',
-        'total_price',
+        'customer_id',
+        'adults',
+        'children',
+        'infants',
+        'foc_pax',
+        'original_price',
+        'final_price',
         'status',
-        'notes'
+        'source',
+        'booking_date',
+        'departure_date',
+        'notes',
+        'discount_note',
+        'created_by',
+        'created_at',
+        'updated_at'
     ];
 
     public function __construct()
@@ -25,10 +37,10 @@ class Booking extends BaseModel
         $sql = "SELECT 
                     B.*, 
                     T.name AS tour_name, 
-                    BC.name AS customer_name
+                    BC.full_name AS customer_name
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN booking_customers AS BC ON B.customer_id = BC.id";
+                LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -36,7 +48,7 @@ class Booking extends BaseModel
 
     public function getMonthlyRevenue($month, $year)
     {
-        $sql = "SELECT SUM(total_price) as revenue FROM {$this->table} WHERE MONTH(booking_date) = :month AND YEAR(booking_date) = :year AND status = 'completed'";
+        $sql = "SELECT SUM(final_price) as revenue FROM {$this->table} WHERE MONTH(booking_date) = :month AND YEAR(booking_date) = :year AND status = 'completed'";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['month' => $month, 'year' => $year]);
         $data = $stmt->fetch();
@@ -51,7 +63,10 @@ class Booking extends BaseModel
 
     public function getNewCustomersThisMonth($month, $year)
     {
-        $sql = "SELECT COUNT(DISTINCT customer_id) as count FROM {$this->table} WHERE MONTH(booking_date) = :month AND YEAR(booking_date) = :year";
+        $sql = "SELECT COUNT(DISTINCT BC.full_name) as count 
+                FROM bookings B 
+                LEFT JOIN booking_customers BC ON B.id = BC.booking_id 
+                WHERE MONTH(B.booking_date) = :month AND YEAR(B.booking_date) = :year";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['month' => $month, 'year' => $year]);
         $data = $stmt->fetch();
@@ -70,11 +85,11 @@ class Booking extends BaseModel
                     B.booking_date,
                     B.status,
                     T.name AS tour_name, 
-                    BC.name AS customer_name
+                    BC.full_name AS customer_name
                 FROM {$this->table} AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN booking_customers AS BC ON B.customer_id = BC.id
-                WHERE B.status = 'cho_xac_nhan'
+                LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id
+                WHERE B.status = 'pending'
                 ORDER BY B.booking_date DESC, B.id DESC
                 LIMIT " . (int)$limit;
         $stmt = self::$pdo->prepare($sql);
@@ -103,12 +118,11 @@ class Booking extends BaseModel
                     B.*, 
                     T.name AS tour_name,
                     T.base_price AS tour_base_price,
-                    U.full_name AS customer_name,
-                    U.email AS customer_email,
-                    U.phone AS customer_phone
+                    BC.full_name AS customer_name,
+                    BC.phone AS customer_phone
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN users AS U ON B.customer_id = U.user_id
+                LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id AND BC.passenger_type = 'adult'
                 WHERE B.id = :id";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['id' => $id]);

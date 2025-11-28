@@ -206,10 +206,10 @@ class Guide extends BaseModel
                     u.avatar
                 FROM {$this->table} AS g
                 LEFT JOIN users AS u ON g.user_id = u.user_id
-                WHERE g.guide_type = :type
-                ORDER BY g.performance_score DESC, g.rating DESC";
+                WHERE 1=1
+                ORDER BY g.rating DESC, u.full_name ASC";
         $stmt = self::$pdo->prepare($sql);
-        $stmt->execute(['type' => $type]);
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

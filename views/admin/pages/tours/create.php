@@ -301,10 +301,16 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     <div class="dynamic-item">
         <button type="button" class="remove-item-btn remove-pricing-option"><i class="fas fa-times"></i></button>
         <div class="row g-3">
-            <div class="col-md-12">
+            <div class="col-md-6">
                 <div class="form-floating-modern">
                     <input type="text" data-field="label" class="form-control" placeholder=" ">
                     <label>Tên gói (VD: Người lớn, Trẻ em)</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating-modern">
+                    <input type="number" data-field="price" class="form-control" min="0" step="1000" placeholder=" ">
+                    <label>Giá (VNĐ)</label>
                 </div>
             </div>
             <div class="col-12">
@@ -321,10 +327,24 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     <div class="dynamic-item">
         <button type="button" class="remove-item-btn remove-dynamic-pricing"><i class="fas fa-times"></i></button>
         <div class="row g-3">
+            <div class="col-md-12">
+                <div class="form-floating-modern">
+                    <select data-field="option_label" class="form-select form-control dynamic-pricing-select">
+                        <option value="">-- Chọn gói dịch vụ --</option>
+                    </select>
+                    <label>Áp dụng cho gói</label>
+                </div>
+            </div>
             <div class="col-md-6">
                 <div class="form-floating-modern">
-                    <input type="text" data-field="option_label" class="form-control" placeholder=" ">
-                    <label>Áp dụng cho gói (VD: Người lớn)</label>
+                    <input type="text" class="form-control package-description-display" readonly placeholder=" " style="background-color: #f8f9fa;">
+                    <label>Mô tả gói</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating-modern">
+                    <input type="text" class="form-control package-price-display" readonly placeholder=" " style="background-color: #f8f9fa;">
+                    <label>Giá gốc (VNĐ)</label>
                 </div>
             </div>
             <div class="col-md-6">
