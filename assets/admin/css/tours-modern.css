@@ -38,7 +38,7 @@
    ============================================ */
 
 .tour-detail-page .dashboard-container {
-  max-width: 1050px;
+  max-width: auto;
   padding: 0 12px;
 }
 
