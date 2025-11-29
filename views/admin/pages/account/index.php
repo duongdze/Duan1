@@ -37,7 +37,7 @@ $user = $_SESSION['user'] ?? null;
                                     <?php
                                     $roleLabel = match ($user['role'] ?? 'user') {
                                         'admin' => 'Quản trị viên',
-                                        'hdv' => 'Hướng dẫn viên',
+                                        'guide' => 'Hướng dẫn viên',
                                         'supplier' => 'Nhà cung cấp',
                                         default => ucfirst($user['role'] ?? 'user')
                                     };

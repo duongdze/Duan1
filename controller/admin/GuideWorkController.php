@@ -1,8 +1,10 @@
 <?php
 require_once 'models/GuideWorkModel.php';
 
-class GuideWorkController {
-    public function schedule() {
+class GuideWorkController
+{
+    public function schedule()
+    {
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
@@ -10,7 +12,7 @@ class GuideWorkController {
         $role = $_SESSION['role'] ?? null;
         $userId = $_SESSION['user_id'] ?? null;
 
-        if ($role === 'hdv' && $userId) {
+        if ($role === 'guide' && $userId) {
             $guide = GuideWorkModel::getGuideByUserId($userId);
             if (!$guide) {
                 die("Không tìm thấy hướng dẫn viên.");
@@ -34,7 +36,8 @@ class GuideWorkController {
         }
     }
 
-    public function tourDetail() {
+    public function tourDetail()
+    {
         $tourId = $_GET['id'] ?? null;
         $guideId = $_GET['guide_id'] ?? null;
         if (!$tourId || !$guideId) {

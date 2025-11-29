@@ -24,7 +24,7 @@ class GuideWorkModel
         $sql = "SELECT G.*, U.full_name, U.email, U.phone
                 FROM guides G
                 JOIN users U ON G.user_id = U.user_id
-                WHERE U.role = 'hdv'
+                WHERE U.role = 'guide'
                 ORDER BY U.full_name ASC";
         $stmt = $pdo->prepare($sql);
         $stmt->execute();

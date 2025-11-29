@@ -75,7 +75,7 @@ class GuideController
                 'full_name' => $full_name,
                 'email' => $email,
                 'phone' => $phone,
-                'role' => 'hdv',
+                'role' => 'guide',
                 'password_hash' => password_hash('123456', PASSWORD_DEFAULT) // Default password
             ];
 

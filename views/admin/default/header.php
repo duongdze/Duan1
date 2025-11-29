@@ -123,7 +123,7 @@
                         $userRole = $user['role'] ?? 'user';
                         $roleLabel = match ((string)$userRole) {
                             'admin' => 'Quản trị viên',
-                            'hdv' => 'Hướng dẫn viên',
+                            'guide' => 'Hướng dẫn viên',
                             'supplier' => 'Nhà cung cấp',
                             default => ucfirst((string)$userRole)
                         };

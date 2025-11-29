@@ -1,7 +1,8 @@
 <?php
 
-if(!function_exists('debug')){
-    function debug($data){
+if (!function_exists('debug')) {
+    function debug($data)
+    {
         echo '<pre>';
         print_r($data);
         die;
@@ -38,7 +39,7 @@ if (!function_exists('is_admin')) {
 if (!function_exists('is_hdv')) {
     function is_hdv()
     {
-        return auth_check() && $_SESSION['user']['role'] === 'hdv';
+        return auth_check() && $_SESSION['user']['role'] === 'guide';
     }
 }
 

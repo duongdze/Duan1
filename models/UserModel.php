@@ -1,5 +1,6 @@
 <?php
-class UserModel extends BaseModel{
+class UserModel extends BaseModel
+{
     protected $table = 'users';
 
     /**
@@ -11,7 +12,7 @@ class UserModel extends BaseModel{
 
     public function checkLogin($email, $password)
     {
-        $sql = "SELECT * FROM users WHERE email = :email AND (role = 'admin' OR role = 'hdv') LIMIT 1";
+        $sql = "SELECT * FROM users WHERE email = :email AND (role = 'admin' OR role = 'guide') LIMIT 1";
         $stmt = self::$pdo->prepare($sql);
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();

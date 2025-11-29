@@ -199,7 +199,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                             <tbody>
                                                 <tr>
                                                     <td class="fw-bold" style="width: 40%;">Họ tên:</td>
-                                                    <td data-field="full_name"><?= htmlspecialchars($companion['full_name'] ?? 'N/A') ?></td>
+                                                    <td data-field="name"><?= htmlspecialchars($companion['full_name']) ?></td>
                                                 </tr>
                                                 <?php if (!empty($companion['gender'])): ?>
                                                     <tr>
