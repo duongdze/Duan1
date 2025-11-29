@@ -16,7 +16,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
       <div class="card mb-4">
         <div class="card-body">
           <p><strong>Danh mục:</strong> <?= htmlspecialchars($tour['category_name']) ?></p>
-          <p><strong>Nhà cung cấp:</strong> <?= htmlspecialchars($tour['supplier_name']) ?></p>
           <p><strong>Mô tả:</strong> <?= nl2br(htmlspecialchars($tour['description'])) ?></p>
           <?php if (!empty($assignment)): ?>
             <hr>

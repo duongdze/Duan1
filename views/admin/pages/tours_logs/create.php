@@ -11,7 +11,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     <h1 class="h3 mb-0">Thêm nhật ký Tour</h1>
                     <p class="text-muted small">Ghi lại diễn biến, xử lý sự cố và phản hồi khách</p>
                 </div>
-                <a href="<?= BASE_URL_ADMIN . '&action=tour_logs'  ?>" class="btn btn-secondary">Quay lại</a>
+                <a href="<?= BASE_URL_ADMIN . '&action=tours_logs'  ?>" class="btn btn-secondary">Quay lại</a>
             </div>
 
             <div class="card mx-auto" style="max-width:1000px;">

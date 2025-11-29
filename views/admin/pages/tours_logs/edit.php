@@ -10,7 +10,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     <h1 class="h3 mb-0">Sửa nhật ký Tour</h1>
                     <p class="text-muted small">Cập nhật diễn biến, xử lý sự cố và phản hồi khách</p>
                 </div>
-                <a href="<?= BASE_URL_ADMIN . '?action=tour_logs' ?>" class="btn btn-secondary">Quay lại</a>
+                <a href="<?= BASE_URL_ADMIN . '&action=tours_logs'  ?>" class="btn btn-secondary">Quay lại</a>
             </div>
 
             <div class="card mx-auto" style="max-width:1000px;">
@@ -101,7 +101,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                         <div class="mt-4 d-flex gap-2">
                             <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-                            <a href="<?= BASE_URL_ADMIN . '&action=tour_logs' ?>" class="btn btn-secondary">Hủy</a>
+                            <a href="<?= BASE_URL_ADMIN . '&action=tours_logs' ?>" class="btn btn-secondary">Hủy</a>
                         </div>
                     </form>
                 </div>

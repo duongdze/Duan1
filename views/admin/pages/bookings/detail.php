@@ -183,10 +183,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="border rounded p-3 bg-light position-relative">
                                         <?php if ($canEdit): ?>
                                             <div class="position-absolute top-0 end-0 m-2">
-                                                <button class="btn btn-sm btn-outline-primary edit-companion-btn me-1" data-companion-id="<?= $companion['id'] ?>">
+                                                <button class="btn btn-sm btn-outline-primary edit-companion-btn me-1"
+                                                    data-companion-id="<?= $companion['id'] ?>">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-danger delete-companion-btn" data-companion-id="<?= $companion['id'] ?>" data-booking-id="<?= $booking['id'] ?>">
+                                                <button class="btn btn-sm btn-outline-danger delete-companion-btn"
+                                                    data-companion-id="<?= $companion['id'] ?>"
+                                                    data-booking-id="<?= $booking['id'] ?>">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
@@ -196,48 +199,49 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                             <tbody>
                                                 <tr>
                                                     <td class="fw-bold" style="width: 40%;">Họ tên:</td>
-                                                    <td data-field="name"><?= htmlspecialchars($companion['name']) ?></td>
+                                                    <td data-field="full_name"><?= htmlspecialchars($companion['full_name'] ?? 'N/A') ?></td>
                                                 </tr>
                                                 <?php if (!empty($companion['gender'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Giới tính:</td>
-                                                        <td data-field="gender"><?= htmlspecialchars($companion['gender']) ?></td>
+                                                        <td data-field="gender"><?= htmlspecialchars($companion['gender'] ?? '') ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['birth_date'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Ngày sinh:</td>
-                                                        <td data-field="birth_date"><?= htmlspecialchars($companion['birth_date']) ?></td>
+                                                        <td data-field="birth_date"><?= htmlspecialchars($companion['birth_date'] ?? '') ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['phone'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Điện thoại:</td>
-                                                        <td data-field="phone"><?= htmlspecialchars($companion['phone']) ?></td>
+                                                        <td data-field="phone"><?= htmlspecialchars($companion['phone'] ?? '') ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['id_card'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">CMND/Hộ chiếu:</td>
-                                                        <td data-field="id_card"><?= htmlspecialchars($companion['id_card']) ?></td>
+                                                        <td data-field="id_card"><?= htmlspecialchars($companion['id_card'] ?? '') ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['room_type'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Loại phòng:</td>
-                                                        <td data-field="room_type"><?= htmlspecialchars($companion['room_type']) ?></td>
+                                                        <td data-field="room_type"><?= htmlspecialchars($companion['room_type'] ?? '') ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                                 <?php if (!empty($companion['special_request'])): ?>
                                                     <tr>
                                                         <td class="fw-bold">Yêu cầu đặc biệt:</td>
-                                                        <td data-field="special_request"><?= htmlspecialchars($companion['special_request']) ?></td>
+                                                        <td data-field="special_request"><?= htmlspecialchars($companion['special_request'] ?? '') ?></td>
                                                     </tr>
                                                 <?php endif; ?>
                                             </tbody>
                                         </table>
                                     </div>
                                 <?php endforeach; ?>
+
                             </div>
                         <?php else: ?>
                             <p class="text-muted mb-0">Không có khách đi kèm</p>
