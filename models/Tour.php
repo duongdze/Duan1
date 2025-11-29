@@ -374,7 +374,8 @@ class Tour extends BaseModel
             $dynamicPricingModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $itineraryModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $partnerModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
-            $versionModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+            // Note: tour_versions table doesn't have tour_id column, so we don't delete versions here
+            // Versions should be deleted separately if needed via their own logic
             $policyAssignmentModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
 
 

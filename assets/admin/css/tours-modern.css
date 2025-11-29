@@ -1455,3 +1455,408 @@
   background: linear-gradient(white, white) padding-box,
     linear-gradient(135deg, var(--tours-primary), var(--primary-600)) border-box;
 }
+
+/* ============================================
+   TOUR CREATE PAGE - PROGRESS STEPS
+   ============================================ */
+
+.tour-create-page .progress-steps-wrapper {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  align-items: flex-start;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* .progress-steps::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  left: 60px;
+  right: 60px;
+  height: 2px;
+  background: #e9ecef;
+  z-index: 1;
+} */
+
+.step {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 120px;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+  z-index: 3;
+}
+
+.step.active .step-number {
+  background: var(--bs-primary);
+  color: white;
+  transform: scale(1.1);
+  border-color: var(--bs-primary);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.step.completed .step-number {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.step.completed .step-number::before {
+  /* content: "✓"; */
+  font-size: 16px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.step-label {
+  font-size: 13px;
+  color: #6c757d;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+  margin-top: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.step.active .step-label {
+  color: var(--bs-primary);
+  font-weight: 600;
+}
+
+.step.completed .step-label {
+  color: #28a745;
+}
+
+/* Form Steps */
+.form-step {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.form-step.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Upload Areas */
+.upload-area {
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #fafafa;
+}
+
+.upload-area:hover,
+.upload-area.drag-over {
+  border-color: var(--bs-primary);
+  background: rgba(13, 110, 253, 0.05);
+  transform: translateY(-2px);
+}
+
+.main-image-preview img {
+  max-width: 300px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.gallery-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.gallery-preview-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.gallery-preview-item img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.gallery-preview-item:hover img {
+  transform: scale(1.05);
+}
+
+/* Auto-save Indicator */
+.auto-save-indicator {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #6c757d;
+  transition: all 0.3s ease;
+}
+
+.auto-save-indicator.saving {
+  color: var(--bs-primary);
+}
+
+.auto-save-indicator.saved {
+  color: #28a745;
+}
+
+/* Dynamic Lists */
+.itinerary-list,
+.pricing-options-list,
+.departures-list,
+.partners-list {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.itinerary-list::-webkit-scrollbar,
+.pricing-options-list::-webkit-scrollbar,
+.departures-list::-webkit-scrollbar,
+.partners-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.itinerary-list::-webkit-scrollbar-track,
+.pricing-options-list::-webkit-scrollbar-track,
+.departures-list::-webkit-scrollbar-track,
+.partners-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.itinerary-list::-webkit-scrollbar-thumb,
+.pricing-options-list::-webkit-scrollbar-thumb,
+.departures-list::-webkit-scrollbar-thumb,
+.partners-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.itinerary-list::-webkit-scrollbar-thumb:hover,
+.pricing-options-list::-webkit-scrollbar-thumb:hover,
+.departures-list::-webkit-scrollbar-thumb:hover,
+.partners-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Tour Create Page Specific Styles */
+.tour-create-page .dashboard-header {
+  margin-bottom: 24px;
+}
+
+.tour-create-page .card {
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.tour-create-page .card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.tour-create-page .card-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #dee2e6;
+  border-radius: 12px 12px 0 0 !important;
+  padding: 16px 20px;
+}
+
+.tour-create-page .card-body {
+  padding: 20px;
+}
+
+.tour-create-page .form-floating {
+  margin-bottom: 0;
+}
+
+.tour-create-page .form-control,
+.tour-create-page .form-select {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.tour-create-page .form-control:focus,
+.tour-create-page .form-select:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.tour-create-page .btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.tour-create-page .btn-primary {
+  background: linear-gradient(135deg, var(--bs-primary) 0%, #0b5ed7 100%);
+  border: none;
+}
+
+.tour-create-page .btn-primary:hover {
+  background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.tour-create-page .sticky-top {
+  position: sticky;
+  top: 80px;
+  z-index: 10;
+}
+
+/* Empty States */
+.itinerary-empty,
+.pricing-empty,
+.departures-empty,
+.partners-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.itinerary-empty i,
+.pricing-empty i,
+.departures-empty i,
+.partners-empty i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* Animations */
+.itinerary-item,
+.pricing-item,
+.departure-item,
+.partner-item {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive Design for Progress Steps */
+@media (max-width: 992px) {
+  .progress-steps {
+    padding: 0 15px;
+  }
+
+  .step-number {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .step-label {
+    font-size: 12px;
+  }
+
+  .step {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .progress-steps {
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 0 10px;
+  }
+
+  .progress-steps::before {
+    display: none;
+  }
+
+  .step {
+    flex: 0 0 calc(50% - 10px);
+    margin-bottom: 10px;
+    max-width: none;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .step-label {
+    font-size: 11px;
+  }
+
+  .tour-create-page .progress-steps-wrapper {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .step {
+    flex: 0 0 100%;
+    max-width: none;
+  }
+
+  .step-label {
+    max-width: 100px;
+    margin: 0 auto;
+  }
+}
