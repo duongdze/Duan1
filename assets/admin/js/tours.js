@@ -408,35 +408,42 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!pricingOptionsList) return;
 
         // Get current option values
-        const availableOptions = Array.from(pricingOptionsList.querySelectorAll('.pricing-option-item'))
-            .map(item => item.querySelector('[data-field="label"]')?.value)
-            .filter(Boolean);
+const availableOptions = Array.from(
+  pricingOptionsList.querySelectorAll(".dynamic-item")
+)
+  .map((item) => {
+    const label = item.querySelector('[data-field="label"]')?.value;
+    const description = item.querySelector('[data-field="description"]')?.value;
+    const price = item.querySelector('[data-field="price"]')?.value;
+    return label ? { label, description, price } : null;
+  })
+  .filter(Boolean);
 
         // Update all select dropdowns in the dynamic pricing list
         const allDynamicSelects = listEl.querySelectorAll('[data-field="option_label"]');
         allDynamicSelects.forEach(select => {
             const currentVal = select.value;
-            select.innerHTML = '<option value="">-- Chọn loại giá --</option>'; // Reset
-            availableOptions.forEach(opt => {
-                const option = document.createElement('option');
-                option.value = opt;
-                option.textContent = opt;
-                select.appendChild(option);
-            });
+         select.innerHTML = '<option value="">-- Chọn gói dịch vụ --</option>';
+availableOptions.forEach((opt) => {
+  const option = document.createElement("option");
+  option.value = opt.label;
+  option.textContent = opt.label;
+  option.setAttribute('data-description', opt.description || '');
+  option.setAttribute('data-price', opt.price || '');
+  select.appendChild(option);
+});
             select.value = currentVal; // try to restore previous value
         });
     };
     
     // Listen for changes in the main pricing options to update the dynamic ones
-    const pricingOptionsList = document.getElementById('pricing-options-list');
-    if (pricingOptionsList) {
-        // Use a MutationObserver or event delegation on a parent container
-        pricingOptionsList.addEventListener('input', (e) => {
-             if (e.target && e.target.matches('[data-field="label"]')) {
-                updateDynamicPriceOptions();
-            }
-        });
-    }
+    pricingOptionsList.addEventListener("input", (e) => {
+  if (e.target && (e.target.matches('[data-field="label"]') || 
+                   e.target.matches('[data-field="price"]') || 
+                   e.target.matches('[data-field="description"]'))) {
+    updateDynamicPriceOptions();
+  }
+});
 
 
     function resetItem(item) {
@@ -612,4 +619,25 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
   }
+   document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('dynamic-pricing-select')) {
+      const selectedOption = e.target.selectedOptions[0];
+      const dynamicItem = e.target.closest('.dynamic-item');
+      
+      if (dynamicItem && selectedOption) {
+        const description = selectedOption.getAttribute('data-description') || '';
+        const price = selectedOption.getAttribute('data-price') || '';
+        
+        const descDisplay = dynamicItem.querySelector('.package-description-display');
+        const priceDisplay = dynamicItem.querySelector('.package-price-display');
+        
+        if (descDisplay) descDisplay.value = description;
+        if (priceDisplay) {
+          // Format price with thousand separators
+          const formattedPrice = price ? parseInt(price).toLocaleString('vi-VN') : '';
+          priceDisplay.value = formattedPrice;
+        }
+      }
+    }
+  });
 });

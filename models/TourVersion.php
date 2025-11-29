@@ -5,7 +5,12 @@ class TourVersion extends BaseModel
 {
     protected $table = 'tour_versions';
     protected $columns = [
-        'id', 'tour_id', 'name', 'start_date', 'end_date', 'price', 'notes', 'created_at'
+        'id',
+        'name',
+        'status',
+        'description',
+        'created_at',
+        'updated_at'
     ];
 
     public function __construct()
@@ -32,5 +37,36 @@ class TourVersion extends BaseModel
     public function updateById($id, $data)
     {
         return $this->update($data, 'id = :id', ['id' => $id]);
+    }
+
+    /**
+     * Get active version for a tour
+     * @param int $tourId
+     * @return array|null
+     */
+    public function getActiveVersion($tourId)
+    {
+        return $this->find('*', 'tour_id = :tour_id AND status = "active"', ['tour_id' => $tourId]);
+    }
+
+    /**
+     * Deactivate all versions except one
+     * @param int $tourId
+     * @param int $exceptId
+     * @return bool
+     */
+    public function deactivateOthers($tourId, $exceptId)
+    {
+        return $this->update(['status' => 'inactive'], 'tour_id = :tour_id AND id != :id', ['tour_id' => $tourId, 'id' => $exceptId]);
+    }
+
+    /**
+     * Get versions by tour ID
+     * @param int $tourId
+     * @return array
+     */
+    public function getByTourId($tourId)
+    {
+        return $this->select('*', 'tour_id = :tour_id ORDER BY created_at DESC', ['tour_id' => $tourId]);
     }
 }

@@ -75,28 +75,8 @@ class TourController
 
     private function getTourStatistics()
     {
-        // Total tours
-        $totalTours = $this->model->count();
-
-        // Active tours (ongoing)
-        $activeTours = $this->model->getOngoingTours();
-
-        // Total bookings
-        $bookingModel = new Booking();
-        $totalBookings = $bookingModel->count();
-
-        // Average rating
-        $avgRatingSql = "SELECT ROUND(AVG(rating), 1) as avg_rating FROM tour_feedbacks";
-        $stmt = BaseModel::getPdo()->prepare($avgRatingSql);
-        $stmt->execute();
-        $avgRating = $stmt->fetch()['avg_rating'] ?? 0;
-
-        return [
-            'total_tours' => $totalTours,
-            'active_tours' => $activeTours,
-            'total_bookings' => $totalBookings,
-            'avg_rating' => $avgRating
-        ];
+        // Use the new optimized statistics method
+        return $this->model->getStatistics();
     }
     public function create()
     {
@@ -124,38 +104,71 @@ class TourController
             }
         }
 
+        // Additional validation
+        if (strlen(trim($_POST['name'])) < 3) {
+            $_SESSION['error'] = "Tên tour phải có ít nhất 3 ký tự.";
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours/create');
+            return;
+        }
+
+        if ((float)$_POST['base_price'] <= 0) {
+            $_SESSION['error'] = "Giá cơ bản phải lớn hơn 0.";
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours/create');
+            return;
+        }
+
         try {
             // Prepare tour basic data
             $tourData = [
                 'name' => trim($_POST['name']),
                 'category_id' => (int)$_POST['category_id'],
-                'description' => $_POST['description'] ?? '',
+                'description' => trim($_POST['description'] ?? ''),
                 'base_price' => (float)$_POST['base_price'],
             ];
 
-            // Handle image uploads
+            // Handle image uploads with security checks
             $uploadedImages = [];
-            if (!empty($_FILES['image_url']['name'][0])) {
-                // Use PATH_ASSETS_UPLOADS for file system operations
+            if (!empty($_FILES['gallery_images']['name'][0])) {
                 $uploadDir = PATH_ASSETS_UPLOADS . 'tours/';
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
 
-                foreach ($_FILES['image_url']['tmp_name'] as $index => $tmpName) {
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+                $maxFileSize = 5 * 1024 * 1024; // 5MB
+
+                foreach ($_FILES['gallery_images']['tmp_name'] as $index => $tmpName) {
                     if (!empty($tmpName)) {
-                        $originalName = $_FILES['image_url']['name'][$index];
-                        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                        $originalName = $_FILES['gallery_images']['name'][$index];
+                        $fileType = $_FILES['gallery_images']['type'][$index];
+                        $fileSize = $_FILES['gallery_images']['size'][$index];
+
+                        // Validate file type
+                        if (!in_array($fileType, $allowedTypes)) {
+                            throw new Exception("Loại file không được phép: {$originalName}");
+                        }
+
+                        // Validate file size
+                        if ($fileSize > $maxFileSize) {
+                            throw new Exception("File quá lớn (tối đa 5MB): {$originalName}");
+                        }
+
+                        // Validate file is actually an image
+                        if (!getimagesize($tmpName)) {
+                            throw new Exception("File không phải là hình ảnh hợp lệ: {$originalName}");
+                        }
+
+                        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
                         $newName = uniqid('tour_') . '.' . $extension;
                         $filePath = $uploadDir . $newName;
 
                         if (move_uploaded_file($tmpName, $filePath)) {
                             $uploadedImages[] = [
-                                // Store only the relative path from uploads directory
-                                // BASE_ASSETS_UPLOADS will be prepended when displaying
                                 'path' => 'tours/' . $newName,
-                                'is_main' => ($index === 0) ? true : false
+                                'is_main' => ($index == ($_POST['main_image_index'] ?? 0)) ? true : false
                             ];
+                        } else {
+                            throw new Exception("Không thể tải lên file: {$originalName}");
                         }
                     }
                 }
@@ -168,29 +181,11 @@ class TourController
             $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
             $policyIds = $_POST['policies'] ?? [];
 
-            // Create tour with all related data
-            $tourId = $this->model->createTour($tourData, $pricingOptions, $dynamicPricing, $itineraries, $partners, $uploadedImages, $policyIds);
-
-            // Images were inserted inside createTour; main image is derived from `tour_gallery_images`.
-
-            // Handle versions
+            // Handle versions - Passed to createTour now
             $versions = json_decode($_POST['tour_versions'] ?? '[]', true);
-            if (!empty($versions) && is_array($versions)) {
-                $versionModel = new TourVersion();
-                foreach ($versions as $v) {
-                    if (!empty($v['name'])) {
-                        $versionModel->insert([
-                            'tour_id' => $tourId,
-                            'name' => $v['name'],
-                            'start_date' => !empty($v['start_date']) ? $v['start_date'] : null,
-                            'end_date' => !empty($v['end_date']) ? $v['end_date'] : null,
-                            'price' => (float)($v['price'] ?? 0),
-                            'notes' => $v['notes'] ?? '',
-                            'created_at' => date('Y-m-d H:i:s')
-                        ]);
-                    }
-                }
-            }
+
+            // Create tour with all related data including versions
+            $tourId = $this->model->createTour($tourData, $pricingOptions, $dynamicPricing, $itineraries, $partners, $uploadedImages, $policyIds, $versions);
 
             $_SESSION['success'] = 'Tour đã được tạo thành công!';
             header('Location: ' . BASE_URL_ADMIN . '&action=tours');
@@ -332,18 +327,27 @@ class TourController
                 }
             }
 
-            // 2) Handle primary image selection (existing image id or url)
-            $newPrimary = $_POST['new_primary_image_url'] ?? '';
-            if (!empty($newPrimary)) {
-                // reset previous main flags
-                $stmt = BaseModel::getPdo()->prepare("UPDATE tour_gallery_images SET main_img = 0 WHERE tour_id = :tid");
-                $stmt->execute(['tid' => $id]);
+            // 2) Handle primary image selection (existing image id or new image index)
+            $primarySelection = $_POST['primary_image_selection'] ?? '';
+            $newMainImageIndex = -1;
 
-                if (ctype_digit((string)$newPrimary)) {
-                    $imageModel->update(['main_img' => 1], 'id = :id', ['id' => $newPrimary]);
-                } else {
-                    // try match by url
-                    $imageModel->update(['main_img' => 1], 'image_url = :url AND tour_id = :tid', ['url' => $newPrimary, 'tid' => $id]);
+            if (!empty($primarySelection)) {
+                // If existing image selected
+                if (strpos($primarySelection, 'existing_') === 0) {
+                    $existingId = substr($primarySelection, 9);
+                    // reset previous main flags
+                    $stmt = BaseModel::getPdo()->prepare("UPDATE tour_gallery_images SET main_img = 0 WHERE tour_id = :tid");
+                    $stmt->execute(['tid' => $id]);
+
+                    $imageModel->update(['main_img' => 1], 'id = :id', ['id' => $existingId]);
+                }
+                // If new image selected
+                elseif (strpos($primarySelection, 'new_') === 0) {
+                    $newMainImageIndex = (int)substr($primarySelection, 4);
+                    // We will handle this in the upload loop
+                    // Also reset previous main flags now, assuming the new one will be set
+                    $stmt = BaseModel::getPdo()->prepare("UPDATE tour_gallery_images SET main_img = 0 WHERE tour_id = :tid");
+                    $stmt->execute(['tid' => $id]);
                 }
             }
 
@@ -383,14 +387,36 @@ class TourController
                 }
             }
 
-            // Multiple gallery uploads
+            // Multiple gallery uploads with security checks
             if (!empty($_FILES['gallery_images']) && !empty($_FILES['gallery_images']['tmp_name'])) {
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+                $maxFileSize = 5 * 1024 * 1024; // 5MB
+
                 foreach ($_FILES['gallery_images']['tmp_name'] as $index => $tmpName) {
                     if (!empty($tmpName) && is_uploaded_file($tmpName)) {
                         $originalName = $_FILES['gallery_images']['name'][$index];
-                        $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                        $fileType = $_FILES['gallery_images']['type'][$index];
+                        $fileSize = $_FILES['gallery_images']['size'][$index];
+
+                        // Validate file type
+                        if (!in_array($fileType, $allowedTypes)) {
+                            throw new Exception("Loại file không được phép: {$originalName}");
+                        }
+
+                        // Validate file size
+                        if ($fileSize > $maxFileSize) {
+                            throw new Exception("File quá lớn (tối đa 5MB): {$originalName}");
+                        }
+
+                        // Validate file is actually an image
+                        if (!getimagesize($tmpName)) {
+                            throw new Exception("File không phải là hình ảnh hợp lệ: {$originalName}");
+                        }
+
+                        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
                         $newName = uniqid('tour_') . '.' . $extension;
                         $filePath = $uploadDir . $newName;
+
                         if (move_uploaded_file($tmpName, $filePath)) {
                             // insert as non-main by default
                             $maxOrder = 0;
@@ -403,9 +429,11 @@ class TourController
                                 'tour_id' => $id,
                                 'image_url' => 'tours/' . $newName,
                                 'caption' => '',
-                                'main_img' => 0,
+                                'main_img' => ($index == $newMainImageIndex) ? 1 : 0,
                                 'sort_order' => $maxOrder + 1,
                             ]);
+                        } else {
+                            throw new Exception("Không thể tải lên file: {$originalName}");
                         }
                     }
                 }
@@ -495,7 +523,7 @@ class TourController
             // Handle versions
             $versionModel = new TourVersion();
             $versionModel->delete('tour_id = :tid', ['tid' => $id]);
-            
+
             $versions = json_decode($_POST['tour_versions'] ?? '[]', true);
             if (!empty($versions) && is_array($versions)) {
                 foreach ($versions as $v) {
@@ -618,6 +646,11 @@ class TourController
         }
 
 
+        // Load versions/departures
+        $departureModel = new class extends BaseModel {
+            protected $table = 'tour_departures';
+        };
+        $versions = $departureModel->select('*', 'tour_id = :tour_id ORDER BY departure_date DESC', ['tour_id' => $id]);
 
         // Normalize commonly expected fields for the detail view
         $tour['subtitle'] = $tour['subtitle'] ?? ($tour['short_description'] ?? '');
@@ -626,5 +659,190 @@ class TourController
         $tour['start_date'] = $tour['start_date'] ?? ($tour['next_start_date'] ?? '');
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
+    }
+
+    /**
+     * Toggle tour status (AJAX endpoint)
+     */
+    public function toggleStatus()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['_method']) || $_POST['_method'] !== 'PATCH') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            return;
+        }
+
+        $id = $_POST['id'] ?? null;
+
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+            return;
+        }
+
+        try {
+            $result = $this->model->toggleStatus($id);
+
+            if ($result) {
+                echo json_encode(['success' => true]);
+            } else {
+                throw new Exception('Failed to toggle status');
+            }
+        } catch (Exception $e) {
+            error_log('Error toggling tour status: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Internal server error']);
+        }
+    }
+
+    /**
+     * Toggle featured status (AJAX endpoint)
+     */
+    public function toggleFeatured()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['_method']) || $_POST['_method'] !== 'PATCH') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            return;
+        }
+
+        $id = $_POST['id'] ?? null;
+
+        if (!$id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+            return;
+        }
+
+        try {
+            $result = $this->model->toggleFeatured($id);
+
+            if ($result) {
+                echo json_encode(['success' => true]);
+            } else {
+                throw new Exception('Failed to toggle featured status');
+            }
+        } catch (Exception $e) {
+            error_log('Error toggling tour featured status: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Internal server error']);
+        }
+    }
+
+    /**
+     * Bulk update tour status
+     */
+    public function bulkUpdateStatus()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $_SESSION['error'] = 'Method not allowed';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            return;
+        }
+
+        $ids = $_POST['tour_ids'] ?? [];
+        $status = $_POST['status'] ?? '';
+
+        if (empty($ids) || !in_array($status, ['active', 'inactive'])) {
+            $_SESSION['error'] = 'Invalid request data';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            return;
+        }
+
+        try {
+            $result = $this->model->bulkUpdateStatus($ids, $status);
+
+            if ($result) {
+                $_SESSION['success'] = "Cập nhật trạng thái thành công cho " . count($ids) . " tour";
+            } else {
+                throw new Exception('Failed to update status');
+            }
+        } catch (Exception $e) {
+            error_log('Error bulk updating tour status: ' . $e->getMessage());
+            $_SESSION['error'] = 'Có lỗi xảy ra khi cập nhật trạng thái';
+        }
+
+        header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+    }
+
+    /**
+     * Bulk delete tours
+     */
+    public function bulkDelete()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $_SESSION['error'] = 'Method not allowed';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            return;
+        }
+
+        $ids = $_POST['tour_ids'] ?? [];
+
+        if (empty($ids)) {
+            $_SESSION['error'] = 'Vui lòng chọn ít nhất một tour để xóa';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+            return;
+        }
+
+        try {
+            $result = $this->model->bulkDelete($ids);
+
+            if ($result) {
+                $_SESSION['success'] = "Xóa thành công " . count($ids) . " tour";
+            } else {
+                throw new Exception('Failed to delete tours');
+            }
+        } catch (Exception $e) {
+            error_log('Error bulk deleting tours: ' . $e->getMessage());
+            $_SESSION['error'] = 'Có lỗi xảy ra khi xóa tour: ' . $e->getMessage();
+        }
+
+        header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+    }
+
+    /**
+     * Search tours (AJAX endpoint)
+     */
+    public function search()
+    {
+        $keyword = $_GET['q'] ?? '';
+        $filters = [
+            'category_id' => $_GET['category_id'] ?? null,
+            'status' => $_GET['status'] ?? 'active',
+            'difficulty_level' => $_GET['difficulty_level'] ?? null,
+            'price_min' => $_GET['price_min'] ?? null,
+            'price_max' => $_GET['price_max'] ?? null
+        ];
+
+        try {
+            $tours = $this->model->searchTours($keyword, $filters, 20);
+
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'data' => $tours]);
+        } catch (Exception $e) {
+            error_log('Error searching tours: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Internal server error']);
+        }
+    }
+
+    /**
+     * Get tours by status (AJAX endpoint)
+     */
+    public function getByStatus()
+    {
+        $status = $_GET['status'] ?? 'active';
+        $limit = $_GET['limit'] ?? 10;
+
+        try {
+            $tours = $this->model->getByStatus($status, $limit);
+
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'data' => $tours]);
+        } catch (Exception $e) {
+            error_log('Error getting tours by status: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Internal server error']);
+        }
     }
 }

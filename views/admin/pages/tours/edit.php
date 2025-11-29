@@ -1,10 +1,8 @@
 <?php
-include_once PATH_VIEW_ADMIN . 'default/header.php';
-include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
-
-$tour = $tour ?? [];
-$tourId = $tour['id'] ?? 0;
+$tourId = $_GET['id'] ?? null;
 ?>
+<?php include_once PATH_VIEW_ADMIN . 'default/header.php'; ?>
+<?php include_once PATH_VIEW_ADMIN . 'default/sidebar.php'; ?>
 
 <main class="wrapper">
     <div class="main-content">
@@ -14,7 +12,7 @@ $tourId = $tour['id'] ?? 0;
             <span class="separator">/</span>
             <a href="<?= BASE_URL_ADMIN ?>&action=tours">Quản lý Tour</a>
             <span class="separator">/</span>
-            <span class="active">Chỉnh sửa Tour: <?= htmlspecialchars($tour['name'] ?? '') ?></span>
+            <span class="active">Chỉnh sửa Tour</span>
         </nav>
 
         <!-- Page Header -->
@@ -96,9 +94,7 @@ $tourId = $tour['id'] ?? 0;
                                                 <option value="">-- Chọn danh mục --</option>
                                                 <?php if (!empty($categories)): ?>
                                                     <?php foreach ($categories as $cat): ?>
-                                                        <option value="<?= $cat['id'] ?>" <?= ($cat['id'] == ($tour['category_id'] ?? '')) ? 'selected' : '' ?>>
-                                                            <?= htmlspecialchars($cat['name']) ?>
-                                                        </option>
+                                                        <option value="<?= $cat['id'] ?>" <?= ($cat['id'] == ($tour['category_id'] ?? '')) ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
                                                     <?php endforeach; ?>
                                                 <?php endif; ?>
                                             </select>
@@ -205,9 +201,8 @@ $tourId = $tour['id'] ?? 0;
 
                                 <div class="image-upload-zone">
                                     <div class="upload-area" id="dropZone" onclick="document.getElementById('gallery_images').click()">
-                                        <i class="fas fa-cloud-upload-alt fa-3x"></i>
-                                        <h4>Kéo thả hình ảnh vào đây để thay đổi/thêm mới</h4>
-                                        <p>hoặc click để chọn file từ máy tính</p>
+                                        <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
+                                        <p class="mb-1">Kéo thả hình ảnh vào đây hoặc click để chọn</p>
                                         <span class="badge-modern badge-info">Hỗ trợ JPG, PNG, WEBP. Tối đa 5MB/file</span>
                                         <input type="file" name="gallery_images[]" id="gallery_images" multiple accept="image/*">
                                     </div>
@@ -227,6 +222,10 @@ $tourId = $tour['id'] ?? 0;
                                                         <a href="<?= BASE_URL_ADMIN ?>&action=tours/delete-image&id=<?= $img['id'] ?>&tour_id=<?= $tourId ?>" class="image-preview-action delete" title="Xóa ảnh" onclick="return confirm('Bạn có chắc muốn xóa ảnh này?')">
                                                             <i class="fas fa-trash"></i>
                                                         </a>
+                                                    </div>
+                                                    <div class="form-check mt-2 text-center">
+                                                        <input class="form-check-input float-none" type="radio" name="primary_image_selection" value="existing_<?= $img['id'] ?>" <?= !empty($img['main']) ? 'checked' : '' ?>>
+                                                        <label class="form-check-label small d-block text-muted">Ảnh đại diện</label>
                                                     </div>
                                                 </div>
                                             <?php endforeach; ?>
@@ -312,7 +311,6 @@ $tourId = $tour['id'] ?? 0;
                 <div class="col-lg-4">
                     <div class="sidebar-widget">
                         <div class="widget-title">Thao tác</div>
-                        
                         <div class="widget-actions">
                             <button type="submit" class="btn-modern btn-primary-gradient w-100 mb-2">
                                 <i class="fas fa-save"></i> Lưu thay đổi
@@ -334,15 +332,19 @@ $tourId = $tour['id'] ?? 0;
     <span>Đang lưu nháp...</span>
 </div>
 
-<!-- Templates (Same as create.php) -->
+<!-- Templates -->
 <template id="pricing-option-template">
     <div class="dynamic-item">
         <button type="button" class="remove-item-btn remove-pricing-option"><i class="fas fa-times"></i></button>
         <div class="row g-3">
             <div class="col-md-12">
                 <div class="form-floating-modern">
-                    <input type="text" data-field="label" class="form-control" placeholder=" ">
-                    <label>Tên gói (VD: Người lớn, Trẻ em)</label>
+                    <select data-field="label" class="form-select form-control">
+                        <option value="Người lớn">Người lớn</option>
+                        <option value="Trẻ em">Trẻ em</option>
+                        <option value="Em bé">Em bé</option>
+                    </select>
+                    <label>Tên gói</label>
                 </div>
             </div>
             <div class="col-12">
@@ -361,8 +363,10 @@ $tourId = $tour['id'] ?? 0;
         <div class="row g-3">
             <div class="col-md-6">
                 <div class="form-floating-modern">
-                    <input type="text" data-field="option_label" class="form-control" placeholder=" ">
-                    <label>Áp dụng cho gói (VD: Người lớn)</label>
+                    <select data-field="option_label" class="form-select form-control">
+                        <option value="">-- Chọn loại giá --</option>
+                    </select>
+                    <label>Áp dụng cho gói</label>
                 </div>
             </div>
             <div class="col-md-6">
@@ -463,8 +467,14 @@ $tourId = $tour['id'] ?? 0;
         <div class="row g-3">
             <div class="col-12">
                 <div class="form-floating-modern">
-                    <input type="text" data-field="name" class="form-control" placeholder=" ">
-                    <label>Tên phiên bản (VD: Mùa hè 2024)</label>
+                    <select data-field="name" class="form-select form-control">
+                        <option value="Cơ bản">Cơ bản</option>
+                        <option value="Cao cấp">Cao cấp</option>
+                        <option value="Mùa hè">Mùa hè</option>
+                        <option value="Mùa đông">Mùa đông</option>
+                        <option value="Lễ / Tết">Lễ / Tết</option>
+                    </select>
+                    <label>Tên phiên bản</label>
                 </div>
             </div>
             <div class="col-md-6">
@@ -504,6 +514,10 @@ $tourId = $tour['id'] ?? 0;
                 <i class="fas fa-trash"></i>
             </button>
         </div>
+        <div class="form-check mt-2 text-center">
+            <input class="form-check-input float-none" type="radio" name="main_image_index">
+            <label class="form-check-label small d-block text-muted">Ảnh đại diện</label>
+        </div>
     </div>
 </template>
 
@@ -535,39 +549,13 @@ $tourId = $tour['id'] ?? 0;
             dropZone.addEventListener('drop', (e) => {
                 e.preventDefault();
                 dropZone.classList.remove('drag-over');
-                fileInput.files = e.dataTransfer.files;
-                handleFiles(e.dataTransfer.files);
+                const files = e.dataTransfer.files;
+                fileInput.files = files;
+                handleFiles(files);
             });
         }
 
-        function handleFiles(files) {
-            previewGrid.innerHTML = ''; // Clear existing
-            Array.from(files).forEach(file => {
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const div = document.createElement('div');
-                        div.className = 'image-preview-card';
-                        div.innerHTML = `
-                            <img src="${e.target.result}" alt="Preview">
-                            <div class="image-preview-overlay">
-                                <button type="button" class="image-preview-action delete">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        `;
-                        // Simple delete (just removes preview, doesn't update input files list easily without DataTransfer)
-                        div.querySelector('.delete').addEventListener('click', function() {
-                            div.remove();
-                        });
-                        previewGrid.appendChild(div);
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-
-        // Auto-save simulation
+        // Auto-save functionality
         const form = document.getElementById('tour-form');
         const indicator = document.getElementById('autoSaveIndicator');
         let timeout;
@@ -577,17 +565,66 @@ $tourId = $tour['id'] ?? 0;
                 clearTimeout(timeout);
                 indicator.className = 'auto-save-indicator show saving';
                 indicator.innerHTML = '<div class="auto-save-spinner"></div><span>Đang lưu nháp...</span>';
-                
+
                 timeout = setTimeout(function() {
                     indicator.className = 'auto-save-indicator show saved';
                     indicator.innerHTML = '<i class="fas fa-check-circle"></i><span>Đã lưu nháp</span>';
-                    
+
                     setTimeout(() => {
                         indicator.classList.remove('show');
                     }, 2000);
                 }, 1000);
             });
         }
+
+        // Pricing option price display functionality
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('pricing-option-select')) {
+                const selectedOption = e.target.selectedOptions[0];
+                const price = selectedOption.getAttribute('data-price');
+                const priceInput = e.target.closest('.dynamic-item').querySelector('.pricing-option-price');
+
+                if (priceInput && price) {
+                    priceInput.value = price;
+                }
+            }
+        });
+
+        // Update pricing options for dynamic pricing dropdown when pricing options change
+        function updateDynamicPricingOptions() {
+            const pricingOptions = document.querySelectorAll('#pricing-options-list .pricing-option-select');
+            const dynamicSelects = document.querySelectorAll('#dynamic-pricing-list .dynamic-item select[data-field="option_label"]');
+
+            dynamicSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">-- Chọn loại giá --</option>';
+
+                pricingOptions.forEach(option => {
+                    const selectedOption = option.selectedOptions[0];
+                    if (selectedOption && selectedOption.value) {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = selectedOption.value;
+                        optionElement.textContent = selectedOption.textContent.split(' - ')[0]; // Remove price from display
+                        select.appendChild(optionElement);
+                    }
+                });
+
+                // Restore previous selection if it still exists
+                if (currentValue && select.querySelector(`option[value="${currentValue}"]`)) {
+                    select.value = currentValue;
+                }
+            });
+        }
+
+        // Listen for changes in pricing options to update dynamic pricing
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('pricing-option-select')) {
+                setTimeout(updateDynamicPricingOptions, 100); // Small delay to ensure DOM updates
+            }
+        });
+
+        // Initial update on page load
+        setTimeout(updateDynamicPricingOptions, 500);
     });
 </script>
 

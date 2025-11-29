@@ -11,7 +11,8 @@ $versions = $versions ?? [];
 $policies = $assignedPolicies ?? [];
 
 // Helper for price formatting
-function formatPrice($price) {
+function formatPrice($price)
+{
     if ($price >= 1000000000) {
         return round($price / 1000000000, ($price / 1000000000) >= 10 ? 0 : 1) . ' tỷ';
     } elseif ($price >= 1000000) {
@@ -21,8 +22,8 @@ function formatPrice($price) {
     }
 }
 
-$mainImage = !empty($tour['main_image']) ? 
-    ((strpos($tour['main_image'], 'http') === 0) ? $tour['main_image'] : BASE_ASSETS_UPLOADS . $tour['main_image']) : 
+$mainImage = !empty($tour['main_image']) ?
+    ((strpos($tour['main_image'], 'http') === 0) ? $tour['main_image'] : BASE_ASSETS_UPLOADS . $tour['main_image']) :
     BASE_URL . 'assets/admin/image/no-image.png';
 
 // Prepare gallery URLs for lightbox
@@ -38,144 +39,652 @@ if (empty($galleryUrls) && !empty($tour['main_image'])) {
 }
 ?>
 
-<main class="wrapper">
-    <div class="main-content">
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb-modern mb-4" aria-label="breadcrumb">
-            <a href="<?= BASE_URL_ADMIN ?>&action=dashboard">Dashboard</a>
-            <span class="separator">/</span>
-            <a href="<?= BASE_URL_ADMIN ?>&action=tours">Quản lý Tour</a>
-            <span class="separator">/</span>
-            <span class="active">Chi tiết Tour</span>
-        </nav>
+<main class="tours-dashboard tour-detail-page">
+    <div class="dashboard-container">
+        <!-- Modern Page Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="breadcrumb-modern">
+                        <a href="<?= BASE_URL_ADMIN ?>&action=/" class="breadcrumb-link">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <a href="<?= BASE_URL_ADMIN ?>&action=tours" class="breadcrumb-link">
+                            <i class="fas fa-route"></i>
+                            <span>Quản lý Tour</span>
+                        </a>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <span class="breadcrumb-current">Chi tiết Tour</span>
+                    </div>
+                    <div class="page-title-section">
+                        <h1 class="page-title">
+                            <i class="fas fa-route title-icon"></i>
+                            <?= htmlspecialchars($tour['name'] ?? 'Tên Tour') ?>
+                        </h1>
+                        <p class="page-subtitle"><?= htmlspecialchars($tour['category_name'] ?? 'Chưa có danh mục') ?></p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="<?= BASE_URL_ADMIN ?>&action=tours/edit&id=<?= $tour['id'] ?>" class="btn btn-modern btn-secondary">
+                        <i class="fas fa-edit me-2"></i>
+                        Chỉnh sửa
+                    </a>
+                    <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&tour_id=<?= $tour['id'] ?>" class="btn btn-modern btn-primary">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        Tạo Booking
+                    </a>
+                </div>
+            </div>
+        </header>
 
-        <!-- Hero Section -->
-        <div class="tour-hero mb-4 position-relative rounded-xl overflow-hidden shadow-sm" style="height: 400px;">
-            <img src="<?= $mainImage ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="w-100 h-100 object-fit-cover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Phiên bản</th>
-                                                    <th>Thời gian</th>
-                                                    <th class="text-end">Giá riêng</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php foreach ($versions as $ver): ?>
-                                                    <tr>
-                                                        <td class="fw-bold"><?= htmlspecialchars($ver['name']) ?></td>
-                                                        <td class="small">
-                                                            <?= date('d/m/Y', strtotime($ver['start_date'])) ?> - 
-                                                            <?= date('d/m/Y', strtotime($ver['end_date'])) ?>
-                                                        </td>
-                                                        <td class="text-end">
-                                                            <?php if (!empty($ver['price'])): ?>
-                                                                <span class="fw-bold text-primary"><?= number_format($ver['price']) ?>đ</span>
-                                                            <?php else: ?>
-                                                                <span class="text-muted">Theo giá gốc</span>
-                                                            <?php endif; ?>
-                                                        </td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                <?php endif; ?>
+        <!-- Alert Messages -->
+        <?php if (isset($_SESSION['success'])): ?>
+            <div class="alert-modern alert-success alert-dismissible fade show" role="alert">
+                <div class="alert-content">
+                    <i class="fas fa-check-circle alert-icon"></i>
+                    <span><?= $_SESSION['success'] ?></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <?php unset($_SESSION['success']); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="alert-modern alert-danger alert-dismissible fade show" role="alert">
+                <div class="alert-content">
+                    <i class="fas fa-exclamation-circle alert-icon"></i>
+                    <span><?= $_SESSION['error'] ?></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <?php unset($_SESSION['error']); ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Statistics Cards -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?= formatPrice($tour['base_price'] ?? 0) ?></div>
+                        <div class="stat-label">Giá gốc</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-success">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?= count($versions) ?></div>
+                        <div class="stat-label">Lịch khởi hành</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-warning">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?= count($itinerarySchedule) ?></div>
+                        <div class="stat-label">Số ngày</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-danger">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">4.5</div>
+                        <div class="stat-label">Đánh giá</div>
+                        <div class="stat-trend">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>(12)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="row">
+            <!-- Main Column (Left) -->
+            <div class="col-lg-8">
+                <!-- Description Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-file-alt text-primary me-2"></i>
+                            Mô tả chi tiết
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($tour['description'])): ?>
+                            <div class="description-content">
+                                <?= nl2br(htmlspecialchars($tour['description'])) ?>
                             </div>
-
-                            <!-- Policies Tab -->
-                                    <div class="empty-state py-5">
-                                        <div class="empty-state-icon"><i class="fas fa-shield-alt"></i></div>
-                                        <div class="empty-state-title">Chưa có chính sách</div>
-                                        <div class="empty-state-description">Chưa có thông tin về chính sách và điều khoản.</div>
-                                    </div>
-                                <?php endif; ?>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                                <h6>Chưa có mô tả</h6>
+                                <p class="mb-0">Mô tả chi tiết cho tour này chưa được cập nhật.</p>
                             </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
 
-                            <!-- Gallery Tab -->
-                            <div class="tab-pane fade" id="gallery" role="tabpanel">
-                                <?php if (!empty($galleryUrls)): ?>
-                                    <div class="row g-3" id="tour-gallery" data-gallery='<?= json_encode($galleryUrls) ?>'>
-                                        <?php foreach ($galleryUrls as $index => $url): ?>
-                                            <div class="col-6 col-md-4 col-lg-3">
-                                                <div class="ratio ratio-1x1 rounded overflow-hidden shadow-sm cursor-pointer gallery-item" onclick="openLightbox(<?= $index ?>)">
-                                                    <img src="<?= $url ?>" class="w-100 h-100 object-fit-cover transition-transform hover-scale">
+                <!-- Itinerary Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-map-signs text-success me-2"></i>
+                            Lịch trình Tour
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($itinerarySchedule)): ?>
+                            <div class="itinerary-timeline">
+                                <?php foreach ($itinerarySchedule as $index => $item): ?>
+                                    <div class="timeline-item">
+                                        <div class="timeline-day">
+                                            <?= htmlspecialchars($item['day_label'] ?? 'N' . ($index + 1)) ?>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <h6 class="timeline-title">
+                                                <?= htmlspecialchars($item['title'] ?? 'Lịch trình ngày ' . ($index + 1)) ?>
+                                            </h6>
+                                            <p class="timeline-description">
+                                                <?= htmlspecialchars($item['description'] ?? '') ?>
+                                            </p>
+                                            <?php if (!empty($item['time_start'])): ?>
+                                                <div class="timeline-time">
+                                                    <i class="fas fa-clock"></i>
+                                                    <?= date('H:i', strtotime($item['time_start'])) ?> -
+                                                    <?= date('H:i', strtotime($item['time_end'])) ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-map-marked-alt fa-3x mb-3"></i>
+                                <h6>Chưa có lịch trình</h6>
+                                <p class="mb-0">Lịch trình chi tiết cho tour này chưa được cập nhật.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Versions Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calendar-alt text-info me-2"></i>
+                            Lịch khởi hành
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($versions)): ?>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Ngày khởi hành</th>
+                                            <th>Số chỗ</th>
+                                            <th>Đã đặt</th>
+                                            <th>Giá người lớn</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($versions as $version): ?>
+                                            <tr>
+                                                <td class="fw-medium">
+                                                    <?= date('d/m/Y', strtotime($version['departure_date'])) ?>
+                                                </td>
+                                                <td>
+                                                    <?= $version['max_seats'] ?? 'N/A' ?>
+                                                </td>
+                                                <td>
+                                                    <?= $version['booked_seats'] ?? 0 ?>
+                                                </td>
+                                                <td class="text-end fw-bold text-primary">
+                                                    <?= formatPrice($version['price_adult'] ?? $tour['base_price']) ?>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-<?= $version['status'] === 'open' ? 'success' : ($version['status'] === 'full' ? 'danger' : 'warning') ?>">
+                                                        <?= ucfirst($version['status'] ?? 'unknown') ?>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                                <h6>Chưa có lịch khởi hành</h6>
+                                <p class="mb-0">Hiện chưa có lịch khởi hành nào cho tour này.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Gallery Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-images text-danger me-2"></i>
+                            Thư viện ảnh
+                            <span class="badge bg-secondary ms-2"><?= count($galleryUrls) ?> ảnh</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($galleryUrls)): ?>
+                            <div class="row g-3" id="tour-gallery" data-gallery='<?= json_encode($galleryUrls) ?>'>
+                                <?php foreach ($galleryUrls as $index => $url): ?>
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="gallery-item-wrapper" onclick="openLightbox(<?= $index ?>)">
+                                            <div class="gallery-item">
+                                                <img src="<?= $url ?>" alt="Tour Gallery Image <?= $index + 1 ?>" class="img-fluid">
+                                                <div class="gallery-overlay">
+                                                    <div class="gallery-overlay-content">
+                                                        <i class="fas fa-search-plus"></i>
+                                                        <span>Xem ảnh</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        <?php endforeach; ?>
+                                            <div class="gallery-caption">
+                                                <small class="text-muted">Ảnh #<?= $index + 1 ?></small>
+                                            </div>
+                                        </div>
                                     </div>
-                                <?php else: ?>
-                                    <div class="empty-state py-5">
-                                        <div class="empty-state-icon"><i class="fas fa-images"></i></div>
-                                        <div class="empty-state-title">Thư viện trống</div>
-                                        <div class="empty-state-description">Chưa có hình ảnh nào trong thư viện.</div>
-                                    </div>
-                                <?php endif; ?>
+                                <?php endforeach; ?>
                             </div>
-                        </div>
+
+                            <?php if (count($galleryUrls) > 6): ?>
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="showAllImages()">
+                                        <i class="fas fa-images me-2"></i>
+                                        Xem tất cả <?= count($galleryUrls) ?> ảnh
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-5">
+                                <div class="gallery-empty-state">
+                                    <i class="fas fa-images fa-4x mb-3 text-muted"></i>
+                                    <h6 class="text-muted">Thư viện trống</h6>
+                                    <p class="text-muted mb-3">Chưa có hình ảnh nào trong thư viện.</p>
+                                    <a href="<?= BASE_URL_ADMIN ?>&action=tours/edit&id=<?= $tour['id'] ?>#gallery" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Thêm hình ảnh
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
 
             <!-- Sidebar (Right) -->
             <div class="col-lg-4">
-                <div class="sidebar-widget">
-                    <div class="widget-title">Thao tác nhanh</div>
-                    <div class="d-grid gap-2">
-                        <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&tour_id=<?= $tour['id'] ?>" class="btn-modern btn-primary-gradient">
-                            <i class="fas fa-calendar-plus"></i> Tạo đặt chỗ mới
-                        </a>
-                        <a href="#" class="btn-modern btn-outline-secondary">
-                            <i class="fas fa-share-alt"></i> Chia sẻ tour
-                        </a>
-                        <a href="#" class="btn-modern btn-outline-secondary">
-                            <i class="fas fa-print"></i> In thông tin
-                        </a>
+                <!-- Main Image Widget -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Ảnh đại diện</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="ratio ratio-16x9">
+                            <img src="<?= $mainImage ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="img-fluid rounded">
+                        </div>
                     </div>
                 </div>
 
+                <!-- Partner Services Widget -->
                 <?php if (!empty($partnerServices)): ?>
-                    <div class="sidebar-widget">
-                        <div class="widget-title">Đối tác dịch vụ</div>
-                        <div class="d-flex flex-column gap-3">
-                            <?php foreach ($partnerServices as $partner): ?>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-circle bg-light p-2 text-primary">
-                                        <?php
-                                        $icon = match($partner['service_type'] ?? '') {
-                                            'hotel' => 'fa-hotel',
-                                            'transport' => 'fa-bus',
-                                            'restaurant' => 'fa-utensils',
-                                            'guide' => 'fa-user-tie',
-                                            default => 'fa-handshake'
-                                        };
-                                        ?>
-                                        <i class="fas <?= $icon ?>"></i>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Đối tác dịch vụ</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="partner-list">
+                                <?php foreach ($partnerServices as $partner): ?>
+                                    <div class="partner-item d-flex align-items-center mb-3">
+                                        <div class="partner-icon me-3">
+                                            <?php
+                                            $icon = match ($partner['service_type'] ?? '') {
+                                                'hotel' => 'fa-hotel',
+                                                'transport' => 'fa-bus',
+                                                'restaurant' => 'fa-utensils',
+                                                'guide' => 'fa-user-tie',
+                                                default => 'fa-handshake'
+                                            };
+                                            ?>
+                                            <i class="fas <?= $icon ?> text-primary"></i>
+                                        </div>
+                                        <div class="partner-info flex-grow-1">
+                                            <div class="partner-name fw-medium">
+                                                <?= htmlspecialchars($partner['name']) ?>
+                                            </div>
+                                            <div class="partner-contact text-muted small">
+                                                <?= htmlspecialchars($partner['contact']) ?>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div class="fw-bold small"><?= htmlspecialchars($partner['name']) ?></div>
-                                        <div class="text-muted small" style="font-size: 0.75rem;"><?= htmlspecialchars($partner['contact']) ?></div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
                     </div>
                 <?php endif; ?>
+
+                <!-- Quick Actions Widget -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Thao tác nhanh</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="<?= BASE_URL_ADMIN ?>&action=tours/edit&id=<?= $tour['id'] ?>" class="btn btn-secondary">
+                                <i class="fas fa-edit me-2"></i>
+                                Chỉnh sửa Tour
+                            </a>
+                            <a href="<?= BASE_URL_ADMIN ?>&action=tours/versions&id=<?= $tour['id'] ?>" class="btn btn-secondary">
+                                <i class="fas fa-layer-group me-2"></i>
+                                Quản lý phiên bản
+                            </a>
+                            <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&tour_id=<?= $tour['id'] ?>" class="btn btn-primary">
+                                <i class="fas fa-calendar-plus me-2"></i>
+                                Tạo Booking mới
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </main>
 
 <script>
-    // Simple lightbox function (reusing existing logic if available, or simple implementation)
+    // Lightbox functionality
     function openLightbox(index) {
-        // Trigger the existing lightbox logic if present in tours.js
-        // Or implement a simple one here if needed
         const gallery = document.getElementById('tour-gallery');
-        if (gallery && window.createLightbox) {
-            // Assuming createLightbox is global or accessible
-            // This part depends on how tours.js is structured
+        if (gallery) {
+            const galleryData = JSON.parse(gallery.dataset.gallery || '[]');
+
+            // Create lightbox overlay
+            const lightbox = document.createElement('div');
+            lightbox.className = 'lightbox-overlay';
+            lightbox.innerHTML = `
+            <div class="lightbox-content">
+                <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+                <img src="${galleryData[index]}" alt="Gallery Image ${index + 1}" class="lightbox-image">
+                <div class="lightbox-controls">
+                    <button class="lightbox-btn" onclick="navigateLightbox(-1)" ${index === 0 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="lightbox-counter">${index + 1} / ${galleryData.length}</span>
+                    <button class="lightbox-btn" onclick="navigateLightbox(1)" ${index === galleryData.length - 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+            document.body.appendChild(lightbox);
+            document.body.style.overflow = 'hidden';
+
+            // Store current index
+            window.currentLightboxIndex = index;
+            window.galleryData = galleryData;
+
+            // Close on escape key
+            document.addEventListener('keydown', handleLightboxKeydown);
+
+            // Close on background click
+            lightbox.addEventListener('click', function(e) {
+                if (e.target === lightbox) {
+                    closeLightbox();
+                }
+            });
+        }
+    }
+
+    function closeLightbox() {
+        const lightbox = document.querySelector('.lightbox-overlay');
+        if (lightbox) {
+            lightbox.remove();
+            document.body.style.overflow = '';
+            document.removeEventListener('keydown', handleLightboxKeydown);
+        }
+    }
+
+    function navigateLightbox(direction) {
+        const newIndex = window.currentLightboxIndex + direction;
+        if (newIndex >= 0 && newIndex < window.galleryData.length) {
+            window.currentLightboxIndex = newIndex;
+            const img = document.querySelector('.lightbox-image');
+            const counter = document.querySelector('.lightbox-counter');
+            const prevBtn = document.querySelector('.lightbox-btn:first-child');
+            const nextBtn = document.querySelector('.lightbox-btn:last-child');
+
+            img.src = window.galleryData[newIndex];
+            counter.textContent = `${newIndex + 1} / ${window.galleryData.length}`;
+
+            prevBtn.disabled = newIndex === 0;
+            nextBtn.disabled = newIndex === window.galleryData.length - 1;
+        }
+    }
+
+    function handleLightboxKeydown(e) {
+        if (e.key === 'Escape') {
+            closeLightbox();
+        } else if (e.key === 'ArrowLeft') {
+            navigateLightbox(-1);
+        } else if (e.key === 'ArrowRight') {
+            navigateLightbox(1);
         }
     }
 </script>
 
-<?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>
+<style>
+    /* Gallery Styles */
+    .gallery-item-wrapper {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-item-wrapper:hover {
+        transform: translateY(-2px);
+    }
+
+    .gallery-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 16/9;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .gallery-item-wrapper:hover .gallery-overlay {
+        opacity: 1;
+    }
+
+    .gallery-item-wrapper:hover img {
+        transform: scale(1.05);
+    }
+
+    .gallery-overlay-content {
+        text-align: center;
+        color: white;
+    }
+
+    .gallery-overlay-content i {
+        font-size: 24px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .gallery-overlay-content span {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .gallery-caption {
+        text-align: center;
+        margin-top: 8px;
+    }
+
+    .gallery-empty-state {
+        padding: 40px 20px;
+    }
+
+    /* Responsive Gallery */
+    @media (max-width: 768px) {
+        .gallery-item {
+            aspect-ratio: 4/3;
+        }
+
+        .gallery-overlay-content i {
+            font-size: 20px;
+        }
+
+        .gallery-overlay-content span {
+            font-size: 12px;
+        }
+    }
+
+    /* Lightbox Styles */
+    .lightbox-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        padding: 20px;
+    }
+
+    .lightbox-content {
+        position: relative;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .lightbox-image {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 32px;
+        cursor: pointer;
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .lightbox-close:hover {
+        opacity: 0.8;
+    }
+
+    .lightbox-controls {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .lightbox-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    .lightbox-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .lightbox-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .lightbox-counter {
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .lightbox-controls {
+            gap: 15px;
+        }
+
+        .lightbox-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .lightbox-counter {
+            font-size: 12px;
+        }
+    }
+</style>
+
+</script><?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>
