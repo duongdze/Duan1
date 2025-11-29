@@ -254,9 +254,10 @@ class TourController
             ];
         }, $images ?: []);
 
-        // Load versions
-        $versionModel = new TourVersion();
-        $versions = $versionModel->select('*', 'tour_id = :tour_id ORDER BY start_date DESC', ['tour_id' => $id]);
+        // Load versions (tour_versions is a standalone table, not related to specific tour)
+        // $versionModel = new TourVersion();
+        // $versions = $versionModel->select('*', 'tour_id = :tour_id ORDER BY start_date DESC', ['tour_id' => $id]);
+        $versions = []; // Tour versions are managed separately
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
@@ -520,26 +521,27 @@ class TourController
                 ]);
             }
 
-            // Handle versions
-            $versionModel = new TourVersion();
-            $versionModel->delete('tour_id = :tid', ['tid' => $id]);
+            // Handle versions (tour_versions is a standalone table, not related to specific tour)
+            // Tour versions are managed separately through their own CRUD interface
+            // $versionModel = new TourVersion();
+            // $versionModel->delete('tour_id = :tid', ['tid' => $id]);
 
-            $versions = json_decode($_POST['tour_versions'] ?? '[]', true);
-            if (!empty($versions) && is_array($versions)) {
-                foreach ($versions as $v) {
-                    if (!empty($v['name'])) {
-                        $versionModel->insert([
-                            'tour_id' => $id,
-                            'name' => $v['name'],
-                            'start_date' => !empty($v['start_date']) ? $v['start_date'] : null,
-                            'end_date' => !empty($v['end_date']) ? $v['end_date'] : null,
-                            'price' => (float)($v['price'] ?? 0),
-                            'notes' => $v['notes'] ?? '',
-                            'created_at' => date('Y-m-d H:i:s')
-                        ]);
-                    }
-                }
-            }
+            // $versions = json_decode($_POST['tour_versions'] ?? '[]', true);
+            // if (!empty($versions) && is_array($versions)) {
+            //     foreach ($versions as $v) {
+            //         if (!empty($v['name'])) {
+            //             $versionModel->insert([
+            //                 'tour_id' => $id,
+            //                 'name' => $v['name'],
+            //                 'start_date' => !empty($v['start_date']) ? $v['start_date'] : null,
+            //                 'end_date' => !empty($v['end_date']) ? $v['end_date'] : null,
+            //                 'price' => (float)($v['price'] ?? 0),
+            //                 'notes' => $v['notes'] ?? '',
+            //                 'created_at' => date('Y-m-d H:i:s')
+            //             ]);
+            //         }
+            //     }
+            // }
 
             $this->model->commit();
 
