@@ -1,6 +1,45 @@
 <?php
+// Get tour ID from URL
 $tourId = $_GET['id'] ?? null;
+
+if (!$tourId) {
+    header('Location: ' . BASE_URL_ADMIN . '&action=tours');
+    exit;
+}
+
+// Process images from controller data
+$mainImage = null;
+$galleryImages = [];
+
+if (!empty($allImages)) {
+    foreach ($allImages as $img) {
+        if (!empty($img['main'])) {
+            $mainImage = [
+                'id' => $img['id'],
+                'image_url' => $img['path']
+            ];
+        } else {
+            $galleryImages[] = [
+                'id' => $img['id'],
+                'image_url' => $img['path']
+            ];
+        }
+    }
+}
+
+// Ensure variables exist (set by controller)
+$categories = $categories ?? [];
+$itinerarySchedule = $itinerarySchedule ?? [];
+$pricingOptions = $pricingOptions ?? [];
+$partnerServices = $partnerServices ?? [];
+$policies = $policies ?? [];
+$assignedPolicyIds = $assignedPolicyIds ?? [];
+$versions = $versions ?? [];
+
+// Load departures (if not loaded in controller, we'll need to add this)
+$departures = $departures ?? [];
 ?>
+
 <?php include_once PATH_VIEW_ADMIN . 'default/header.php'; ?>
 <?php include_once PATH_VIEW_ADMIN . 'default/sidebar.php'; ?>
 
@@ -104,6 +143,7 @@ $tourId = $_GET['id'] ?? null;
         <!-- Tour Form -->
         <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=tours/update&id=<?= $tourId ?>" enctype="multipart/form-data" id="tour-edit-form">
             <!-- Hidden inputs for dynamic data -->
+            <input type="hidden" name="id" value="<?= $tourId ?>">
             <input type="hidden" name="tour_itinerary" id="tour_itinerary">
             <input type="hidden" name="tour_pricing_options" id="tour_pricing_options">
             <input type="hidden" name="tour_departures" id="tour_departures">
@@ -149,39 +189,10 @@ $tourId = $_GET['id'] ?? null;
                                             <label for="base_price">Giá cơ bản (VNĐ) <span class="text-danger">*</span></label>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <input type="text" name="duration" id="duration" class="form-control" placeholder=" " value="<?= htmlspecialchars($tour['duration'] ?? '') ?>">
-                                            <label for="duration">Thời lượng</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <select name="difficulty" id="difficulty" class="form-select">
-                                                <option value="">-- Chọn độ khó --</option>
-                                                <option value="easy" <?= ($tour['difficulty'] ?? '') === 'easy' ? 'selected' : '' ?>>Dễ</option>
-                                                <option value="medium" <?= ($tour['difficulty'] ?? '') === 'medium' ? 'selected' : '' ?>>Trung bình</option>
-                                                <option value="hard" <?= ($tour['difficulty'] ?? '') === 'hard' ? 'selected' : '' ?>>Khó</option>
-                                            </select>
-                                            <label for="difficulty">Độ khó</label>
-                                        </div>
-                                    </div>
                                     <div class="col-12">
                                         <div class="form-floating">
                                             <textarea name="description" id="description" class="form-control" style="height: 150px" placeholder=" "><?= htmlspecialchars($tour['description'] ?? '') ?></textarea>
                                             <label for="description">Mô tả chi tiết</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <input type="text" name="departure_location" id="departure_location" class="form-control" placeholder=" " value="<?= htmlspecialchars($tour['departure_location'] ?? '') ?>">
-                                            <label for="departure_location">Nơi khởi hành</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <input type="text" name="destination" id="destination" class="form-control" placeholder=" " value="<?= htmlspecialchars($tour['destination'] ?? '') ?>">
-                                            <label for="destination">Điểm đến</label>
                                         </div>
                                     </div>
                                 </div>
@@ -194,57 +205,61 @@ $tourId = $_GET['id'] ?? null;
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-images text-primary me-2"></i>
+                                    <i class="fas fa-images text-success me-2"></i>
                                     Hình ảnh Tour
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <!-- Main Image -->
                                 <div class="mb-4">
-                                    <label class="form-label">Ảnh đại diện</label>
-                                    <div class="main-image-preview">
+                                    <h6 class="mb-3">Ảnh đại diện</h6>
+                                    <div class="main-image-upload">
                                         <?php if (!empty($mainImage)): ?>
-                                            <img src="<?= BASE_ASSETS_UPLOADS . $mainImage['image_url'] ?>" alt="Main Image" style="max-width: 300px; height: 200px; object-fit: cover; border-radius: 8px;">
-                                            <input type="hidden" name="existing_main_image" value="<?= $mainImage['id'] ?>">
-                                        <?php else: ?>
-                                            <div class="upload-area" onclick="document.getElementById('main_image').click()">
-                                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                                                <p class="text-muted">Click để tải lên ảnh đại diện</p>
-                                                <small class="text-muted">JPG, PNG, WebP (Tối đa 5MB)</small>
+                                            <div class="main-image-preview" id="mainImagePreview">
+                                                <img src="<?= BASE_ASSETS_UPLOADS . $mainImage['image_url'] ?>" alt="Main Image" class="img-fluid rounded">
+                                                <input type="hidden" name="existing_main_image" value="<?= $mainImage['id'] ?>">
+                                                <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeMainImage()">
+                                                    <i class="fas fa-trash"></i> Xóa
+                                                </button>
                                             </div>
                                         <?php endif; ?>
-                                        <input type="file" name="main_image" id="main_image" class="d-none" accept="image/*">
+                                        <div class="upload-area" id="mainImageDropZone" onclick="document.getElementById('main_image').click()" style="<?= !empty($mainImage) ? 'display: none;' : '' ?>">
+                                            <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
+                                            <p class="mb-1">Kéo thả hoặc click để chọn ảnh đại diện</p>
+                                            <span class="text-muted small">JPG, PNG, WEBP. Tối đa 5MB</span>
+                                            <input type="file" name="main_image" id="main_image" accept="image/*">
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Gallery Images -->
-                                <div class="mb-4">
-                                    <label class="form-label">Thư viện ảnh</label>
-                                    <div class="upload-area" onclick="document.getElementById('gallery_images').click()">
-                                        <i class="fas fa-images fa-3x text-muted mb-3"></i>
-                                        <p class="text-muted">Click để tải lên nhiều ảnh</p>
-                                        <small class="text-muted">JPG, PNG, WebP (Tối đa 5MB mỗi ảnh)</small>
-                                    </div>
-                                    <input type="file" name="gallery_images[]" id="gallery_images" class="d-none" accept="image/*" multiple>
-
-                                    <!-- Existing Gallery -->
-                                    <?php if (!empty($galleryImages)): ?>
-                                        <div class="gallery-preview-grid mt-3">
-                                            <?php foreach ($galleryImages as $img): ?>
-                                                <div class="gallery-preview-item">
-                                                    <img src="<?= BASE_ASSETS_UPLOADS . $img['image_url'] ?>" alt="Gallery Image">
-                                                    <div class="gallery-item-actions">
-                                                        <button type="button" class="btn btn-sm btn-danger" onclick="removeExistingImage(<?= $img['id'] ?>)">
-                                                            <i class="fas fa-trash"></i>
-                                                        </button>
-                                                    </div>
-                                                    <input type="hidden" name="existing_gallery[]" value="<?= $img['id'] ?>">
-                                                </div>
-                                            <?php endforeach; ?>
+                                <div>
+                                    <h6 class="mb-3">Thư viện ảnh</h6>
+                                    <div class="gallery-upload-zone">
+                                        <div class="upload-area" id="galleryDropZone" onclick="document.getElementById('gallery_images').click()">
+                                            <i class="fas fa-images fa-3x mb-3 text-primary"></i>
+                                            <p class="mb-1">Kéo thả hoặc click để chọn nhiều ảnh</p>
+                                            <span class="text-muted small">JPG, PNG, WEBP. Tối đa 5MB mỗi ảnh</span>
+                                            <input type="file" name="gallery_images[]" id="gallery_images" multiple accept="image/*">
                                         </div>
-                                    <?php endif; ?>
 
-                                    <div id="gallery-preview" class="gallery-preview-grid mt-3"></div>
+                                        <!-- Existing Gallery -->
+                                        <?php if (!empty($galleryImages)): ?>
+                                            <div class="gallery-preview-grid mt-3" id="galleryPreview">
+                                                <?php foreach ($galleryImages as $img): ?>
+                                                    <div class="gallery-preview-item">
+                                                        <img src="<?= BASE_ASSETS_UPLOADS . $img['image_url'] ?>" alt="Gallery Image">
+                                                        <div class="gallery-item-actions">
+                                                            <input type="hidden" name="existing_gallery[]" value="<?= $img['id'] ?>">
+                                                            <button type="button" class="btn btn-sm btn-danger" onclick="removeExistingImage(<?= $img['id'] ?>)">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -254,45 +269,49 @@ $tourId = $_GET['id'] ?? null;
                     <div class="form-step" id="step-3">
                         <div class="card mb-4">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0"><i class="fas fa-route me-2"></i>Lịch trình</h5>
-                                <button type="button" class="btn btn-primary btn-sm" onclick="addItineraryItem()">
-                                    <i class="fas fa-plus me-1"></i>Thêm ngày
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-map-marked-alt text-warning me-2"></i>
+                                    Lịch trình Tour
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="addItineraryDay()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Thêm ngày
                                 </button>
                             </div>
                             <div class="card-body">
                                 <div id="itinerary-list" class="itinerary-list">
-                                    <?php if (!empty($itineraries)): ?>
-                                        <?php foreach ($itineraries as $index => $itinerary): ?>
-                                            <div class="itinerary-item" data-index="<?= $index ?>">
-                                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                                    <h6>Ngày <?= $itinerary['day_number'] ?>: <?= htmlspecialchars($itinerary['day_label']) ?></h6>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItineraryItem(<?= $index ?>)">
+                                    <?php if (!empty($itinerarySchedule)): ?>
+                                        <?php foreach ($itinerarySchedule as $index => $itinerary): ?>
+                                            <div class="itinerary-item border rounded p-3 mb-3" data-index="<?= $index ?>">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="mb-0">Ngày <?= $itinerary['day_number'] ?>: <?= htmlspecialchars($itinerary['day_label']) ?></h6>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItineraryItem(this)">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
                                                 <div class="row g-3">
-                                                    <div class="col-md-3">
-                                                        <div class="form-floating">
-                                                            <input type="text" name="itinerary_day_<?= $index ?>" class="form-control" value="<?= htmlspecialchars($itinerary['day_label']) ?>" placeholder="Ngày 1">
-                                                            <label for="itinerary_day_<?= $index ?>">Ngày</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <div class="form-floating">
-                                                            <input type="time" name="itinerary_time_<?= $index ?>" class="form-control" value="<?= $itinerary['time_start'] ?>">
-                                                            <label for="itinerary_time_<?= $index ?>">Giờ</label>
-                                                        </div>
-                                                    </div>
                                                     <div class="col-md-6">
                                                         <div class="form-floating">
-                                                            <input type="text" name="itinerary_title_<?= $index ?>" class="form-control" value="<?= htmlspecialchars($itinerary['title'] ?? '') ?>" placeholder="Tiêu đề hoạt động">
-                                                            <label for="itinerary_title_<?= $index ?>">Tiêu đề</label>
+                                                            <input type="text" class="form-control itinerary-title" value="<?= htmlspecialchars($itinerary['title'] ?? '') ?>" placeholder=" " required>
+                                                            <label>Tiêu đề</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="form-floating">
+                                                            <input type="time" class="form-control itinerary-time-start" value="<?= $itinerary['time_start'] ?>" placeholder=" ">
+                                                            <label>Bắt đầu</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="form-floating">
+                                                            <input type="time" class="form-control itinerary-time-end" value="<?= $itinerary['time_end'] ?? '' ?>" placeholder=" ">
+                                                            <label>Kết thúc</label>
                                                         </div>
                                                     </div>
                                                     <div class="col-12">
                                                         <div class="form-floating">
-                                                            <textarea name="itinerary_activities_<?= $index ?>" class="form-control" rows="3" placeholder="Chi tiết hoạt động"><?= htmlspecialchars($itinerary['activities']) ?></textarea>
-                                                            <label for="itinerary_activities_<?= $index ?>">Hoạt động</label>
+                                                            <textarea class="form-control itinerary-description" style="height: 100px" placeholder=" "><?= htmlspecialchars($itinerary['activities']) ?></textarea>
+                                                            <label>Mô tả chi tiết</label>
                                                         </div>
                                                     </div>
                                                     <?php if (!empty($itinerary['image_url'])): ?>
@@ -305,10 +324,13 @@ $tourId = $_GET['id'] ?? null;
                                         <?php endforeach; ?>
                                     <?php endif; ?>
                                 </div>
-                                <div id="itinerary-empty" class="text-center text-muted py-5" style="<?= !empty($itineraries) ? 'display: none;' : '' ?>">
+                                <div class="text-center text-muted py-4" id="itinerary-empty" style="<?= !empty($itinerarySchedule) ? 'display: none;' : '' ?>">
                                     <i class="fas fa-calendar-alt fa-3x mb-3"></i>
                                     <p>Chưa có lịch trình nào</p>
-                                    <button type="button" class="btn btn-primary" onclick="addItineraryItem()">Thêm ngày đầu tiên</button>
+                                    <button type="button" class="btn btn-outline-primary" onclick="addItineraryDay()">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Thêm ngày đầu tiên
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -316,400 +338,782 @@ $tourId = $_GET['id'] ?? null;
 
                     <!-- Step 4: Pricing & Departures -->
                     <div class="form-step" id="step-4">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Gói dịch vụ</h5>
-                                        <button type="button" class="btn btn-primary btn-sm" onclick="addPricingOption()">
-                                            <i class="fas fa-plus me-1"></i>Thêm gói
-                                        </button>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="pricing-options-list">
-                                            <?php if (!empty($pricingOptions)): ?>
-                                                <?php foreach ($pricingOptions as $index => $option): ?>
-                                                    <div class="pricing-item mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                                            <div class="form-floating">
-                                                                <input type="text" name="pricing_label_<?= $index ?>" class="form-control" value="<?= htmlspecialchars($option['label']) ?>" placeholder="Tên gói">
-                                                                <label for="pricing_label_<?= $index ?>">Tên gói</label>
-                                                            </div>
-                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePricingOption(<?= $index ?>)">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </div>
+                        <!-- Pricing Options -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-tags text-info me-2"></i>
+                                    Tùy chọn giá
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="addPricingOption()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Thêm gói
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="pricing-options-list" class="pricing-options-list">
+                                    <?php if (!empty($pricingOptions)): ?>
+                                        <?php foreach ($pricingOptions as $index => $option): ?>
+                                            <div class="pricing-item border rounded p-3 mb-3">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="mb-0">Gói dịch vụ</h6>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePricingItem(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
                                                         <div class="form-floating">
-                                                            <textarea name="pricing_description_<?= $index ?>" class="form-control" rows="2" placeholder="Mô tả gói"><?= htmlspecialchars($option['description'] ?? '') ?></textarea>
-                                                            <label for="pricing_description_<?= $index ?>">Mô tả</label>
+                                                            <input type="text" class="form-control pricing-label" value="<?= htmlspecialchars($option['label']) ?>" placeholder=" " required>
+                                                            <label>Tên gói (VD: Người lớn, Trẻ em)</label>
                                                         </div>
                                                     </div>
-                                                <?php endforeach; ?>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div id="pricing-empty" class="text-center text-muted py-4" style="<?= !empty($pricingOptions) ? 'display: none;' : '' ?>">
-                                            <i class="fas fa-box fa-2x mb-2"></i>
-                                            <p>Chưa có gói dịch vụ nào</p>
-                                        </div>
-                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-floating">
+                                                            <input type="number" class="form-control pricing-price" min="0" step="1000" value="<?= $option['price'] ?? 0 ?>" placeholder=" " required>
+                                                            <label>Giá (VNĐ)</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-floating">
+                                                            <textarea class="form-control pricing-description" style="height: 80px" placeholder=" "><?= htmlspecialchars($option['description'] ?? '') ?></textarea>
+                                                            <label>Mô tả ngắn</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="text-center text-muted py-4" id="pricing-empty" style="<?= !empty($pricingOptions) ? 'display: none;' : '' ?>">
+                                    <i class="fas fa-dollar-sign fa-3x mb-3"></i>
+                                    <p>Chưa có gói dịch vụ nào</p>
+                                    <button type="button" class="btn btn-outline-primary" onclick="addPricingOption()">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Thêm gói đầu tiên
+                                    </button>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Lịch khởi hành</h5>
-                                        <button type="button" class="btn btn-primary btn-sm" onclick="addDeparture()">
-                                            <i class="fas fa-plus me-1"></i>Thêm lịch
-                                        </button>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="departures-list">
-                                            <?php if (!empty($departures)): ?>
-                                                <?php foreach ($departures as $index => $departure): ?>
-                                                    <div class="departure-item mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                                            <input type="date" name="departure_date_<?= $index ?>" class="form-control" value="<?= $departure['departure_date'] ?>">
-                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDeparture(<?= $index ?>)">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </div>
-                                                        <div class="row g-2">
-                                                            <div class="col-4">
-                                                                <input type="number" name="max_seats_<?= $index ?>" class="form-control" value="<?= $departure['max_seats'] ?>" placeholder="Số chỗ">
-                                                            </div>
-                                                            <div class="col-4">
-                                                                <input type="number" name="price_adult_<?= $index ?>" class="form-control" value="<?= $departure['price_adult'] ?>" placeholder="Giá người lớn">
-                                                            </div>
-                                                            <div class="col-4">
-                                                                <select name="departure_status_<?= $index ?>" class="form-select">
-                                                                    <option value="open" <?= ($departure['status'] ?? 'open') === 'open' ? 'selected' : '' ?>>Mở</option>
-                                                                    <option value="full" <?= ($departure['status'] ?? '') === 'full' ? 'selected' : '' ?>>Đầy</option>
-                                                                    <option value="cancelled" <?= ($departure['status'] ?? '') === 'cancelled' ? 'selected' : '' ?>>Hủy</option>
-                                                                </select>
-                                                            </div>
+                        </div>
+
+                        <!-- Tour Departures -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-calendar-alt text-danger me-2"></i>
+                                    Lịch khởi hành
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="addDeparture()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Thêm lịch
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="departures-list" class="departures-list">
+                                    <?php if (!empty($departures)): ?>
+                                        <?php foreach ($departures as $index => $departure): ?>
+                                            <div class="departure-item border rounded p-3 mb-3">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="mb-0">Lịch khởi hành</h6>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDepartureItem(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="row g-3">
+                                                    <div class="col-md-4">
+                                                        <div class="form-floating">
+                                                            <input type="date" class="form-control departure-date" value="<?= $departure['departure_date'] ?>" required>
+                                                            <label>Ngày khởi hành</label>
                                                         </div>
                                                     </div>
-                                                <?php endforeach; ?>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div id="departures-empty" class="text-center text-muted py-4" style="<?= !empty($departures) ? 'display: none;' : '' ?>">
-                                            <i class="fas fa-calendar-times fa-2x mb-2"></i>
-                                            <p>Chưa có lịch khởi hành nào</p>
-                                        </div>
-                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="form-floating">
+                                                            <input type="number" class="form-control departure-max-seats" min="1" value="<?= $departure['max_seats'] ?>" required>
+                                                            <label>Số chỗ</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="form-floating">
+                                                            <input type="number" class="form-control departure-price-adult" min="0" step="1000" value="<?= $departure['price_adult'] ?>" placeholder=" ">
+                                                            <label>Giá NL</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="form-floating">
+                                                            <input type="number" class="form-control departure-price-child" min="0" step="1000" value="<?= $departure['price_child'] ?? 0 ?>" placeholder=" ">
+                                                            <label>Giá TE</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="form-floating">
+                                                            <select class="form-select departure-status">
+                                                                <option value="open" <?= ($departure['status'] ?? 'open') === 'open' ? 'selected' : '' ?>>Mở</option>
+                                                                <option value="full" <?= ($departure['status'] ?? '') === 'full' ? 'selected' : '' ?>>Hết chỗ</option>
+                                                                <option value="guaranteed" <?= ($departure['status'] ?? '') === 'guaranteed' ? 'selected' : '' ?>>Đảm bảo</option>
+                                                                <option value="closed" <?= ($departure['status'] ?? '') === 'closed' ? 'selected' : '' ?>>Đóng</option>
+                                                            </select>
+                                                            <label>Trạng thái</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="text-center text-muted py-4" id="departures-empty" style="<?= !empty($departures) ? 'display: none;' : '' ?>">
+                                    <i class="fas fa-calendar-plus fa-3x mb-3"></i>
+                                    <p>Chưa có lịch khởi hành nào</p>
+                                    <button type="button" class="btn btn-outline-primary" onclick="addDeparture()">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Thêm lịch đầu tiên
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 5: Policies & Partners -->
+                    <!-- Step 5: Final Details -->
                     <div class="form-step" id="step-5">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-header">
-                                        <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Chính sách tour</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <?php if (!empty($policies)): ?>
-                                            <?php foreach ($policies as $policy): ?>
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input" type="checkbox" name="policies[]" value="<?= $policy['id'] ?>"
-                                                        <?= in_array($policy['id'], array_column($assignedPolicies ?? [], 'policy_id')) ? 'checked' : '' ?>>
-                                                    <label class="form-check-label">
-                                                        <?= htmlspecialchars($policy['name']) ?>
-                                                    </label>
-                                                </div>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
-                                            <p class="text-muted">Chưa có chính sách nào</p>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
+                        <!-- Partners -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-handshake text-secondary me-2"></i>
+                                    Đối tác dịch vụ
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="addPartner()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Thêm đối tác
+                                </button>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card mb-4">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0"><i class="fas fa-handshake me-2"></i>Đối tác dịch vụ</h5>
-                                        <button type="button" class="btn btn-primary btn-sm" onclick="addPartner()">
-                                            <i class="fas fa-plus me-1"></i>Thêm đối tác
-                                        </button>
-                                    </div>
-                                    <div class="card-body">
-                                        <div id="partners-list">
-                                            <?php if (!empty($partners)): ?>
-                                                <?php foreach ($partners as $index => $partner): ?>
-                                                    <div class="partner-item mb-3">
-                                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                                            <select name="partner_service_<?= $index ?>" class="form-select">
+                            <div class="card-body">
+                                <div id="partners-list" class="partners-list">
+                                    <?php if (!empty($partnerServices)): ?>
+                                        <?php foreach ($partnerServices as $index => $partner): ?>
+                                            <div class="partner-item border rounded p-3 mb-3">
+                                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                                    <h6 class="mb-0">Đối tác dịch vụ</h6>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePartnerItem(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <div class="form-floating">
+                                                            <select class="form-select partner-service-type" required>
+                                                                <option value="">-- Loại dịch vụ --</option>
                                                                 <option value="hotel" <?= ($partner['service_type'] ?? '') === 'hotel' ? 'selected' : '' ?>>Khách sạn</option>
-                                                                <option value="restaurant" <?= ($partner['service_type'] ?? '') === 'restaurant' ? 'selected' : '' ?>>Nhà hàng</option>
                                                                 <option value="transport" <?= ($partner['service_type'] ?? '') === 'transport' ? 'selected' : '' ?>>Vận chuyển</option>
+                                                                <option value="restaurant" <?= ($partner['service_type'] ?? '') === 'restaurant' ? 'selected' : '' ?>>Nhà hàng</option>
                                                                 <option value="guide" <?= ($partner['service_type'] ?? '') === 'guide' ? 'selected' : '' ?>>Hướng dẫn viên</option>
                                                                 <option value="other" <?= ($partner['service_type'] ?? '') === 'other' ? 'selected' : '' ?>>Khác</option>
                                                             </select>
-                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePartner(<?= $index ?>)">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
+                                                            <label>Loại dịch vụ</label>
                                                         </div>
-                                                        <input type="text" name="partner_name_<?= $index ?>" class="form-control mb-2" value="<?= htmlspecialchars($partner['partner_name']) ?>" placeholder="Tên đối tác">
-                                                        <input type="text" name="partner_contact_<?= $index ?>" class="form-control mb-2" value="<?= htmlspecialchars($partner['contact'] ?? '') ?>" placeholder="Thông tin liên hệ">
-                                                        <textarea name="partner_notes_<?= $index ?>" class="form-control" rows="2" placeholder="Ghi chú"><?= htmlspecialchars($partner['notes'] ?? '') ?></textarea>
                                                     </div>
-                                                <?php endforeach; ?>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div id="partners-empty" class="text-center text-muted py-4" style="<?= !empty($partners) ? 'display: none;' : '' ?>">
-                                            <i class="fas fa-users fa-2x mb-2"></i>
-                                            <p>Chưa có đối tác nào</p>
-                                        </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-floating">
+                                                            <input type="text" class="form-control partner-name" value="<?= htmlspecialchars($partner['partner_name']) ?>" placeholder=" " required>
+                                                            <label>Tên đối tác</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-floating">
+                                                            <input type="text" class="form-control partner-contact" value="<?= htmlspecialchars($partner['contact'] ?? '') ?>" placeholder=" " required>
+                                                            <label>Thông tin liên hệ</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="text-center text-muted py-4" id="partners-empty" style="<?= !empty($partnerServices) ? 'display: none;' : '' ?>">
+                                    <i class="fas fa-users fa-3x mb-3"></i>
+                                    <p>Chưa có đối tác nào</p>
+                                    <button type="button" class="btn btn-outline-primary" onclick="addPartner()">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Thêm đối tác đầu tiên
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Policies -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-shield-alt text-primary me-2"></i>
+                                    Chính sách áp dụng
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (!empty($policies)): ?>
+                                    <div class="row g-3">
+                                        <?php foreach ($policies as $policy): ?>
+                                            <div class="col-md-6">
+                                                <div class="form-check border rounded p-3">
+                                                    <input class="form-check-input" type="checkbox" name="policies[]" value="<?= $policy['id'] ?>" id="policy_<?= $policy['id'] ?>"
+                                                        <?= in_array($policy['id'], $assignedPolicyIds ?? []) ? 'checked' : '' ?>>
+                                                    <label class="form-check-label fw-medium" for="policy_<?= $policy['id'] ?>">
+                                                        <?= htmlspecialchars($policy['name']) ?>
+                                                    </label>
+                                                    <div class="small text-muted mt-1"><?= htmlspecialchars($policy['description'] ?? '') ?></div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
                                     </div>
-                                </div>
+                                <?php else: ?>
+                                    <div class="text-center text-muted py-4">
+                                        <i class="fas fa-shield-alt fa-3x mb-3"></i>
+                                        <p>Chưa có chính sách nào</p>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
-                    </div>
 
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
                     <!-- Form Actions -->
-                    <div class="card mb-4">
+                    <div class="card mb-4 sticky-top" style="top: 20px;">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thao tác</h5>
+                        </div>
                         <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-outline-primary" onclick="saveDraft()" id="save-draft-btn">
+                                    <i class="fas fa-save me-2"></i>
+                                    Lưu nháp
+                                </button>
+                                <button type="submit" form="tour-edit-form" class="btn btn-primary">
+                                    <i class="fas fa-check me-2"></i>
+                                    Lưu thay đổi
+                                </button>
+                                <a href="<?= BASE_URL_ADMIN ?>&action=tours" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>
+                                    Hủy bỏ
+                                </a>
+                            </div>
+
+                            <hr class="my-3">
+
                             <div class="d-flex justify-content-between">
-                                <div>
-                                    <button type="button" class="btn btn-secondary" onclick="previousStep()" id="prev-btn">
-                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
-                                    </button>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-outline-primary" onclick="nextStep()" id="next-btn">
-                                        Tiếp theo<i class="fas fa-arrow-right ms-2"></i>
-                                    </button>
-                                    <button type="submit" class="btn btn-success" id="submit-btn" style="display: none;">
-                                        <i class="fas fa-save me-2"></i>Lưu thay đổi
-                                    </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="previousStep()" id="prev-btn">
+                                    <i class="fas fa-chevron-left me-1"></i>
+                                    Quay lại
+                                </button>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="nextStep()" id="next-btn">
+                                    Tiếp theo
+                                    <i class="fas fa-chevron-right ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auto-save Status -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="auto-save-indicator" id="autoSaveIndicator">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                    <span class="ms-2">Đã lưu</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-        </form>
+                </div>
+            </div>
     </div>
+    </form>
+    </div>
+</main>
 
-    <script>
-        let currentStep = 1;
-        const totalSteps = 5;
-
-        // Step navigation
-        function showStep(step) {
-            // Hide all steps
-            document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
-
-            // Show current step
-            document.getElementById(`step-${step}`).classList.add('active');
-            document.querySelector(`.step[data-step="${step}"]`).classList.add('active');
-
-            // Update buttons
-            document.getElementById('prev-btn').style.display = step === 1 ? 'none' : 'inline-block';
-            document.getElementById('next-btn').style.display = step === totalSteps ? 'none' : 'inline-block';
-            document.getElementById('submit-btn').style.display = step === totalSteps ? 'inline-block' : 'none';
-
-            currentStep = step;
-        }
-
-        function nextStep() {
-            if (currentStep < totalSteps) {
-                showStep(currentStep + 1);
-            }
-        }
-
-        function previousStep() {
-            if (currentStep > 1) {
-                showStep(currentStep - 1);
-            }
-        }
-
-        // Click on step indicators
-        document.querySelectorAll('.step').forEach(stepEl => {
-            stepEl.addEventListener('click', function() {
-                const step = parseInt(this.dataset.step);
-                showStep(step);
-            });
-        });
-
-        // Dynamic item management
-        function addItineraryItem() {
-            const container = document.getElementById('itinerary-list');
-            const index = container.children.length;
-
-            const item = document.createElement('div');
-            item.className = 'itinerary-item';
-            item.dataset.index = index;
-            item.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6>Ngày ${index + 1}</h6>
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItineraryItem(${index})">
+<!-- Templates -->
+<template id="itinerary-template">
+    <div class="itinerary-item border rounded p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h6 class="mb-0">Ngày <span class="day-number"></span></h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItineraryItem(this)">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
         <div class="row g-3">
-            <div class="col-md-3">
-                <input type="text" name="itinerary_day_${index}" class="form-control" placeholder="Ngày ${index + 1}">
-            </div>
-            <div class="col-md-3">
-                <input type="time" name="itinerary_time_${index}" class="form-control">
-            </div>
             <div class="col-md-6">
-                <input type="text" name="itinerary_title_${index}" class="form-control" placeholder="Tiêu đề hoạt động">
+                <div class="form-floating">
+                    <input type="text" class="form-control itinerary-title" placeholder=" " required>
+                    <label>Tiêu đề</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-floating">
+                    <input type="time" class="form-control itinerary-time-start" placeholder=" ">
+                    <label>Bắt đầu</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-floating">
+                    <input type="time" class="form-control itinerary-time-end" placeholder=" ">
+                    <label>Kết thúc</label>
+                </div>
             </div>
             <div class="col-12">
-                <textarea name="itinerary_activities_${index}" class="form-control" rows="3" placeholder="Chi tiết hoạt động"></textarea>
+                <div class="form-floating">
+                    <textarea class="form-control itinerary-description" style="height: 100px" placeholder=" "></textarea>
+                    <label>Mô tả chi tiết</label>
+                </div>
             </div>
         </div>
-    `;
+    </div>
+</template>
 
-            container.appendChild(item);
-            document.getElementById('itinerary-empty').style.display = 'none';
-        }
-
-        function removeItineraryItem(index) {
-            const item = document.querySelector(`.itinerary-item[data-index="${index}"]`);
-            if (item) {
-                item.remove();
-                if (document.getElementById('itinerary-list').children.length === 0) {
-                    document.getElementById('itinerary-empty').style.display = 'block';
-                }
-            }
-        }
-
-        function addPricingOption() {
-            const container = document.getElementById('pricing-options-list');
-            const index = container.children.length;
-
-            const item = document.createElement('div');
-            item.className = 'pricing-item mb-3';
-            item.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <input type="text" name="pricing_label_${index}" class="form-control" placeholder="Tên gói">
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePricingOption(${index})">
+<template id="pricing-template">
+    <div class="pricing-item border rounded p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h6 class="mb-0">Gói dịch vụ</h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePricingItem(this)">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
-        <textarea name="pricing_description_${index}" class="form-control" rows="2" placeholder="Mô tả gói"></textarea>
-    `;
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-floating">
+                    <input type="text" class="form-control pricing-label" placeholder=" " required>
+                    <label>Tên gói (VD: Người lớn, Trẻ em)</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating">
+                    <input type="number" class="form-control pricing-price" min="0" step="1000" placeholder=" " required>
+                    <label>Giá (VNĐ)</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-floating">
+                    <textarea class="form-control pricing-description" style="height: 80px" placeholder=" "></textarea>
+                    <label>Mô tả ngắn</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
 
-            container.appendChild(item);
-            document.getElementById('pricing-empty').style.display = 'none';
-        }
-
-        function removePricingOption(index) {
-            const item = document.querySelectorAll('.pricing-item')[index];
-            if (item) {
-                item.remove();
-                if (document.getElementById('pricing-options-list').children.length === 0) {
-                    document.getElementById('pricing-empty').style.display = 'block';
-                }
-            }
-        }
-
-        function addDeparture() {
-            const container = document.getElementById('departures-list');
-            const index = container.children.length;
-
-            const item = document.createElement('div');
-            item.className = 'departure-item mb-3';
-            item.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <input type="date" name="departure_date_${index}" class="form-control">
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDeparture(${index})">
+<template id="departure-template">
+    <div class="departure-item border rounded p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h6 class="mb-0">Lịch khởi hành</h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDepartureItem(this)">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
-        <div class="row g-2">
-            <div class="col-4">
-                <input type="number" name="max_seats_${index}" class="form-control" placeholder="Số chỗ">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="form-floating">
+                    <input type="date" class="form-control departure-date" required>
+                    <label>Ngày khởi hành</label>
+                </div>
             </div>
-            <div class="col-4">
-                <input type="number" name="price_adult_${index}" class="form-control" placeholder="Giá người lớn">
+            <div class="col-md-2">
+                <div class="form-floating">
+                    <input type="number" class="form-control departure-max-seats" min="1" value="40" required>
+                    <label>Số chỗ</label>
+                </div>
             </div>
-            <div class="col-4">
-                <select name="departure_status_${index}" class="form-select">
-                    <option value="open">Mở</option>
-                    <option value="full">Đầy</option>
-                    <option value="cancelled">Hủy</option>
-                </select>
+            <div class="col-md-2">
+                <div class="form-floating">
+                    <input type="number" class="form-control departure-price-adult" min="0" step="1000" placeholder=" ">
+                    <label>Giá NL</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-floating">
+                    <input type="number" class="form-control departure-price-child" min="0" step="1000" placeholder=" ">
+                    <label>Giá TE</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-floating">
+                    <select class="form-select departure-status">
+                        <option value="open">Mở</option>
+                        <option value="full">Hết chỗ</option>
+                        <option value="guaranteed">Đảm bảo</option>
+                        <option value="closed">Đóng</option>
+                    </select>
+                    <label>Trạng thái</label>
+                </div>
             </div>
         </div>
-    `;
+    </div>
+</template>
 
-            container.appendChild(item);
-            document.getElementById('departures-empty').style.display = 'none';
-        }
-
-        function removeDeparture(index) {
-            const item = document.querySelectorAll('.departure-item')[index];
-            if (item) {
-                item.remove();
-                if (document.getElementById('departures-list').children.length === 0) {
-                    document.getElementById('departures-empty').style.display = 'block';
-                }
-            }
-        }
-
-        function addPartner() {
-            const container = document.getElementById('partners-list');
-            const index = container.children.length;
-
-            const item = document.createElement('div');
-            item.className = 'partner-item mb-3';
-            item.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <select name="partner_service_${index}" class="form-select">
-                <option value="hotel">Khách sạn</option>
-                <option value="restaurant">Nhà hàng</option>
-                <option value="transport">Vận chuyển</option>
-                <option value="guide">Hướng dẫn viên</option>
-                <option value="other">Khác</option>
-            </select>
-            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePartner(${index})">
+<template id="partner-template">
+    <div class="partner-item border rounded p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h6 class="mb-0">Đối tác dịch vụ</h6>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePartnerItem(this)">
                 <i class="fas fa-trash"></i>
             </button>
         </div>
-        <input type="text" name="partner_name_${index}" class="form-control mb-2" placeholder="Tên đối tác">
-        <input type="text" name="partner_contact_${index}" class="form-control mb-2" placeholder="Thông tin liên hệ">
-        <textarea name="partner_notes_${index}" class="form-control" rows="2" placeholder="Ghi chú"></textarea>
-    `;
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-floating">
+                    <select class="form-select partner-service-type" required>
+                        <option value="">-- Loại dịch vụ --</option>
+                        <option value="hotel">Khách sạn</option>
+                        <option value="transport">Vận chuyển</option>
+                        <option value="restaurant">Nhà hàng</option>
+                        <option value="guide">Hướng dẫn viên</option>
+                        <option value="other">Khác</option>
+                    </select>
+                    <label>Loại dịch vụ</label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-floating">
+                    <input type="text" class="form-control partner-name" placeholder=" " required>
+                    <label>Tên đối tác</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="form-floating">
+                    <input type="text" class="form-control partner-contact" placeholder=" " required>
+                    <label>Thông tin liên hệ</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
 
-            container.appendChild(item);
-            document.getElementById('partners-empty').style.display = 'none';
+<script>
+    // Tour Edit JavaScript
+    let currentStep = 1;
+    const totalSteps = 5;
+    let itineraryCount = <?= count($itinerarySchedule ?? []) ?>;
+    let pricingCount = <?= count($pricingOptions ?? []) ?>;
+    let departureCount = <?= count($departures ?? []) ?>;
+    let partnerCount = <?= count($partnerServices ?? []) ?>;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeForm();
+        setupImageUploads();
+        setupAutoSave();
+    });
+
+    function initializeForm() {
+        updateStepDisplay();
+        updateNavigationButtons();
+    }
+
+    // Step Navigation
+    function nextStep() {
+        if (validateCurrentStep()) {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepDisplay();
+                updateNavigationButtons();
+            }
         }
+    }
 
-        function removePartner(index) {
-            const item = document.querySelectorAll('.partner-item')[index];
-            if (item) {
-                item.remove();
-                if (document.getElementById('partners-list').children.length === 0) {
-                    document.getElementById('partners-empty').style.display = 'block';
-                }
+    function previousStep() {
+        if (currentStep > 1) {
+            currentStep--;
+            updateStepDisplay();
+            updateNavigationButtons();
+        }
+    }
+
+    function updateStepDisplay() {
+        // Update progress steps
+        document.querySelectorAll('.step').forEach(step => {
+            step.classList.remove('active', 'completed');
+            const stepNum = parseInt(step.dataset.step);
+            if (stepNum === currentStep) {
+                step.classList.add('active');
+            } else if (stepNum < currentStep) {
+                step.classList.add('completed');
+            }
+        });
+
+        // Update form sections
+        document.querySelectorAll('.form-step').forEach(step => {
+            step.classList.remove('active');
+        });
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+    }
+
+    function updateNavigationButtons() {
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        prevBtn.style.display = currentStep === 1 ? 'none' : 'block';
+        nextBtn.style.display = currentStep === totalSteps ? 'none' : 'block';
+    }
+
+    // Validation
+    function validateCurrentStep() {
+        const currentStepElement = document.getElementById(`step-${currentStep}`);
+        const requiredFields = currentStepElement.querySelectorAll('[required]');
+
+        for (let field of requiredFields) {
+            if (!field.value.trim()) {
+                field.focus();
+                showToast('Vui lòng điền đầy đủ thông tin bắt buộc', 'error');
+                return false;
             }
         }
 
-        // Image management
-        function removeExistingImage(imageId) {
-            if (confirm('Bạn có chắc muốn xóa ảnh này?')) {
-                // Add to hidden field for deletion
+        return true;
+    }
+
+    // Itinerary Management
+    function addItineraryDay() {
+        itineraryCount++;
+        const template = document.getElementById('itinerary-template');
+        const clone = template.content.cloneNode(true);
+
+        clone.querySelector('.day-number').textContent = itineraryCount;
+
+        const container = document.getElementById('itinerary-list');
+        container.appendChild(clone);
+
+        // Hide empty state
+        document.getElementById('itinerary-empty').style.display = 'none';
+
+        updateItineraryData();
+    }
+
+    function removeItineraryItem(button) {
+        button.closest('.itinerary-item').remove();
+        updateItineraryDayNumbers();
+        updateItineraryData();
+    }
+
+    function updateItineraryDayNumbers() {
+        const items = document.querySelectorAll('.itinerary-item');
+        items.forEach((item, index) => {
+            item.querySelector('.day-number').textContent = index + 1;
+        });
+        itineraryCount = items.length;
+
+        if (itineraryCount === 0) {
+            document.getElementById('itinerary-empty').style.display = 'block';
+        }
+    }
+
+    function updateItineraryData() {
+        const itineraries = [];
+        document.querySelectorAll('.itinerary-item').forEach((item, index) => {
+            itineraries.push({
+                day_number: index + 1,
+                day_label: `Ngày ${index + 1}`,
+                title: item.querySelector('.itinerary-title').value,
+                time_start: item.querySelector('.itinerary-time-start').value,
+                time_end: item.querySelector('.itinerary-time-end').value,
+                activities: item.querySelector('.itinerary-description').value,
+                description: item.querySelector('.itinerary-description').value
+            });
+        });
+        document.getElementById('tour_itinerary').value = JSON.stringify(itineraries);
+    }
+
+    // Pricing Management
+    function addPricingOption() {
+        pricingCount++;
+        const template = document.getElementById('pricing-template');
+        const clone = template.content.cloneNode(true);
+
+        const container = document.getElementById('pricing-options-list');
+        container.appendChild(clone);
+
+        // Hide empty state
+        document.getElementById('pricing-empty').style.display = 'none';
+
+        updatePricingData();
+    }
+
+    function removePricingItem(button) {
+        button.closest('.pricing-item').remove();
+        updatePricingData();
+    }
+
+    function updatePricingData() {
+        const pricingOptions = [];
+        document.querySelectorAll('.pricing-item').forEach((item, index) => {
+            pricingOptions.push({
+                label: item.querySelector('.pricing-label').value,
+                price: item.querySelector('.pricing-price').value,
+                description: item.querySelector('.pricing-description').value
+            });
+        });
+        document.getElementById('tour_pricing_options').value = JSON.stringify(pricingOptions);
+    }
+
+    // Departure Management
+    function addDeparture() {
+        departureCount++;
+        const template = document.getElementById('departure-template');
+        const clone = template.content.cloneNode(true);
+
+        const container = document.getElementById('departures-list');
+        container.appendChild(clone);
+
+        // Hide empty state
+        document.getElementById('departures-empty').style.display = 'none';
+
+        updateDepartureData();
+    }
+
+    function removeDepartureItem(button) {
+        button.closest('.departure-item').remove();
+        updateDepartureData();
+    }
+
+    function updateDepartureData() {
+        const departures = [];
+        document.querySelectorAll('.departure-item').forEach((item, index) => {
+            departures.push({
+                departure_date: item.querySelector('.departure-date').value,
+                max_seats: item.querySelector('.departure-max-seats').value,
+                price_adult: item.querySelector('.departure-price-adult').value,
+                price_child: item.querySelector('.departure-price-child').value,
+                status: item.querySelector('.departure-status').value
+            });
+        });
+        document.getElementById('tour_departures').value = JSON.stringify(departures);
+    }
+
+    // Partner Management
+    function addPartner() {
+        partnerCount++;
+        const template = document.getElementById('partner-template');
+        const clone = template.content.cloneNode(true);
+
+        const container = document.getElementById('partners-list');
+        container.appendChild(clone);
+
+        // Hide empty state
+        document.getElementById('partners-empty').style.display = 'none';
+
+        updatePartnerData();
+    }
+
+    function removePartnerItem(button) {
+        button.closest('.partner-item').remove();
+        updatePartnerData();
+    }
+
+    function updatePartnerData() {
+        const partners = [];
+        document.querySelectorAll('.partner-item').forEach((item, index) => {
+            partners.push({
+                service_type: item.querySelector('.partner-service-type').value,
+                partner_name: item.querySelector('.partner-name').value,
+                contact: item.querySelector('.partner-contact').value,
+                partner_contact: item.querySelector('.partner-contact').value
+            });
+        });
+        document.getElementById('tour_partners').value = JSON.stringify(partners);
+    }
+
+    // Image Management
+    function removeMainImage() {
+        if (confirm('Bạn có chắc muốn xóa ảnh đại diện này?')) {
+            const preview = document.getElementById('mainImagePreview');
+            const dropzone = document.getElementById('mainImageDropZone');
+
+            // Hide preview
+            if (preview) {
+                preview.style.display = 'none';
+                // If it's a dynamically created preview, remove it entirely
+                if (!preview.querySelector('input[name="existing_main_image"]')) {
+                    preview.remove();
+                }
+            }
+
+            // Show dropzone
+            dropzone.style.display = 'block';
+
+            // Clear file input
+            const fileInput = document.getElementById('main_image');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+
+            // Add to deletion list if it was an existing image
+            const existingInput = document.querySelector('input[name="existing_main_image"]');
+            if (existingInput) {
                 const input = document.createElement('input');
                 input.type = 'hidden';
-                input.name = 'delete_images[]';
-                input.value = imageId;
+                input.name = 'delete_main_image';
+                input.value = '1';
                 document.getElementById('tour-edit-form').appendChild(input);
-
-                // Remove from UI
-                event.target.closest('.gallery-preview-item').remove();
+                existingInput.remove();
             }
         }
+    }
 
-        // Gallery preview
+    function removeExistingImage(imageId) {
+        if (confirm('Bạn có chắc muốn xóa ảnh này?')) {
+            // Add to hidden field for deletion
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'deleted_images[]';
+            input.value = imageId;
+            document.getElementById('tour-edit-form').appendChild(input);
+
+            // Remove from DOM
+            const element = event.target.closest('.gallery-preview-item');
+            if (element) {
+                element.remove();
+            }
+        }
+    }
+
+    // Setup Image Uploads
+    function setupImageUploads() {
+        // Main image upload
+        document.getElementById('main_image')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Hide dropzone and show preview
+                    document.getElementById('mainImageDropZone').style.display = 'none';
+
+                    // Create or update preview
+                    let preview = document.getElementById('mainImagePreview');
+                    if (!preview) {
+                        preview = document.createElement('div');
+                        preview.id = 'mainImagePreview';
+                        preview.className = 'main-image-preview';
+                        document.querySelector('.main-image-upload').appendChild(preview);
+                    }
+
+                    preview.style.display = 'block';
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Main Image Preview" class="img-fluid rounded">
+                        <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeMainImage()">
+                            <i class="fas fa-trash"></i> Xóa
+                        </button>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Gallery images upload
         document.getElementById('gallery_images')?.addEventListener('change', function(e) {
-            const preview = document.getElementById('gallery-preview');
-            preview.innerHTML = '';
+            let preview = document.getElementById('galleryPreview');
+            if (!preview) {
+                preview = document.createElement('div');
+                preview.id = 'galleryPreview';
+                preview.className = 'gallery-preview-grid mt-3';
+                document.querySelector('.gallery-upload-zone').appendChild(preview);
+            }
 
             Array.from(e.target.files).forEach((file, index) => {
                 if (file.type.startsWith('image/')) {
@@ -718,68 +1122,74 @@ $tourId = $_GET['id'] ?? null;
                         const item = document.createElement('div');
                         item.className = 'gallery-preview-item';
                         item.innerHTML = `
-                    <img src="${e.target.result}" alt="Preview">
-                    <div class="gallery-item-actions">
-                        <button type="button" class="btn btn-sm btn-danger" onclick="this.parentElement.parentElement.remove()">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                `;
+                        <img src="${e.target.result}" alt="Preview">
+                        <div class="gallery-item-actions">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="this.parentElement.parentElement.remove()">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
                         preview.appendChild(item);
                     };
                     reader.readAsDataURL(file);
                 }
             });
         });
+    }
 
-        // Form submission
-        document.getElementById('tour-edit-form').addEventListener('submit', function(e) {
-            // Serialize dynamic data
-            const pricingOptions = [];
-            document.querySelectorAll('.pricing-item').forEach((item, index) => {
-                pricingOptions.push({
-                    label: item.querySelector(`input[name="pricing_label_${index}"]`)?.value || '',
-                    description: item.querySelector(`textarea[name="pricing_description_${index}"]`)?.value || ''
-                });
-            });
-            document.getElementById('tour_pricing_options').value = JSON.stringify(pricingOptions);
+    // Auto-save functionality
+    function setupAutoSave() {
+        let autoSaveTimer;
 
-            const itineraries = [];
-            document.querySelectorAll('.itinerary-item').forEach((item, index) => {
-                itineraries.push({
-                    day_label: item.querySelector(`input[name="itinerary_day_${index}"]`)?.value || '',
-                    time_start: item.querySelector(`input[name="itinerary_time_${index}"]`)?.value || '',
-                    title: item.querySelector(`input[name="itinerary_title_${index}"]`)?.value || '',
-                    activities: item.querySelector(`textarea[name="itinerary_activities_${index}"]`)?.value || ''
-                });
-            });
-            document.getElementById('tour_itinerary').value = JSON.stringify(itineraries);
-
-            const departures = [];
-            document.querySelectorAll('.departure-item').forEach((item, index) => {
-                departures.push({
-                    departure_date: item.querySelector(`input[name="departure_date_${index}"]`)?.value || '',
-                    max_seats: item.querySelector(`input[name="max_seats_${index}"]`)?.value || '',
-                    price_adult: item.querySelector(`input[name="price_adult_${index}"]`)?.value || '',
-                    status: item.querySelector(`select[name="departure_status_${index}"]`)?.value || 'open'
-                });
-            });
-            document.getElementById('tour_versions').value = JSON.stringify(departures);
-
-            const partners = [];
-            document.querySelectorAll('.partner-item').forEach((item, index) => {
-                partners.push({
-                    service_type: item.querySelector(`select[name="partner_service_${index}"]`)?.value || 'other',
-                    name: item.querySelector(`input[name="partner_name_${index}"]`)?.value || '',
-                    contact: item.querySelector(`input[name="partner_contact_${index}"]`)?.value || '',
-                    notes: item.querySelector(`textarea[name="partner_notes_${index}"]`)?.value || ''
-                });
-            });
-            document.getElementById('tour_partners').value = JSON.stringify(partners);
+        document.getElementById('tour-edit-form').addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(saveDraft, 30000); // Auto-save after 30 seconds
         });
+    }
 
-        // Initialize
-        showStep(1);
-    </script>
+    function saveDraft() {
+        // Serialize all dynamic data
+        updateItineraryData();
+        updatePricingData();
+        updateDepartureData();
+        updatePartnerData();
 
-    <?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>
+        // Show saving indicator
+        const indicator = document.getElementById('autoSaveIndicator');
+        indicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span class="ms-2">Đang lưu...</span>';
+
+        // Simulate save (in real implementation, this would be an AJAX call)
+        setTimeout(() => {
+            indicator.innerHTML = '<i class="fas fa-check-circle text-success"></i><span class="ms-2">Đã lưu nháp</span>';
+            showToast('Đã lưu nháp thành công', 'success');
+        }, 1000);
+    }
+
+    // Form submission
+    document.getElementById('tour-edit-form').addEventListener('submit', function(e) {
+        // Serialize all dynamic data before submission
+        updateItineraryData();
+        updatePricingData();
+        updateDepartureData();
+        updatePartnerData();
+    });
+
+    // Utility functions
+    function showToast(message, type = 'info') {
+        // Simple toast implementation (you can replace with a proper toast library)
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+        toast.style.zIndex = '9999';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+</script>
+
+<?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>

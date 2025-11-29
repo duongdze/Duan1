@@ -342,15 +342,24 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     <div class="tours-grid">
                         <?php foreach ($tours as $tour) : ?>
                             <?php
-                            // Prepare images
+                            // Prepare images - ưu tiên main_image trước
+                            $mainImage = $tour['main_image'] ?? null;
                             $galleryImages = [];
                             if (!empty($tour['gallery_images'])) {
                                 $galleryImages = array_values(array_filter(array_map('trim', explode(',', $tour['gallery_images']))));
                             }
-                            if (empty($galleryImages) && !empty($tour['main_image'])) {
-                                $galleryImages = [$tour['main_image']];
+                            // Nếu không có gallery nhưng có main_image, thêm vào gallery
+                            if (empty($galleryImages) && !empty($mainImage)) {
+                                $galleryImages = [$mainImage];
                             }
-                            $mainImage = $galleryImages[0] ?? ($tour['main_image'] ?? null);
+                            // Nếu có gallery nhưng không có main_image trong gallery, thêm main_image vào đầu
+                            if (!empty($mainImage) && !empty($galleryImages) && !in_array($mainImage, $galleryImages)) {
+                                array_unshift($galleryImages, $mainImage);
+                            }
+                            // Nếu không có main_image, dùng gallery đầu tiên
+                            if (empty($mainImage) && !empty($galleryImages)) {
+                                $mainImage = $galleryImages[0];
+                            }
                             $thumbs = array_slice($galleryImages, 1);
                             $totalImages = count($galleryImages);
                             $maxThumbs = 3;

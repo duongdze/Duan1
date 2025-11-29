@@ -8,7 +8,7 @@ $pricingOptions = $pricingOptions ?? [];
 $itinerarySchedule = $itinerarySchedule ?? [];
 $partnerServices = $partnerServices ?? [];
 $versions = $versions ?? [];
-$policies = $assignedPolicies ?? [];
+$policies = $policies ?? [];
 
 // Helper for price formatting
 function formatPrice($price)
@@ -22,19 +22,24 @@ function formatPrice($price)
     }
 }
 
-$mainImage = !empty($tour['main_image']) ?
-    ((strpos($tour['main_image'], 'http') === 0) ? $tour['main_image'] : BASE_ASSETS_UPLOADS . $tour['main_image']) :
-    BASE_URL . 'assets/admin/image/no-image.png';
+// Find main image from $allImages
+$mainImage = BASE_URL . 'assets/admin/image/no-image.png';
+foreach ($allImages as $img) {
+    if (!empty($img['main'])) {
+        $mainImage = $img['url'] ?? BASE_URL . 'assets/admin/image/no-image.png';
+        break;
+    }
+}
 
 // Prepare gallery URLs for lightbox
 $galleryUrls = [];
 foreach ($allImages as $img) {
     $url = $img['url'] ?? '';
     if ($url) {
-        $galleryUrls[] = (strpos($url, 'http') === 0) ? $url : BASE_ASSETS_UPLOADS . $url;
+        $galleryUrls[] = $url;
     }
 }
-if (empty($galleryUrls) && !empty($tour['main_image'])) {
+if (empty($galleryUrls)) {
     $galleryUrls[] = $mainImage;
 }
 ?>
@@ -337,6 +342,40 @@ if (empty($galleryUrls) && !empty($tour['main_image'])) {
                         <?php endif; ?>
                     </div>
                 </div>
+
+                <!-- Policies Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-shield-alt text-primary me-2"></i>
+                            Chính sách áp dụng
+                            <span class="badge bg-secondary ms-2"><?= count($policies) ?> chính sách</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($policies)): ?>
+                            <div class="row g-3">
+                                <?php foreach ($policies as $policy): ?>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="fw-medium mb-2">
+                                                <i class="fas fa-check-circle text-success me-2"></i>
+                                                <?= htmlspecialchars($policy['name']) ?>
+                                            </h6>
+                                            <p class="text-muted mb-0 small"><?= htmlspecialchars($policy['description'] ?? '') ?></p>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-shield-alt fa-3x mb-3"></i>
+                                <h6>Chưa có chính sách nào</h6>
+                                <p class="mb-0">Tour này chưa có chính sách nào được áp dụng.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
 
             <!-- Sidebar (Right) -->
@@ -344,347 +383,296 @@ if (empty($galleryUrls) && !empty($tour['main_image'])) {
                 <!-- Main Image Widget -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">Ảnh đại diện</h5>
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-image text-primary me-2"></i>
+                            Ảnh đại diện
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <div class="ratio ratio-16x9">
-                            <img src="<?= $mainImage ?>" alt="<?= htmlspecialchars($tour['name'] ?? '') ?>" class="img-fluid rounded">
+                        <div class="main-image-container">
+                            <img src="<?= $mainImage ?>" alt="Tour Main Image" class="img-fluid rounded" style="width: 100%; height: auto; object-fit: cover;">
                         </div>
                     </div>
                 </div>
 
-                <!-- Partner Services Widget -->
-                <?php if (!empty($partnerServices)): ?>
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">Đối tác dịch vụ</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="partner-list">
-                                <?php foreach ($partnerServices as $partner): ?>
-                                    <div class="partner-item d-flex align-items-center mb-3">
-                                        <div class="partner-icon me-3">
-                                            <?php
-                                            $icon = match ($partner['service_type'] ?? '') {
-                                                'hotel' => 'fa-hotel',
-                                                'transport' => 'fa-bus',
-                                                'restaurant' => 'fa-utensils',
-                                                'guide' => 'fa-user-tie',
-                                                default => 'fa-handshake'
-                                            };
-                                            ?>
-                                            <i class="fas <?= $icon ?> text-primary"></i>
-                                        </div>
-                                        <div class="partner-info flex-grow-1">
-                                            <div class="partner-name fw-medium">
-                                                <?= htmlspecialchars($partner['partner_name']) ?>
-                                            </div>
-                                            <div class="partner-contact text-muted small">
-                                                <?= htmlspecialchars($partner['contact']) ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
+                <script>
+                    function openLightbox(index) {
+                        // Create lightbox overlay
+                        const lightbox = document.createElement('div');
+                        lightbox.className = 'lightbox-overlay';
+                        lightbox.innerHTML = `
+                        <div class="lightbox-content">
+                            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+                            <img src="${galleryData[index]}" alt="Gallery Image ${index + 1}" class="lightbox-image">
+                            <div class="lightbox-controls">
+                                <button class="lightbox-btn" onclick="navigateLightbox(-1)" ${index===0 ? 'disabled' : '' }>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="lightbox-counter">${index + 1} / ${galleryData.length}</span>
+                                <button class="lightbox-btn" onclick="navigateLightbox(1)" ${index===galleryData.length - 1 ? 'disabled' : '' }>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
                             </div>
                         </div>
-                    </div>
-                <?php endif; ?>
+                        `;
 
-                <!-- Quick Actions Widget -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Thao tác nhanh</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <a href="<?= BASE_URL_ADMIN ?>&action=tours/edit&id=<?= $tour['id'] ?>" class="btn btn-secondary">
-                                <i class="fas fa-edit me-2"></i>
-                                Chỉnh sửa Tour
-                            </a>
-                            <a href="<?= BASE_URL_ADMIN ?>&action=tours/versions&id=<?= $tour['id'] ?>" class="btn btn-secondary">
-                                <i class="fas fa-layer-group me-2"></i>
-                                Quản lý phiên bản
-                            </a>
-                            <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&tour_id=<?= $tour['id'] ?>" class="btn btn-primary">
-                                <i class="fas fa-calendar-plus me-2"></i>
-                                Tạo Booking mới
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
+                        document.body.appendChild(lightbox);
+                        document.body.style.overflow = 'hidden';
 
-<script>
-    // Lightbox functionality
-    function openLightbox(index) {
-        const gallery = document.getElementById('tour-gallery');
-        if (gallery) {
-            const galleryData = JSON.parse(gallery.dataset.gallery || '[]');
+                        // Store current index
+                        window.currentLightboxIndex = index;
+                        window.galleryData = galleryData;
 
-            // Create lightbox overlay
-            const lightbox = document.createElement('div');
-            lightbox.className = 'lightbox-overlay';
-            lightbox.innerHTML = `
-            <div class="lightbox-content">
-                <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
-                <img src="${galleryData[index]}" alt="Gallery Image ${index + 1}" class="lightbox-image">
-                <div class="lightbox-controls">
-                    <button class="lightbox-btn" onclick="navigateLightbox(-1)" ${index === 0 ? 'disabled' : ''}>
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <span class="lightbox-counter">${index + 1} / ${galleryData.length}</span>
-                    <button class="lightbox-btn" onclick="navigateLightbox(1)" ${index === galleryData.length - 1 ? 'disabled' : ''}>
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-        `;
+                        // Close on escape key
+                        document.addEventListener('keydown', handleLightboxKeydown);
 
-            document.body.appendChild(lightbox);
-            document.body.style.overflow = 'hidden';
+                        // Close on background click
+                        lightbox.addEventListener('click', function(e) {
+                            if (e.target === lightbox) {
+                                closeLightbox();
+                            }
+                        });
+                    }
 
-            // Store current index
-            window.currentLightboxIndex = index;
-            window.galleryData = galleryData;
+                    function closeLightbox() {
+                        const lightbox = document.querySelector('.lightbox-overlay');
+                        if (lightbox) {
+                            lightbox.remove();
+                            document.body.style.overflow = '';
+                            document.removeEventListener('keydown', handleLightboxKeydown);
+                        }
+                    }
 
-            // Close on escape key
-            document.addEventListener('keydown', handleLightboxKeydown);
+                    function navigateLightbox(direction) {
+                        const newIndex = window.currentLightboxIndex + direction;
+                        if (newIndex >= 0 && newIndex < window.galleryData.length) {
+                            window.currentLightboxIndex = newIndex;
+                            const img = document.querySelector('.lightbox-image');
+                            const counter = document.querySelector('.lightbox-counter');
+                            const prevBtn = document.querySelector('.lightbox-btn:first-child');
+                            const nextBtn = document.querySelector('.lightbox-btn:last-child');
 
-            // Close on background click
-            lightbox.addEventListener('click', function(e) {
-                if (e.target === lightbox) {
-                    closeLightbox();
-                }
-            });
-        }
-    }
+                            img.src = window.galleryData[newIndex];
+                            counter.textContent = `${newIndex + 1} / ${window.galleryData.length}`;
 
-    function closeLightbox() {
-        const lightbox = document.querySelector('.lightbox-overlay');
-        if (lightbox) {
-            lightbox.remove();
-            document.body.style.overflow = '';
-            document.removeEventListener('keydown', handleLightboxKeydown);
-        }
-    }
+                            prevBtn.disabled = newIndex === 0;
+                            nextBtn.disabled = newIndex === window.galleryData.length - 1;
+                        }
+                    }
 
-    function navigateLightbox(direction) {
-        const newIndex = window.currentLightboxIndex + direction;
-        if (newIndex >= 0 && newIndex < window.galleryData.length) {
-            window.currentLightboxIndex = newIndex;
-            const img = document.querySelector('.lightbox-image');
-            const counter = document.querySelector('.lightbox-counter');
-            const prevBtn = document.querySelector('.lightbox-btn:first-child');
-            const nextBtn = document.querySelector('.lightbox-btn:last-child');
+                    function handleLightboxKeydown(e) {
+                        if (e.key === 'Escape') {
+                            closeLightbox();
+                        } else if (e.key === 'ArrowLeft') {
+                            navigateLightbox(-1);
+                        } else if (e.key === 'ArrowRight') {
+                            navigateLightbox(1);
+                        }
+                    }
+                </script>
 
-            img.src = window.galleryData[newIndex];
-            counter.textContent = `${newIndex + 1} / ${window.galleryData.length}`;
+                <style>
+                    /* Gallery Styles */
+                    .gallery-item-wrapper {
+                        cursor: pointer;
+                        transition: transform 0.3s ease;
+                    }
 
-            prevBtn.disabled = newIndex === 0;
-            nextBtn.disabled = newIndex === window.galleryData.length - 1;
-        }
-    }
+                    .gallery-item-wrapper:hover {
+                        transform: translateY(-2px);
+                    }
 
-    function handleLightboxKeydown(e) {
-        if (e.key === 'Escape') {
-            closeLightbox();
-        } else if (e.key === 'ArrowLeft') {
-            navigateLightbox(-1);
-        } else if (e.key === 'ArrowRight') {
-            navigateLightbox(1);
-        }
-    }
-</script>
+                    .gallery-item {
+                        position: relative;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        aspect-ratio: 16/9;
+                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    }
 
-<style>
-    /* Gallery Styles */
-    .gallery-item-wrapper {
-        cursor: pointer;
-        transition: transform 0.3s ease;
-    }
+                    .gallery-item img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                        transition: transform 0.3s ease;
+                    }
 
-    .gallery-item-wrapper:hover {
-        transform: translateY(-2px);
-    }
+                    .gallery-overlay {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0, 0, 0, 0.7);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        opacity: 0;
+                        transition: opacity 0.3s ease;
+                    }
 
-    .gallery-item {
-        position: relative;
-        border-radius: 8px;
-        overflow: hidden;
-        aspect-ratio: 16/9;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+                    .gallery-item-wrapper:hover .gallery-overlay {
+                        opacity: 1;
+                    }
 
-    .gallery-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
+                    .gallery-item-wrapper:hover img {
+                        transform: scale(1.05);
+                    }
 
-    .gallery-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
+                    .gallery-overlay-content {
+                        text-align: center;
+                        color: white;
+                    }
 
-    .gallery-item-wrapper:hover .gallery-overlay {
-        opacity: 1;
-    }
+                    .gallery-overlay-content i {
+                        font-size: 24px;
+                        margin-bottom: 8px;
+                        display: block;
+                    }
 
-    .gallery-item-wrapper:hover img {
-        transform: scale(1.05);
-    }
+                    .gallery-overlay-content span {
+                        font-size: 14px;
+                        font-weight: 500;
+                    }
 
-    .gallery-overlay-content {
-        text-align: center;
-        color: white;
-    }
+                    .gallery-caption {
+                        text-align: center;
+                        margin-top: 8px;
+                    }
 
-    .gallery-overlay-content i {
-        font-size: 24px;
-        margin-bottom: 8px;
-        display: block;
-    }
+                    .gallery-empty-state {
+                        padding: 40px 20px;
+                    }
 
-    .gallery-overlay-content span {
-        font-size: 14px;
-        font-weight: 500;
-    }
+                    /* Responsive Gallery */
+                    @media (max-width: 768px) {
+                        .gallery-item {
+                            aspect-ratio: 4/3;
+                        }
 
-    .gallery-caption {
-        text-align: center;
-        margin-top: 8px;
-    }
+                        .gallery-overlay-content i {
+                            font-size: 20px;
+                        }
 
-    .gallery-empty-state {
-        padding: 40px 20px;
-    }
+                        .gallery-overlay-content span {
+                            font-size: 12px;
+                        }
+                    }
 
-    /* Responsive Gallery */
-    @media (max-width: 768px) {
-        .gallery-item {
-            aspect-ratio: 4/3;
-        }
+                    /* Lightbox Styles */
+                    .lightbox-overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0, 0, 0, 0.9);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 9999;
+                        padding: 20px;
+                    }
 
-        .gallery-overlay-content i {
-            font-size: 20px;
-        }
+                    .lightbox-content {
+                        position: relative;
+                        max-width: 90vw;
+                        max-height: 90vh;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                    }
 
-        .gallery-overlay-content span {
-            font-size: 12px;
-        }
-    }
+                    .lightbox-image {
+                        max-width: 100%;
+                        max-height: 80vh;
+                        object-fit: contain;
+                        border-radius: 8px;
+                    }
 
-    /* Lightbox Styles */
-    .lightbox-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.9);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        padding: 20px;
-    }
+                    .lightbox-close {
+                        position: absolute;
+                        top: -40px;
+                        right: 0;
+                        background: none;
+                        border: none;
+                        color: white;
+                        font-size: 32px;
+                        cursor: pointer;
+                        padding: 0;
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
 
-    .lightbox-content {
-        position: relative;
-        max-width: 90vw;
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+                    .lightbox-close:hover {
+                        opacity: 0.8;
+                    }
 
-    .lightbox-image {
-        max-width: 100%;
-        max-height: 80vh;
-        object-fit: contain;
-        border-radius: 8px;
-    }
+                    .lightbox-controls {
+                        display: flex;
+                        align-items: center;
+                        gap: 20px;
+                        margin-top: 20px;
+                    }
 
-    .lightbox-close {
-        position: absolute;
-        top: -40px;
-        right: 0;
-        background: none;
-        border: none;
-        color: white;
-        font-size: 32px;
-        cursor: pointer;
-        padding: 0;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+                    .lightbox-btn {
+                        background: rgba(255, 255, 255, 0.2);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        color: white;
+                        padding: 10px 15px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        transition: background 0.3s ease;
+                    }
 
-    .lightbox-close:hover {
-        opacity: 0.8;
-    }
+                    .lightbox-btn:hover:not(:disabled) {
+                        background: rgba(255, 255, 255, 0.3);
+                    }
 
-    .lightbox-controls {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        margin-top: 20px;
-    }
+                    .lightbox-btn:disabled {
+                        opacity: 0.3;
+                        cursor: not-allowed;
+                    }
 
-    .lightbox-btn {
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        color: white;
-        padding: 10px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background 0.3s ease;
-    }
+                    .lightbox-counter {
+                        color: white;
+                        font-size: 14px;
+                        font-weight: 500;
+                    }
 
-    .lightbox-btn:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.3);
-    }
+                    @media (max-width: 768px) {
+                        .lightbox-controls {
+                            gap: 15px;
+                        }
 
-    .lightbox-btn:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-    }
+                        .lightbox-btn {
+                            padding: 8px 12px;
+                            font-size: 12px;
+                        }
 
-    .lightbox-counter {
-        color: white;
-        font-size: 14px;
-        font-weight: 500;
-    }
+                        .lightbox-counter {
+                            font-size: 12px;
+                        }
+                    }
+                </style>
 
-    @media (max-width: 768px) {
-        .lightbox-controls {
-            gap: 15px;
-        }
+                <script>
+                    // Initialize gallery data
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const galleryElement = document.getElementById('tour-gallery');
+                        if (galleryElement) {
+                            window.galleryData = JSON.parse(galleryElement.getAttribute('data-gallery'));
+                        }
+                    });
 
-        .lightbox-btn {
-            padding: 8px 12px;
-            font-size: 12px;
-        }
+                    function showAllImages() {
+                        // This function can be implemented to show all images in a modal or expand the gallery
+                        const galleryItems = document.querySelectorAll('.gallery-item-wrapper');
+                        galleryItems.forEach(item => item.style.display = 'block');
+                    }
+                </script>
 
-        .lightbox-counter {
-            font-size: 12px;
-        }
-    }
-</style>
-
-</script><?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>
+                <?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>
