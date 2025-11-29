@@ -27,8 +27,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
-        <form method="POST" action="?action=tours/update" enctype="multipart/form-data" class="tour-form">
+        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=tours/update" enctype="multipart/form-data" class="tour-form">
             <input type="hidden" name="id" value="<?= htmlspecialchars($tour['id']) ?>">
+            <?php
+            // remember where the user came from so we can return them to the same list state after saving
+            $referer = $_GET['return_to'] ?? ($_SERVER['HTTP_REFERER'] ?? BASE_URL_ADMIN . '&action=tours');
+            ?>
+            <input type="hidden" name="return_to" value="<?= htmlspecialchars($referer) ?>">
             <!-- Container for tracking deleted image URLs -->
             <div id="deleted-images-container"></div>
             <!-- Hidden input to track if an existing gallery image is promoted to primary -->
@@ -78,7 +83,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                             <div class="mb-3">
                                 <label for="base_price" class="form-label fw-500">Giá Cơ Bản</label>
-                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="50000" value="<?= htmlspecialchars($tour['base_price']) ?>">
+                                <input type="number" class="form-control" id="base_price" name="base_price" placeholder="Nhập giá cơ bản" min="0" step="1" value="<?= htmlspecialchars($tour['base_price']) ?>">
                                 <small class="text-muted">Đơn giá mặc định áp dụng khi không có gói riêng.</small>
                             </div>
                         </div>
@@ -93,39 +98,79 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div class="card-body">
                             <label for="description" class="form-label fw-500">Nhập mô tả</label>
-                            <input type="hidden" id="input-description" name="description" value='<?= htmlspecialchars($tour['description'] ?? '', ENT_QUOTES) ?>'>
-                            <div id="editor-description" class="quill-editor"></div>
+                            <textarea id="input-description" name="description" class="form-control" rows="6"><?= htmlspecialchars($tour['description'] ?? '') ?></textarea>
                         </div>
                     </div>
 
-                    <!-- Gói giá & dịch vụ -->
-                    <div class="card">
+                    <!-- Gói giá (loại đối tượng) -->
+                    <div class="card mb-3">
                         <div class="card-header bg-light d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
-                                <i class="fas fa-tags"></i> Giá theo đối tượng / gói dịch vụ
+                                <i class="fas fa-users"></i> Các loại giá (VD: người lớn, trẻ em)
                             </h5>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="add-pricing-tier">
-                                <i class="fas fa-plus"></i> Thêm gói
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="add-pricing-option">
+                                <i class="fas fa-plus"></i> Thêm loại giá
                             </button>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted small mb-3">Ghi rõ tên nhóm khách (VD: Người lớn, Trẻ em, Dịp lễ), giá áp dụng và ghi chú kèm dịch vụ.</p>
-                            <div id="pricing-tier-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($pricingOptions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
-                            <template id="pricing-tier-template">
-                                <div class="pricing-tier-item border rounded p-3 bg-light-subtle position-relative">
-                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-pricing-tier" aria-label="Xóa"></button>
+                            <p class="text-muted small mb-3">Định nghĩa các loại giá sẽ áp dụng cho tour, ví dụ: "Người lớn", "Trẻ em (6-12 tuổi)", "Trẻ em (dưới 6 tuổi)".</p>
+                            <div id="pricing-options-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($pricingOptions, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
+                            <template id="pricing-option-template">
+                                <div class="pricing-option-item border rounded p-3 bg-light-subtle position-relative">
+                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-pricing-option" aria-label="Xóa"></button>
                                     <div class="row g-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-500">Nhóm khách / Gói</label>
-                                            <input type="text" class="form-control" name="pricing_label[]" data-field="label" placeholder="Người lớn">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-500">Giá áp dụng</label>
-                                            <input type="number" class="form-control" name="pricing_price[]" data-field="price" placeholder="1500000" min="0">
+                                        <div class="col-12">
+                                            <label class="form-label fw-500">Tên loại giá</label>
+                                            <input type="text" class="form-control" data-field="label" placeholder="Ví dụ: Người lớn">
                                         </div>
                                         <div class="col-12">
-                                            <label class="form-label fw-500">Ghi chú dịch vụ</label>
-                                            <textarea class="form-control" rows="2" name="pricing_description[]" data-field="description" placeholder="Bao gồm ăn sáng, xe đưa đón sân bay"></textarea>
+                                            <label class="form-label fw-500">Mô tả (tùy chọn)</label>
+                                            <textarea class="form-control" rows="2" data-field="description" placeholder="Mô tả chi tiết về loại giá này"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Bảng giá theo thời điểm -->
+                    <div class="card">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-dollar-sign"></i> Bảng giá theo thời điểm
+                            </h5>
+                            <button type="button" class="btn btn-sm btn-outline-success" id="add-dynamic-price">
+                                <i class="fas fa-plus"></i> Thêm giá
+                            </button>
+                        </div>
+                        <div class="card-body">
+                             <p class="text-muted small mb-3">Áp dụng giá cụ thể cho từng loại giá ở trên theo các khoảng thời gian khác nhau (ví dụ: mùa cao điểm, ngày lễ).</p>
+                            <div id="dynamic-pricing-list" class="d-flex flex-column gap-3" data-initial='<?= json_encode($dynamicPricing, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>'></div>
+                            <template id="dynamic-pricing-template">
+                                <div class="dynamic-pricing-item border rounded p-3 bg-light-subtle position-relative">
+                                    <button type="button" class="btn-close position-absolute top-0 end-0 m-2 text-danger remove-dynamic-price" aria-label="Xóa"></button>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Áp dụng cho loại giá</label>
+                                            <select class="form-select" data-field="option_label">
+                                                <!-- Options will be populated by JS -->
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Giá</label>
+                                            <input type="number" class="form-control" data-field="price" placeholder="1500000" min="0">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Từ ngày</label>
+                                            <input type="date" class="form-control" data-field="start_date">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-500">Đến ngày</label>
+                                            <input type="date" class="form-control" data-field="end_date">
+                                        </div>
+                                         <div class="col-12">
+                                            <label class="form-label fw-500">Ghi chú (tùy chọn)</label>
+                                            <textarea class="form-control" rows="1" data-field="notes" placeholder="Ví dụ: Áp dụng cho ngày lễ 30/4"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -193,9 +238,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <p class="text-muted small">Ảnh đầu tiên sẽ là ảnh đại diện. Tối đa 10 ảnh.</p>
                             </div>
                             <!-- Hidden file inputs to store files for submission -->
-                            <input type="file" id="file-input-handler" class="d-none" multiple accept="image/*">
+                            <input type="file" id="file-input-handler-edit" class="d-none" multiple accept="image/*">
                             <input type="file" name="image" id="main-image-input" class="d-none">
-                            <input type="file" name="gallery_images[]" id="gallery-images-input" class="d-none" multiple>
+                            <input type="file" name="gallery_images[]" id="gallery-images-input-edit" class="d-none" multiple>
 
                             <div id="image-preview-container" class="row g-2 mt-3"></div>
                         </div>
@@ -248,20 +293,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 </div>
             </div>
 
-            <!-- Chính sách & Actions -->
-            <div class="card mt-3">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-file-alt"></i> Chính sách
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <label for="policy" class="form-label fw-500">Nhập chính sách</label>
-                    <input type="hidden" id="input-policy" name="policy" value='<?= htmlspecialchars($tour['policy'] ?? '', ENT_QUOTES) ?>'>
-                    <div id="editor-policy" class="quill-editor"></div>
-                </div>
-            </div>
-
             <!-- Form Actions -->
             <div class="mt-3 d-flex gap-2 mb-4">
                 <button type="submit" class="btn btn-primary">
@@ -274,12 +305,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         </form>
     </div>
 </main>
-
-<!-- Image Viewer Modal -->
-<div id="image-viewer-modal" class="modal-viewer" style="display:none;">
-    <span class="close-viewer">&times;</span>
-    <img class="modal-viewer-content" id="modal-image">
-</div>
 
 <style>
     .image-preview-card {
@@ -317,66 +342,42 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     .actions-overlay .action-btn:hover {
         background: rgba(255, 255, 255, 0.4);
     }
-
-    /* Modal Styles */
-    .modal-viewer {
-        position: fixed;
-        z-index: 9999;
-        padding-top: 50px;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.9);
-    }
-
-    .modal-viewer-content {
-        margin: auto;
-        display: block;
-        width: auto;
-        height: auto;
-        max-width: 90%;
-        max-height: 90%;
-    }
-
-    .close-viewer {
-        position: absolute;
-        top: 15px;
-        right: 35px;
-        color: #f1f1f1;
-        font-size: 40px;
-        font-weight: bold;
-        transition: 0.3s;
-        cursor: pointer;
-    }
 </style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // --- DOM Elements ---
         const dropZone = document.getElementById('image-drop-zone');
-        const fileInput = document.getElementById('file-input-handler');
+        // Use page-specific input IDs to avoid collisions with global create-page script
+        const fileInput = document.getElementById('file-input-handler-edit');
         const previewContainer = document.getElementById('image-preview-container');
         const mainImageInput = document.getElementById('main-image-input');
-        const galleryImagesInput = document.getElementById('gallery-images-input');
+        const galleryImagesInput = document.getElementById('gallery-images-input-edit');
         const deletedContainer = document.getElementById('deleted-images-container');
         const newPrimaryInput = document.getElementById('new-primary-image-url');
-        const modal = document.getElementById('image-viewer-modal');
-        const modalImg = document.getElementById('modal-image');
-        const closeModal = document.querySelector('.close-viewer');
+        // Note: viewing handled by global lightbox (provided by assets/admin/js/tours.js)
 
         // --- State ---
-        // `imageItems` holds the master list of images. Items can be a string (URL for existing) or a File object (for new).
+        // `imageItems` holds the master list of images.
+        // Existing images are stored as objects { id, url }, new uploads are File objects.
         let imageItems = [];
 
         // --- Initial Data (from PHP) ---
-        const existingImagesData = <?= json_encode($allImages, JSON_UNESCAPED_SLASHES) ?>;
+        const existingImagesData = <?= json_encode($allImages, JSON_UNESCAPED_SLASHES) ?> || [];
 
         function initializeImages() {
-            // The PHP code already ensures the primary image is first.
-            imageItems = existingImagesData.map(img => img.url);
+            // Normalize existing images into objects {id, url} so we keep IDs for deletes/primary selection.
+            // Support different keys coming from backend: prefer `id` and `url`, fallback to `image_url` or `path`.
+            imageItems = existingImagesData.map(img => ({
+                id: (img && (img.id || img.image_id || img.imageId)) ? (img.id || img.image_id || img.imageId) : null,
+                // public URL for preview
+                url: (img && (img.url || img.image_url)) ? (img.url || img.image_url) : '',
+                // relative DB path (e.g. 'tours/xxx.jpg') for backend operations
+                path: (img && (img.path || img.image_url)) ? (img.path || img.image_url) : ''
+            }));
+
             updatePreviews();
+            updateFormInputs();
         }
 
         // --- Event Listeners ---
@@ -400,12 +401,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             handleFiles(files);
             fileInput.value = ''; // Reset for next selection
         });
-        closeModal.addEventListener('click', () => modal.style.display = "none");
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = "none";
-            }
-        });
+        // no-op: lightbox handled in shared JS
 
         // --- Core Functions ---
         function handleFiles(files) {
@@ -418,8 +414,19 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         function updatePreviews() {
             previewContainer.innerHTML = '';
             imageItems.forEach((item, index) => {
-                const isExisting = typeof item === 'string';
-                const imgSrc = isExisting ? item : URL.createObjectURL(item);
+                // Determine source for preview:
+                // - File objects (new uploads) -> createObjectURL
+                // - Existing image objects -> item.url
+                // - Plain string (edge cases) -> use string as src
+                let imgSrc = '';
+                const isFile = item instanceof File;
+                if (isFile) {
+                    imgSrc = URL.createObjectURL(item);
+                } else if (typeof item === 'object' && item.url) {
+                    imgSrc = item.url;
+                } else if (typeof item === 'string') {
+                    imgSrc = item;
+                }
 
                 const previewWrapper = document.createElement('div');
                 previewWrapper.className = 'col-6 col-md-4 col-lg-3';
@@ -429,8 +436,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 img.src = imgSrc;
                 img.className = 'card-img-top object-fit-cover';
                 img.style.height = '120px';
-                if (!isExisting) {
-                    img.onload = () => URL.revokeObjectURL(img.src); // Clean up memory
+                // revoke object URLs for File objects after load to free memory
+                if (isFile) {
+                    img.onload = () => URL.revokeObjectURL(img.src);
                 }
 
                 const overlay = createOverlay(index, imgSrc);
@@ -456,9 +464,18 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             const viewBtn = document.createElement('i');
             viewBtn.className = 'fas fa-eye action-btn';
             viewBtn.title = 'Xem ảnh';
-            viewBtn.onclick = () => {
-                modalImg.src = imgSrc;
-                modal.style.display = "block";
+            viewBtn.onclick = (e) => {
+                e.preventDefault();
+                // Use global lightbox instance if available
+                try {
+                    const imgs = Array.from(previewContainer.querySelectorAll('img.card-img-top')).map(i => i.src);
+                    if (window.tourLightbox) {
+                        window.tourLightbox.open(imgs, index);
+                        return;
+                    }
+                } catch (err) {
+                    // fallback: do nothing
+                }
             };
             overlay.appendChild(viewBtn);
 
@@ -481,12 +498,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
         function removeItem(indexToRemove) {
             const item = imageItems[indexToRemove];
-            if (typeof item === 'string') {
-                // It's an existing image URL, mark for deletion on the backend
+            // If it's an existing image (object with id or url), send its id if available, otherwise send the url.
+            if (typeof item === 'object') {
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
                 hiddenInput.name = 'deleted_images[]';
-                hiddenInput.value = item;
+                // prefer numeric id, otherwise send DB-relative path so backend can match image_url
+                hiddenInput.value = item.id ? item.id : (item.path || item.url);
                 deletedContainer.appendChild(hiddenInput);
             }
             imageItems.splice(indexToRemove, 1);
@@ -499,9 +517,14 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 const item = imageItems.splice(indexToMakePrimary, 1)[0];
                 imageItems.unshift(item);
 
-                // If the new primary is an existing image, record its URL for the backend.
-                // Otherwise, clear it, as the new primary is a new file upload.
-                newPrimaryInput.value = (typeof item === 'string') ? item : '';
+                // If the new primary is an existing image, record its ID (prefer) or URL for the backend.
+                if (typeof item === 'object') {
+                    // prefer id; if not available send DB-relative path (not full public URL)
+                    newPrimaryInput.value = item.id ? item.id : (item.path || item.url);
+                } else {
+                    // new file upload -> backend should detect uploaded main image from `image` input
+                    newPrimaryInput.value = '';
+                }
 
                 updatePreviews();
                 updateFormInputs();

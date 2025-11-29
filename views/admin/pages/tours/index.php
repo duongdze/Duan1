@@ -14,54 +14,57 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
         <!-- Statistics Header -->
         <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card stats-card">
+            <div class="col-md-6 col-xl-3 mb-3">
+                <div class="card kpi-card">
                     <div class="card-body d-flex align-items-center">
-                        <div class="stats-icon bg-primary">
-                            <i class="fas fa-route"></i>
+                        <div class="kpi-icon" style="background-color: #e0f2fe;">
+                            <i class="fas fa-route" style="color: #0ea5e9;"></i>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="stats-title">Tổng Tour</h6>
-                            <h4 class="stats-value mb-0"><?= number_format($stats['total_tours'] ?? 0) ?></h4>
+                        <div>
+                            <div class="kpi-label">Tổng Tour</div>
+                            <div class="kpi-value"><?= number_format($stats['total_tours'] ?? 0) ?></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card stats-card">
+
+            <div class="col-md-6 col-xl-3 mb-3">
+                <div class="card kpi-card">
                     <div class="card-body d-flex align-items-center">
-                        <div class="stats-icon bg-success">
-                            <i class="fas fa-play-circle"></i>
+                        <div class="kpi-icon" style="background-color: #dcfce7;">
+                            <i class="fas fa-play-circle" style="color: #22c55e;"></i>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="stats-title">Tour Đang Hoạt Động</h6>
-                            <h4 class="stats-value mb-0"><?= number_format($stats['active_tours'] ?? 0) ?></h4>
+                        <div>
+                            <div class="kpi-label">Tour Đang Hoạt Động</div>
+                            <div class="kpi-value"><?= number_format($stats['active_tours'] ?? 0) ?></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card stats-card">
+
+            <div class="col-md-6 col-xl-3 mb-3">
+                <div class="card kpi-card">
                     <div class="card-body d-flex align-items-center">
-                        <div class="stats-icon bg-info">
-                            <i class="fas fa-calendar-check"></i>
+                        <div class="kpi-icon" style="background-color: #fefce8;">
+                            <i class="fas fa-calendar-check" style="color: #eab308;"></i>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="stats-title">Tổng Đặt Tour</h6>
-                            <h4 class="stats-value mb-0"><?= number_format($stats['total_bookings'] ?? 0) ?></h4>
+                        <div>
+                            <div class="kpi-label">Tổng Đặt Tour</div>
+                            <div class="kpi-value"><?= number_format($stats['total_bookings'] ?? 0) ?></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card stats-card">
+
+            <div class="col-md-6 col-xl-3 mb-3">
+                <div class="card kpi-card">
                     <div class="card-body d-flex align-items-center">
-                        <div class="stats-icon bg-warning">
-                            <i class="fas fa-star"></i>
+                        <div class="kpi-icon" style="background-color: #fee2e2;">
+                            <i class="fas fa-star" style="color: #ef4444;"></i>
                         </div>
-                        <div class="ms-3">
-                            <h6 class="stats-title">Đánh Giá Trung Bình</h6>
-                            <h4 class="stats-value mb-0"><?= number_format($stats['avg_rating'] ?? 0, 1) ?> <small class="text-muted">/5</small></h4>
+                        <div>
+                            <div class="kpi-label">Đánh Giá Trung Bình</div>
+                            <div class="kpi-value"><?= number_format($stats['avg_rating'] ?? 0, 1) ?> <small class="text-muted">/5</small></div>
                         </div>
                     </div>
                 </div>
@@ -198,9 +201,22 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 $maxThumbs = 3;
                                 $thumbsToShow = array_slice($thumbs, 0, $maxThumbs);
                                 $remaining = max(0, $totalImages - 1 - count($thumbsToShow));
+
+                                // Build full gallery URLs for JS (use JSON to safely pass array)
+                                $galleryUrls = [];
+                                if (!empty($galleryImages)) {
+                                    foreach ($galleryImages as $g) {
+                                        if (!empty($g)) {
+                                            $galleryUrls[] = BASE_ASSETS_UPLOADS . $g;
+                                        }
+                                    }
+                                }
+                                if (empty($galleryUrls) && !empty($tour['main_image'])) {
+                                    $galleryUrls = [BASE_ASSETS_UPLOADS . $tour['main_image']];
+                                }
                                 ?>
 
-                                <div class="tour-card">
+                                <div class="tour-card" data-gallery='<?= htmlspecialchars(json_encode($galleryUrls), ENT_QUOTES) ?>'>
                                     <div class="tour-card-inner">
                                         <div class="tour-gallery">
                                             <div class="tour-main">
@@ -209,7 +225,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                 else:
                                                     $mainUrl = BASE_URL . 'assets/admin/image/no-image.png';
                                                 endif; ?>
-                                                <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name']) ?>">
+                                                <img src="<?= $mainUrl ?>" alt="<?= htmlspecialchars($tour['name']) ?>" data-index="0">
                                                 <span class="badge-top"><?= htmlspecialchars($tour['category_name'] ?? '') ?></span>
                                                 <?php
                                                 $price = $tour['base_price'] ?? 0;
@@ -230,7 +246,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                         $turl = !empty($timg) ? BASE_ASSETS_UPLOADS . $timg : BASE_URL . 'assets/admin/image/no-image.png';
                                                     ?>
                                                         <div class="thumb-item">
-                                                            <img src="<?= $turl ?>" alt="thumb-<?= $i ?>">
+                                                            <img src="<?= $turl ?>" alt="thumb-<?= $i ?>" data-index="<?= $i + 1 ?>">
                                                         </div>
                                                     <?php endforeach; ?>
                                                     <?php if ($remaining > 0) : ?>

@@ -10,9 +10,7 @@ class Tour extends BaseModel
         'category_id',
         'description',
         'base_price',
-        'policy',
         'supplier_id',
-        // 'picture' removed to match DB schema (use tour_gallery_images)
         'created_at',
         'updated_at'
     ];
@@ -136,7 +134,7 @@ class Tour extends BaseModel
                     tc.name as category_name,
                     COALESCE(tf.avg_rating, 0) as avg_rating,
                     COALESCE(tb.booking_count, 0) as booking_count,
-                    MAX(CASE WHEN tgi.main_img = 1 THEN tgi.image_url ELSE NULL END) AS main_image,
+                    MAX(CASE WHEN tgi.main_img = 1 THEN tgi.image_url END) AS main_image,
                     GROUP_CONCAT(tgi.image_url ORDER BY tgi.sort_order SEPARATOR ',') as gallery_images,
                     0 as availability_percentage
                 FROM {$this->table} AS t
@@ -196,26 +194,53 @@ class Tour extends BaseModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function createTour($tourData, $pricingOptions = [], $itineraries = [], $partners = [], $uploadedImages = [])
+    public function createTour($tourData, $pricingOptions = [], $dynamicPricing = [], $itineraries = [], $partners = [], $uploadedImages = [])
     {
         $this->beginTransaction(); // BẮT ĐẦU TRANSACTION
         try {
             // 1. INSERT TOUR CƠ BẢN
             $tourId = $this->insert($tourData);
 
-            // 2. INSERT PRICING OPTIONS
+            // 2. INSERT PRICING OPTIONS VÀ DYNAMIC PRICING
             if (!empty($pricingOptions)) {
                 $pricingModel = new TourPricing();
+                $dynamicPricingModel = new TourDynamicPricing();
+                $optionLabelToIdMap = [];
+
+                // Insert options and create a map from label to the new ID
                 foreach ($pricingOptions as $option) {
-                    $pricingModel->insert([
-                        'tour_id' => $tourId,
-                        'label' => $option['label'] ?? '',
-                        'price' => $option['price'] ?? 0,
-                        'description' => $option['description'] ?? '',
-                        'created_at' => date('Y-m-d H:i:s'),
-                    ]);
+                    $optionLabel = $option['label'] ?? '';
+                    if (!empty($optionLabel)) {
+                        $optionId = $pricingModel->insert([
+                            'tour_id' => $tourId,
+                            'label' => $optionLabel,
+                            'description' => $option['description'] ?? '',
+                            'created_at' => date('Y-m-d H:i:s'),
+                        ]);
+                        $optionLabelToIdMap[$optionLabel] = $optionId;
+                    }
+                }
+
+                // Insert dynamic prices using the map
+                if (!empty($dynamicPricing) && !empty($optionLabelToIdMap)) {
+                    foreach ($dynamicPricing as $dp) {
+                        $optionLabel = $dp['option_label'] ?? '';
+                        if (isset($optionLabelToIdMap[$optionLabel])) {
+                            $optionId = $optionLabelToIdMap[$optionLabel];
+                            $dynamicPricingModel->insert([
+                                'tour_id' => $tourId,
+                                'pricing_option_id' => $optionId,
+                                'start_date' => $dp['start_date'] ?: null,
+                                'end_date' => $dp['end_date'] ?: null,
+                                'price' => (float)($dp['price'] ?? 0),
+                                'notes' => $dp['notes'] ?? '',
+                                'created_at' => date('Y-m-d H:i:s'),
+                            ]);
+                        }
+                    }
                 }
             }
+
 
             // 3. INSERT ITINERARIES
             if (!empty($itineraries)) {
@@ -251,6 +276,7 @@ class Tour extends BaseModel
                         'image_url' => $image['path'],
                         'caption' => '',
                         'sort_order' => $index + 1,
+                        'created_at' => date('Y-m-d H:i:s'),
                     ]);
                 }
             }
@@ -295,9 +321,11 @@ class Tour extends BaseModel
             // Load related models
             $imageModel = new TourImage();
             $pricingModel = new TourPricing();
+            $dynamicPricingModel = new TourDynamicPricing();
             $itineraryModel = new TourItinerary();
             $partnerModel = new TourPartner();
             $versionModel = new TourVersion();
+            $policyAssignmentModel = new TourPolicyAssignment();
             $bookingModel = new Booking();
             $bookingCustomerModel = new BookingCustomer();
 
@@ -310,21 +338,15 @@ class Tour extends BaseModel
                 }
             }
 
-            // also attempt to delete main_image file from tours table
-            $tour = $this->find('*', 'id = :id', ['id' => $id]);
-            if ($tour && !empty($tour['main_image'])) {
-                $mainPath = PATH_ASSETS_UPLOADS . $tour['main_image'];
-                if (file_exists($mainPath)) {
-                    @unlink($mainPath);
-                }
-            }
-
             // 2. Delete DB records in dependent tables
             $imageModel->deleteByTourId($id);
             $pricingModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+            $dynamicPricingModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $itineraryModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $partnerModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $versionModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+            $policyAssignmentModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+
 
             // 3. Delete bookings and their customers
             $bookings = $bookingModel->select('*', 'tour_id = :tour_id', ['tour_id' => $id]);

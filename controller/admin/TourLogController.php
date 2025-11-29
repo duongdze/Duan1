@@ -15,19 +15,19 @@ class TourLogController
     public function index()
     {
         $logs = $this->model->all();
-        require_once PATH_VIEW_ADMIN . 'pages/tour_logs/index.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours_logs/index.php';
     }
 
     public function create()
     {
         $tourModel = new Tour();
-        $toursData = $tourModel->getAllTours(1, 100);
-        $tours = $toursData['data'];
+        // use generic select() to fetch all tours (getAll() not defined in Tour model)
+        $tours = $tourModel->select();
 
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
 
-        require_once PATH_VIEW_ADMIN . 'pages/tour_logs/create.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours_logs/create.php';
     }
 
     public function store()
@@ -53,7 +53,7 @@ class TourLogController
         $data['guide_id'] = $_SESSION['guide_id'] ?? $data['guide_id'];
 
         $this->model->create($data);
-        header('Location:' . BASE_URL_ADMIN . '&action=tour_logs');
+        header('Location:' . BASE_URL_ADMIN . '&action=tours_logs');
         exit;
     }
 
@@ -70,13 +70,12 @@ class TourLogController
         }
 
         $tourModel = new Tour();
-        $toursData = $tourModel->getAllTours(1, 100);
-        $tours = $toursData['data'];
+        $tours = $tourModel->select();
 
         $guideModel = new Guide();
         $guides = $guideModel->getAllWithName();
 
-        require_once PATH_VIEW_ADMIN . 'pages/tour_logs/edit.php';
+        require_once PATH_VIEW_ADMIN . 'pages/tours_logs/edit.php';
     }
 
     public function update()
@@ -107,7 +106,7 @@ class TourLogController
         $data['guide_id'] = $_SESSION['guide_id'] ?? $data['guide_id'];
 
         $this->model->updateLog($id, $data);
-        header('Location:' . BASE_URL_ADMIN . '&action=tour_logs');
+        header('Location:' . BASE_URL_ADMIN . '&action=tours_logs');
         exit;
     }
 
@@ -117,7 +116,7 @@ class TourLogController
         if ($id) {
             $this->model->deleteById($id);
         }
-        header('Location:' . BASE_URL_ADMIN . '&action=tour_logs');
+        header('Location:' . BASE_URL_ADMIN . '&action=tours_logs');
         exit;
     }
 }
