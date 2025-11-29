@@ -239,6 +239,9 @@ class TourController
         $partnerModel = new TourPartner();
         $partnerServices = $partnerModel->getByTourId($id);
 
+        $departureModel = new TourDeparture();
+        $departures = $departureModel->getByTourId($id);
+
         $imageModel = new TourImage();
         $images = $imageModel->getByTourId($id);
 
@@ -328,6 +331,19 @@ class TourController
                 }
             }
 
+            // Handle main image deletion
+            if (!empty($_POST['delete_main_image'])) {
+                // Find current main image
+                $mainImg = $imageModel->find('*', 'tour_id = :tid AND main_img = 1', ['tid' => $id]);
+                if ($mainImg) {
+                    $path = PATH_ASSETS_UPLOADS . ($mainImg['image_url'] ?? '');
+                    if (!empty($mainImg['image_url']) && file_exists($path)) {
+                        @unlink($path);
+                    }
+                    $imageModel->delete('id = :id', ['id' => $mainImg['id']]);
+                }
+            }
+
             // 2) Handle primary image selection (existing image id or new image index)
             $primarySelection = $_POST['primary_image_selection'] ?? '';
             $newMainImageIndex = -1;
@@ -358,14 +374,25 @@ class TourController
                 mkdir($uploadDir, 0755, true);
             }
 
-            // If a new primary file was uploaded (single file input named `image`)
-            if (!empty($_FILES['image']['tmp_name'])) {
-                if (is_uploaded_file($_FILES['image']['tmp_name'])) {
-                    $originalName = $_FILES['image']['name'];
+            // Debug: Log upload directory
+            error_log("Upload directory: " . $uploadDir);
+            error_log("Upload directory exists: " . (is_dir($uploadDir) ? 'Yes' : 'No'));
+            error_log("Upload directory writable: " . (is_writable($uploadDir) ? 'Yes' : 'No'));
+
+            // Debug: Log toàn bộ FILES data
+            error_log("Complete FILES data: " . print_r($_FILES, true));
+
+            // If a new primary file was uploaded (single file input named `main_image`)
+            if (!empty($_FILES['main_image']['tmp_name'])) {
+                error_log("Main image upload detected");
+                if (is_uploaded_file($_FILES['main_image']['tmp_name'])) {
+                    $originalName = $_FILES['main_image']['name'];
                     $extension = pathinfo($originalName, PATHINFO_EXTENSION);
                     $newName = uniqid('tour_') . '.' . $extension;
                     $filePath = $uploadDir . $newName;
-                    if (move_uploaded_file($_FILES['image']['tmp_name'], $filePath)) {
+                    error_log("Moving file from " . $_FILES['main_image']['tmp_name'] . " to " . $filePath);
+                    if (move_uploaded_file($_FILES['main_image']['tmp_name'], $filePath)) {
+                        error_log("Main image upload successful");
                         // clear previous main flags
                         $stmt = BaseModel::getPdo()->prepare("UPDATE tour_gallery_images SET main_img = 0 WHERE tour_id = :tid");
                         $stmt->execute(['tid' => $id]);
@@ -384,20 +411,30 @@ class TourController
                             'main_img' => 1,
                             'sort_order' => $maxOrder + 1,
                         ]);
+                        error_log("Main image inserted into database");
+                    } else {
+                        error_log("Failed to move main image file");
                     }
                 }
+            } else {
+                error_log("No main image upload detected");
             }
 
             // Multiple gallery uploads with security checks
+            error_log("Gallery upload check - FILES data: " . print_r($_FILES['gallery_images'], true));
             if (!empty($_FILES['gallery_images']) && !empty($_FILES['gallery_images']['tmp_name'])) {
+                error_log("Processing gallery uploads");
                 $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
                 $maxFileSize = 5 * 1024 * 1024; // 5MB
 
                 foreach ($_FILES['gallery_images']['tmp_name'] as $index => $tmpName) {
                     if (!empty($tmpName) && is_uploaded_file($tmpName)) {
+                        error_log("Processing gallery image $index");
                         $originalName = $_FILES['gallery_images']['name'][$index];
                         $fileType = $_FILES['gallery_images']['type'][$index];
                         $fileSize = $_FILES['gallery_images']['size'][$index];
+
+                        error_log("Gallery file: $originalName, type: $fileType, size: $fileSize");
 
                         // Validate file type
                         if (!in_array($fileType, $allowedTypes)) {
@@ -418,7 +455,9 @@ class TourController
                         $newName = uniqid('tour_') . '.' . $extension;
                         $filePath = $uploadDir . $newName;
 
+                        error_log("Moving gallery file from $tmpName to $filePath");
                         if (move_uploaded_file($tmpName, $filePath)) {
+                            error_log("Gallery image $index upload successful");
                             // insert as non-main by default
                             $maxOrder = 0;
                             $row = BaseModel::getPdo()->prepare("SELECT MAX(sort_order) as mo FROM tour_gallery_images WHERE tour_id = :tid");
@@ -433,11 +472,15 @@ class TourController
                                 'main_img' => ($index == $newMainImageIndex) ? 1 : 0,
                                 'sort_order' => $maxOrder + 1,
                             ]);
+                            error_log("Gallery image $index inserted into database");
                         } else {
+                            error_log("Failed to move gallery file $index");
                             throw new Exception("Không thể tải lên file: {$originalName}");
                         }
                     }
                 }
+            } else {
+                error_log("No gallery images detected for upload");
             }
 
             // Parse JSON arrays for pricing/itineraries/partners and update related tables
@@ -453,8 +496,6 @@ class TourController
             $partnerModel = new TourPartner();
 
             $pricingModel->delete('tour_id = :tid', ['tid' => $id]);
-            $dynamicPricingModel->delete('tour_id = :tid', ['tid' => $id]);
-
             foreach ($pricingOptions as $opt) {
                 $optionId = $pricingModel->insert([
                     'tour_id' => $id,
@@ -462,38 +503,40 @@ class TourController
                     'description' => $opt['description'] ?? '',
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
-
-                foreach ($dynamicPricing as $dp) {
-                    if ($dp['option_label'] == $opt['label']) {
-                        $dynamicPricingModel->insert([
-                            'tour_id' => $id,
-                            'pricing_option_id' => $optionId,
-                            'start_date' => $dp['start_date'] ?? null,
-                            'end_date' => $dp['end_date'] ?? null,
-                            'price' => (float)$dp['price'],
-                            'notes' => $dp['notes'] ?? '',
-                            'created_at' => date('Y-m-d H:i:s'),
-                        ]);
-                    }
-                }
             }
 
             $itineraryModel->delete('tour_id = :tid', ['tid' => $id]);
             foreach ($itineraries as $index => $it) {
                 $dayNumber = $index + 1;
-                if (isset($it['day']) && preg_match('/(\d+)/', $it['day'], $m)) {
-                    $dayNumber = (int)$m[1];
+                if (isset($it['day_number'])) {
+                    $dayNumber = (int)$it['day_number'];
                 }
                 $itineraryModel->insert([
                     'tour_id' => $id,
-                    'day_label' => $it['day'] ?? '',
+                    'day_label' => "Ngày {$dayNumber}",
                     'day_number' => $dayNumber,
                     'time_start' => $it['time_start'] ?? null,
                     'time_end' => $it['time_end'] ?? null,
                     'title' => $it['title'] ?? '',
                     'description' => $it['description'] ?? '',
-                    'activities' => $it['activities'] ?? '',
+                    'activities' => $it['description'] ?? '',
                     'image_url' => $it['image_url'] ?? '',
+                ]);
+            }
+
+            // Handle departures
+            $departureModel = new TourDeparture();
+            $departureModel->delete('tour_id = :tid', ['tid' => $id]);
+            $departures = json_decode($_POST['tour_departures'] ?? '[]', true);
+            foreach ($departures as $dep) {
+                $departureModel->insert([
+                    'tour_id' => $id,
+                    'departure_date' => $dep['departure_date'] ?? null,
+                    'max_seats' => (int)($dep['max_seats'] ?? 40),
+                    'price_adult' => (float)($dep['price_adult'] ?? 0),
+                    'price_child' => (float)($dep['price_child'] ?? 0),
+                    'status' => $dep['status'] ?? 'open',
+                    'created_at' => date('Y-m-d H:i:s'),
                 ]);
             }
 
@@ -502,8 +545,8 @@ class TourController
                 $partnerModel->insert([
                     'tour_id' => $id,
                     'service_type' => $p['service_type'] ?? 'other',
-                    'partner_name' => $p['name'] ?? '',
-                    'contact' => $p['contact'] ?? '',
+                    'partner_name' => $p['partner_name'] ?? '',
+                    'contact' => $p['partner_contact'] ?? '',
                     'notes' => $p['notes'] ?? '',
                     'created_at' => date('Y-m-d H:i:s'),
                 ]);
