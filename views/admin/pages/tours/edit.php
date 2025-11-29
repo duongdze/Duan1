@@ -417,7 +417,7 @@ $tourId = $_GET['id'] ?? null;
                                                     <input class="form-check-input" type="checkbox" name="policies[]" value="<?= $policy['id'] ?>"
                                                         <?= in_array($policy['id'], array_column($assignedPolicies ?? [], 'policy_id')) ? 'checked' : '' ?>>
                                                     <label class="form-check-label">
-                                                        <?= htmlspecialchars($policy['title']) ?>
+                                                        <?= htmlspecialchars($policy['name']) ?>
                                                     </label>
                                                 </div>
                                             <?php endforeach; ?>

@@ -377,7 +377,7 @@ if (empty($galleryUrls) && !empty($tour['main_image'])) {
                                         </div>
                                         <div class="partner-info flex-grow-1">
                                             <div class="partner-name fw-medium">
-                                                <?= htmlspecialchars($partner['name']) ?>
+                                                <?= htmlspecialchars($partner['partner_name']) ?>
                                             </div>
                                             <div class="partner-contact text-muted small">
                                                 <?= htmlspecialchars($partner['contact']) ?>
