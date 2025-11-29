@@ -158,7 +158,7 @@ class Booking extends BaseModel
      * Kiểm tra user có quyền sửa booking không
      * @param int $bookingId
      * @param int $userId
-     * @param string $userRole - 'admin' hoặc 'hdv'
+     * @param string $userRole - 'admin' hoặc 'guide'
      * @return bool
      */
     public function canUserEditBooking($bookingId, $userId, $userRole)
@@ -169,7 +169,7 @@ class Booking extends BaseModel
         }
 
         // HDV chỉ được sửa booking của tour mình phụ trách
-        if ($userRole === 'hdv') {
+        if ($userRole === 'guide') {
             // Lấy thông tin booking
             $booking = $this->getById($bookingId);
             if (!$booking) {
@@ -216,8 +216,8 @@ class Booking extends BaseModel
 
     /**
      * Lấy tất cả bookings với filter theo role
-     * @param string $userRole - 'admin' hoặc 'hdv'
-     * @param int|null $guideId - Chỉ cần nếu role là 'hdv'
+     * @param string $userRole - 'admin' hoặc 'guide'
+     * @param int|null $guideId - Chỉ cần nếu role là 'guide'
      * @return array
      */
     public function getAllByRole($userRole, $guideId = null)
@@ -225,7 +225,7 @@ class Booking extends BaseModel
         if ($userRole === 'admin') {
             // Admin xem tất cả
             return $this->getAll();
-        } elseif ($userRole === 'hdv' && $guideId) {
+        } elseif ($userRole === 'guide' && $guideId) {
             // HDV chỉ xem bookings của tour mình phụ trách
             return $this->getBookingsForGuide($guideId);
         }

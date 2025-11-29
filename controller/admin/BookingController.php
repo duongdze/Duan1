@@ -16,11 +16,11 @@ class BookingController
         $userId = $_SESSION['user']['user_id'] ?? null;
 
         // Lọc bookings theo role
-        if ($userRole === 'hdv') {
+        if ($userRole === 'guide') {
             $guideModel = new Guide();
             $guide = $guideModel->getByUserId($userId);
             $guideId = $guide['id'] ?? null;
-            $bookings = $this->model->getAllByRole('hdv', $guideId);
+            $bookings = $this->model->getAllByRole('guide', $guideId);
         } else {
             $bookings = $this->model->getAllByRole('admin');
         }

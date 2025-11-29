@@ -27,7 +27,7 @@ class AuthorController
                 $_SESSION['role'] = $user['role'];
                 $_SESSION['user_id'] = $user['user_id'];
                 // nếu user là HDV, ghép guide_id vào session
-                if (!empty($user['role']) && $user['role'] === 'hdv') {
+                if (!empty($user['role']) && $user['role'] === 'guide') {
                     require_once PATH_MODEL . 'Guide.php';
                     $guideModel = new Guide();
                     $guideRow = $guideModel->find('*', 'user_id = :uid', ['uid' => $user['user_id']]);
@@ -56,7 +56,7 @@ class AuthorController
                 $userData['password_hash'] = $newHash; // Cập nhật lại hash trong session
                 $_SESSION['user'] = $userData;
                 // nếu user là HDV, ghép guide_id vào session
-                if (!empty($userData['role']) && $userData['role'] === 'hdv') {
+                if (!empty($userData['role']) && $userData['role'] === 'guide') {
                     require_once PATH_MODEL . 'Guide.php';
                     $guideModel = new Guide();
                     $guideRow = $guideModel->find('*', 'user_id = :uid', ['uid' => $userData['user_id']]);
