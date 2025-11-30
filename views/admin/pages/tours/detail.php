@@ -144,17 +144,13 @@ if (empty($galleryUrls)) {
                     </div>
                 </div>
 
-                <div class="stat-card stat-danger">
+                <div class="stat-card stat-info">
                     <div class="stat-icon-wrapper">
                         <i class="fas fa-star"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-value">4.5</div>
                         <div class="stat-label">Đánh giá</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>(12)</span>
-                        </div>
                     </div>
                 </div>
             </div>
