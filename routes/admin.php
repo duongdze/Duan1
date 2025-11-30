@@ -58,7 +58,7 @@ match ($action) {
     'tours/itineraries/create'  => (new ItineraryController)->create(),
     'tours/itineraries/store'   => (new ItineraryController)->store(),
     'tours/itineraries/delete'  => (new ItineraryController)->delete(),
-    
+
 
     // Tour Logs
     'tours_logs'        => (new TourLogController)->index(),
@@ -80,6 +80,11 @@ match ($action) {
     'bookings/add-companion'    => (new BookingController)->addCompanion(),
     'bookings/update-companion' => (new BookingController)->updateCompanion(),
     'bookings/delete-companion' => (new BookingController)->deleteCompanion(),
+    'bookings/checkin'          => (new BookingController)->checkin(),
+    'bookings/update-checkin'   => (new BookingController)->updateCheckin(), // AJAX endpoint
+    'bookings/bulk-checkin'     => (new BookingController)->bulkCheckin(), // AJAX endpoint
+    'bookings/print-group-list' => (new BookingController)->printGroupList(),
+
 
     // Guides
     'guides'               => (new GuideController)->index(),

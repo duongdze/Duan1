@@ -46,10 +46,9 @@ class GuideWorkModel
     public static function getTourById($tourId)
     {
         $pdo = self::ensurePdo();
-        $sql = "SELECT T.*, TC.name as category_name, S.name as supplier_name
+        $sql = "SELECT T.*, TC.name as category_name
                 FROM tours T
                 LEFT JOIN tour_categories TC ON T.category_id = TC.id
-                LEFT JOIN suppliers S ON T.supplier_id = S.id
                 WHERE T.id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$tourId]);

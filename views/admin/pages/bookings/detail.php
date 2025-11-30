@@ -96,9 +96,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                         <li><a class="dropdown-item status-change-btn" href="#" data-status="cho_xac_nhan" data-booking-id="<?= $booking['id'] ?>">Chờ xác nhận</a></li>
                                                         <li><a class="dropdown-item status-change-btn" href="#" data-status="da_coc" data-booking-id="<?= $booking['id'] ?>">Đã cọc</a></li>
                                                         <li><a class="dropdown-item status-change-btn" href="#" data-status="hoan_tat" data-booking-id="<?= $booking['id'] ?>">Hoàn tất</a></li>
-                                                        <li>
-                                                            <hr class="dropdown-divider">
-                                                        </li>
                                                         <li><a class="dropdown-item status-change-btn text-danger" href="#" data-status="da_huy" data-booking-id="<?= $booking['id'] ?>">Hủy</a></li>
                                                     </ul>
                                                 </div>
