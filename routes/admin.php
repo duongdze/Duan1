@@ -35,14 +35,14 @@ match ($action) {
     'tours/bulk-delete'     => (new TourController)->bulkDelete(),
     'tours/search'          => (new TourController)->search(),
     'tours/by-status'       => (new TourController)->getByStatus(),
+
+    // Tour Category
     'tours_categories'      => (new TourCategoryController)->index(),
     'tours_categories/create' => (new TourCategoryController)->create(),
     'tours_categories/store'  => (new TourCategoryController)->store(),
     'tours_categories/edit'   => (new TourCategoryController)->edit(),
     'tours_categories/update' => (new TourCategoryController)->update(),
     'tours_categories/delete' => (new TourCategoryController)->delete(),
-    'tours_categories/toggle-status' => (new TourCategoryController)->toggleStatus(),
-    'tours_categories/ajax' => (new TourCategoryController)->getCategoriesAjax(),
 
     // Tour Versions
     'tours_versions'        => (new TourVersionController)->index(),
