@@ -108,6 +108,16 @@ class Booking extends BaseModel
     }
 
     /**
+     * Lấy tất cả bookings của một tour
+     * @param int $tourId
+     * @return array
+     */
+    public function getByTourId($tourId)
+    {
+        return $this->select('*', 'tour_id = :tour_id', ['tour_id' => $tourId], 'id ASC');
+    }
+
+    /**
      * Lấy thông tin booking chi tiết kèm tour và customer
      * @param int $id
      * @return array|false

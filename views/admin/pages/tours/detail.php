@@ -44,7 +44,7 @@ if (empty($galleryUrls)) {
 }
 ?>
 
-<main class="tours-dashboard tour-detail-page">
+<main class="dashboard tour-detail-page">
     <div class="dashboard-container">
         <!-- Modern Page Header -->
         <header class="dashboard-header">

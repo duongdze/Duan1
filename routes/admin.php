@@ -35,14 +35,14 @@ match ($action) {
     'tours/bulk-delete'     => (new TourController)->bulkDelete(),
     'tours/search'          => (new TourController)->search(),
     'tours/by-status'       => (new TourController)->getByStatus(),
+
+    // Tour Category
     'tours_categories'      => (new TourCategoryController)->index(),
     'tours_categories/create' => (new TourCategoryController)->create(),
     'tours_categories/store'  => (new TourCategoryController)->store(),
     'tours_categories/edit'   => (new TourCategoryController)->edit(),
     'tours_categories/update' => (new TourCategoryController)->update(),
     'tours_categories/delete' => (new TourCategoryController)->delete(),
-    'tours_categories/toggle-status' => (new TourCategoryController)->toggleStatus(),
-    'tours_categories/ajax' => (new TourCategoryController)->getCategoriesAjax(),
 
     // Tour Versions
     'tours_versions'        => (new TourVersionController)->index(),
@@ -58,7 +58,7 @@ match ($action) {
     'tours/itineraries/create'  => (new ItineraryController)->create(),
     'tours/itineraries/store'   => (new ItineraryController)->store(),
     'tours/itineraries/delete'  => (new ItineraryController)->delete(),
-    
+
 
     // Tour Logs
     'tours_logs'        => (new TourLogController)->index(),
@@ -80,6 +80,11 @@ match ($action) {
     'bookings/add-companion'    => (new BookingController)->addCompanion(),
     'bookings/update-companion' => (new BookingController)->updateCompanion(),
     'bookings/delete-companion' => (new BookingController)->deleteCompanion(),
+    'bookings/checkin'          => (new BookingController)->checkin(),
+    'bookings/update-checkin'   => (new BookingController)->updateCheckin(), // AJAX endpoint
+    'bookings/bulk-checkin'     => (new BookingController)->bulkCheckin(), // AJAX endpoint
+    'bookings/print-group-list' => (new BookingController)->printGroupList(),
+
 
     // Guides
     'guides'               => (new GuideController)->index(),
