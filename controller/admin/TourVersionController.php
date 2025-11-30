@@ -25,23 +25,6 @@ class TourVersionController
         } elseif (strlen(trim($data['name'])) > 255) {
             $errors['name'] = 'Tên phiên bản không được vượt quá 255 ký tự';
         }
-
-        // Check for duplicate version name for the same tour
-        if (!$isUpdate || ($isUpdate && $data['name'] !== $data['current_name'])) {
-            $existing = $this->model->select(
-                'id',
-                'name = :name AND id != :id',
-                [
-                    'name' => $data['name'],
-                    'id' => $data['id'] ?? 0
-                ]
-            );
-
-            if (!empty($existing)) {
-                $errors['name'] = 'Tên phiên bản đã tồn tại';
-            }
-        }
-
         return $errors;
     }
 
@@ -54,27 +37,18 @@ class TourVersionController
     }
 
     /**
-     * List all versions for a tour
+     * List all versions
      */
     public function index()
     {
-        $tour_id = $this->getTourIdFromRequest();
-        if (!$tour_id) {
-            $_SESSION['error'] = 'Thiếu thông tin tour';
-            header('Location: ?action=tours');
-            return;
-        }
+        $versions = $this->model->getAllVersions();
 
-        $tour = $this->tourModel->findById($tour_id);
-        if (!$tour) {
-            $_SESSION['error'] = 'Không tìm thấy tour';
-            header('Location: ?action=tours');
-            return;
-        }
+        // Get statistics
+        $totalVersions = $this->model->countTotal();
+        $activeVersions = $this->model->countByStatus('active');
+        $inactiveVersions = $this->model->countByStatus('inactive');
 
-        $versions = $this->model->getByTourId($tour_id);
-
-        $title = 'Quản lý phiên bản - ' . $tour['name'];
+        $title = 'Quản lý phiên bản';
         require_once PATH_VIEW_ADMIN . 'pages/tours_versions/index.php';
     }
 
@@ -83,21 +57,7 @@ class TourVersionController
      */
     public function create()
     {
-        $tour_id = $this->getTourIdFromRequest();
-        if (!$tour_id) {
-            $_SESSION['error'] = 'Thiếu thông tin tour';
-            header('Location: ?action=tours');
-            return;
-        }
-
-        $tour = $this->tourModel->findById($tour_id);
-        if (!$tour) {
-            $_SESSION['error'] = 'Không tìm thấy tour';
-            header('Location: ?action=tours');
-            return;
-        }
-
-        $title = 'Thêm phiên bản mới - ' . $tour['name'];
+        $title = 'Thêm phiên bản mới';
         require_once PATH_VIEW_ADMIN . 'pages/tours_versions/form.php';
     }
 
@@ -107,7 +67,7 @@ class TourVersionController
     public function store()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ?action=tours');
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
         }
 
@@ -126,19 +86,19 @@ class TourVersionController
         if (!empty($errors)) {
             $_SESSION['form_errors'] = $errors;
             $_SESSION['old_input'] = $data;
-            header('Location: ?action=tours_versions/create&tour_id=' . $_POST['tour_id']);
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions/create');
             return;
         }
 
         try {
             $this->model->insert($data);
             $_SESSION['success'] = 'Thêm phiên bản thành công';
-            header('Location: ?action=tours_versions&tour_id=' . $_POST['tour_id']);
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
+            return;
         } catch (Exception $e) {
-            error_log('Error creating tour version: ' . $e->getMessage());
-            $_SESSION['error'] = 'Có lỗi xảy ra khi thêm phiên bản. Vui lòng thử lại.';
-            $_SESSION['old_input'] = $data;
-            header('Location: ?action=tours_versions/create&tour_id=' . $_POST['tour_id']);
+            $_SESSION['error'] = 'Lỗi khi thêm phiên bản: ' . $e->getMessage();
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions/create');
+            return;
         }
     }
 
@@ -148,29 +108,21 @@ class TourVersionController
     public function edit()
     {
         $id = $_GET['id'] ?? null;
-        $tour_id = $this->getTourIdFromRequest();
 
-        if (!$id || !$tour_id) {
-            $_SESSION['error'] = 'Thiếu thông tin';
-            header('Location: ?action=tours');
+        if (!$id) {
+            $_SESSION['error'] = 'Thiếu thông tin phiên bản';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
         }
 
         $version = $this->model->findById($id);
         if (!$version) {
             $_SESSION['error'] = 'Không tìm thấy phiên bản';
-            header('Location: ?action=tours_versions&tour_id=' . $tour_id);
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
         }
 
-        $tour = $this->tourModel->findById($tour_id);
-        if (!$tour) {
-            $_SESSION['error'] = 'Không tìm thấy tour';
-            header('Location: ?action=tours');
-            return;
-        }
-
-        $title = 'Chỉnh sửa phiên bản - ' . $tour['name'];
+        $title = 'Chỉnh sửa phiên bản';
         require_once PATH_VIEW_ADMIN . 'pages/tours_versions/form.php';
     }
 
@@ -180,23 +132,22 @@ class TourVersionController
     public function update()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ?action=tours');
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
         }
 
         $id = $_POST['id'] ?? null;
-        $tour_id = $_POST['tour_id'] ?? null;
 
-        if (!$id || !$tour_id) {
-            $_SESSION['error'] = 'Thiếu thông tin';
-            header('Location: ?action=tours');
+        if (!$id) {
+            $_SESSION['error'] = 'Thiếu thông tin phiên bản';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
         }
 
         $version = $this->model->findById($id);
         if (!$version) {
             $_SESSION['error'] = 'Không tìm thấy phiên bản';
-            header('Location: ?action=tours_versions&tour_id=' . $tour_id);
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
         }
 
@@ -216,7 +167,7 @@ class TourVersionController
         if (!empty($errors)) {
             $_SESSION['form_errors'] = $errors;
             $_SESSION['old_input'] = $data;
-            header('Location: ?action=tours_versions/edit&id=' . $id . '&tour_id=' . $tour_id);
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions/edit&id=' . $id);
             return;
         }
 
@@ -228,12 +179,12 @@ class TourVersionController
             $this->model->updateById($id, $data);
 
             $_SESSION['success'] = 'Cập nhật phiên bản thành công';
-            header('Location: ?action=tours_versions&tour_id=' . $tour_id);
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
         } catch (Exception $e) {
             error_log('Error updating tour version: ' . $e->getMessage());
             $_SESSION['error'] = 'Có lỗi xảy ra khi cập nhật phiên bản. Vui lòng thử lại.';
             $_SESSION['old_input'] = $data;
-            header('Location: ?action=tours_versions/edit&id=' . $id . '&tour_id=' . $tour_id);
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions/edit&id=' . $id);
         }
     }
 
@@ -243,18 +194,17 @@ class TourVersionController
     public function delete()
     {
         $id = $_GET['id'] ?? null;
-        $tour_id = $this->getTourIdFromRequest();
 
-        if (!$id || !$tour_id) {
-            $_SESSION['error'] = 'Thiếu thông tin';
-            header('Location: ?action=tours');
+        if (!$id) {
+            $_SESSION['error'] = 'Thiếu thông tin phiên bản';
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
         }
 
         $version = $this->model->findById($id);
         if (!$version) {
             $_SESSION['error'] = 'Không tìm thấy phiên bản';
-            header('Location: ?action=tours_versions&tour_id=' . $tour_id);
+            header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
         }
 
@@ -266,7 +216,7 @@ class TourVersionController
             $_SESSION['error'] = 'Có lỗi xảy ra khi xóa phiên bản. Vui lòng thử lại.';
         }
 
-        header('Location: ?action=tours_versions&tour_id=' . $tour_id);
+        header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
     }
 
     /**
