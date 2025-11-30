@@ -635,8 +635,17 @@ class TourController
             return;
         }
 
-        // Load main tour (reuse model)
-        $tour = $this->model->find('*', 'id = :id', ['id' => $id]);
+        // Load main tour with category name using custom query
+        $pdo = BaseModel::getPdo();
+        $stmt = $pdo->prepare("
+            SELECT t.*, tc.name as category_name 
+            FROM tours t 
+            LEFT JOIN tour_categories tc ON t.category_id = tc.id 
+            WHERE t.id = :id
+        ");
+        $stmt->execute(['id' => $id]);
+        $tour = $stmt->fetch();
+
         if (!$tour) {
             $_SESSION['error'] = 'Không tìm thấy Tour.';
             header('Location: ' . BASE_URL_ADMIN . '&action=tours');
