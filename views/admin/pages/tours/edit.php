@@ -43,7 +43,7 @@ $departures = $departures ?? [];
 <?php include_once PATH_VIEW_ADMIN . 'default/header.php'; ?>
 <?php include_once PATH_VIEW_ADMIN . 'default/sidebar.php'; ?>
 
-<main class="tours-dashboard tour-edit-page">
+<main class="dashboard tour-edit-page">
     <div class="dashboard-container">
         <!-- Modern Page Header -->
         <header class="dashboard-header">

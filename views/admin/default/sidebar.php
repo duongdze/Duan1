@@ -48,6 +48,11 @@ $currentAction = $_GET['action'] ?? '';
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link <?= isActive('tours_categories') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_categories">
+                            <i class="fas fa-list fa-fw me-2"></i> Danh mục Tour
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link <?= isActive('tours_versions') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_versions">
                             <i class="fas fa-list fa-fw me-2"></i> Phiên bản Tour
                         </a>
@@ -60,16 +65,6 @@ $currentAction = $_GET['action'] ?? '';
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('tours_history') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_history">
                             <i class="fas fa-history fa-fw me-2"></i> Lịch sử Tour
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= isActive('tours_categories') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_category">
-                            <i class="fas fa-list fa-fw me-2"></i> Danh mục Tour
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= isActive('tours/create') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours/create">
-                            <i class="fas fa-plus-circle fa-fw me-2"></i> Thêm Tour
                         </a>
                     </li>
                 </ul>

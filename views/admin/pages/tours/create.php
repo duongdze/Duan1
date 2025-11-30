@@ -6,7 +6,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 $categories = $categories ?? [];
 $policies = $policies ?? [];
 ?>
-<main class="tours-dashboard tour-create-page">
+<main class="dashboard tour-create-page">
     <div class="dashboard-container">
         <!-- Modern Page Header -->
         <header class="dashboard-header">

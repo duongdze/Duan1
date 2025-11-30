@@ -46,7 +46,7 @@
    MAIN LAYOUT - Compatible with Sidebar
    ============================================ */
 
-.tours-dashboard {
+.dashboard {
   flex: 1;
   min-height: calc(100vh - 60px);
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -350,6 +350,9 @@
 .stat-warning .stat-icon-wrapper {
   background: linear-gradient(135deg, var(--tours-warning), #e0a800);
 }
+.stat-danger .stat-icon-wrapper {
+  background: linear-gradient(135deg, var(--tours-danger), #c82333);
+}
 .stat-info .stat-icon-wrapper {
   background: linear-gradient(135deg, var(--tours-info), #0b9fb3);
 }
@@ -466,7 +469,7 @@
 .form-select {
   border: 1px solid var(--tours-border);
   border-radius: var(--tours-radius-sm);
-  padding: 10px 12px;
+  padding: 6px 12px;
   font-size: 14px;
   transition: var(--tours-transition);
 }
@@ -487,6 +490,7 @@
 .filter-actions-group {
   display: flex;
   align-items: flex-end;
+  flex-direction: row;
   gap: 12px;
 }
 
