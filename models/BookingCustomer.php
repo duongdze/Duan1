@@ -42,6 +42,9 @@ class BookingCustomer extends BaseModel
      */
     public function updateCheckinStatus($customerId, $status, $userId, $notes = null)
     {
+        // Set timezone to Vietnam
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+
         $data = [
             'checkin_status' => $status,
             'checkin_time' => date('Y-m-d H:i:s'),
@@ -51,9 +54,6 @@ class BookingCustomer extends BaseModel
         if ($notes !== null) {
             $data['checkin_notes'] = $notes;
         }
-
-        // Sync với is_present cũ để backward compatibility
-        $data['is_present'] = ($status === 'checked_in') ? 1 : 0;
 
         return $this->update($data, 'id = :id', ['id' => $customerId]);
     }

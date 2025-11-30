@@ -524,7 +524,7 @@ class BookingController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['success' => false, 'message' => 'Invalid method']);
-            return;
+            exit;
         }
 
         $customerId = $_POST['customer_id'] ?? null;
@@ -533,13 +533,13 @@ class BookingController
 
         if (!$customerId || !$status) {
             echo json_encode(['success' => false, 'message' => 'Missing required fields']);
-            return;
+            exit;
         }
 
         // Validate status
         if (!in_array($status, ['not_arrived', 'checked_in', 'absent'])) {
             echo json_encode(['success' => false, 'message' => 'Invalid status']);
-            return;
+            exit;
         }
 
         try {
@@ -564,8 +564,9 @@ class BookingController
             }
         } catch (Exception $e) {
             error_log('Check-in error: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống: ' . $e->getMessage()]);
         }
+        exit;
     }
 
     /**
