@@ -52,6 +52,7 @@ match ($action) {
     'tours_versions/update' => (new TourVersionController)->update(),
     'tours_versions/delete' => (new TourVersionController)->delete(),
     'tours_versions/toggle-status' => (new TourVersionController)->toggleStatus(),
+    'tours_versions/tour_mapping' => (new TourVersionController)->tourMapping(),
 
 
     'tours/itineraries'         => (new ItineraryController)->index(),
@@ -107,10 +108,29 @@ match ($action) {
     'guides/available-tours' => (new TourAssignmentController)->availableTours(),
     'guides/claim-tour'      => (new TourAssignmentController)->claimTour(), // AJAX
 
+    // Drivers
+    'drivers'            => (new DriverController)->index(),
+    'drivers/create'     => (new DriverController)->create(),
+    'drivers/store'      => (new DriverController)->store(),
+    'drivers/edit'       => (new DriverController)->edit(),
+    'drivers/update'     => (new DriverController)->update(),
+    'drivers/delete'     => (new DriverController)->delete(),
+    'drivers/detail'     => (new DriverController)->detail(),
+
+    // Users
+    'users'              => (new UserController)->index(),
+    'users/create'       => (new UserController)->create(),
+    'users/store'        => (new UserController)->store(),
+    'users/edit'         => (new UserController)->edit(),
+    'users/update'       => (new UserController)->update(),
+    'users/delete'       => (new UserController)->delete(),
+    'users/detail'       => (new UserController)->detail(),
+
     // Suppliers
     'suppliers'            => (new SupplierController)->index(),
     'suppliers/create'     => (new SupplierController)->create(),
     'suppliers/store'      => (new SupplierController)->store(),
+
     // Reports
     'reports'              => (new ReportController)->index(),
     'reports/financial'    => (new ReportController)->financial(),

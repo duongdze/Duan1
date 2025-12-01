@@ -144,17 +144,13 @@ if (empty($galleryUrls)) {
                     </div>
                 </div>
 
-                <div class="stat-card stat-danger">
+                <div class="stat-card stat-info">
                     <div class="stat-icon-wrapper">
                         <i class="fas fa-star"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-value">4.5</div>
                         <div class="stat-label">Đánh giá</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>(12)</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -287,11 +283,46 @@ if (empty($galleryUrls)) {
                     </div>
                 </div>
 
+                <!-- Tour Policies Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-shield-alt text-success me-2"></i>
+                            Chính sách áp dụng
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($policies)): ?>
+                            <div class="row">
+                                <?php foreach ($policies as $policy): ?>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="border rounded p-3 h-100">
+                                            <h6 class="mb-2 text-primary">
+                                                <i class="fas fa-check-circle me-2"></i>
+                                                <?= htmlspecialchars($policy['name']) ?>
+                                            </h6>
+                                            <?php if (!empty($policy['description'])): ?>
+                                                <p class="mb-0 small text-muted"><?= htmlspecialchars($policy['description']) ?></p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-shield-alt fa-2x mb-2"></i>
+                                <h6>Chưa có chính sách</h6>
+                                <p class="mb-0 small">Tour này chưa được gán chính sách nào.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
                 <!-- Gallery Card -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-images text-danger me-2"></i>
+                            <i class="fas fa-images text-primary me-2"></i>
                             Thư viện ảnh
                             <span class="badge bg-secondary ms-2"><?= count($galleryUrls) ?> ảnh</span>
                         </h5>
@@ -343,39 +374,6 @@ if (empty($galleryUrls)) {
                     </div>
                 </div>
 
-                <!-- Policies Card -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-shield-alt text-primary me-2"></i>
-                            Chính sách áp dụng
-                            <span class="badge bg-secondary ms-2"><?= count($policies) ?> chính sách</span>
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <?php if (!empty($policies)): ?>
-                            <div class="row g-3">
-                                <?php foreach ($policies as $policy): ?>
-                                    <div class="col-md-6">
-                                        <div class="border rounded p-3">
-                                            <h6 class="fw-medium mb-2">
-                                                <i class="fas fa-check-circle text-success me-2"></i>
-                                                <?= htmlspecialchars($policy['name']) ?>
-                                            </h6>
-                                            <p class="text-muted mb-0 small"><?= htmlspecialchars($policy['description'] ?? '') ?></p>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php else: ?>
-                            <div class="text-center text-muted py-4">
-                                <i class="fas fa-shield-alt fa-3x mb-3"></i>
-                                <h6>Chưa có chính sách nào</h6>
-                                <p class="mb-0">Tour này chưa có chính sách nào được áp dụng.</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
             </div>
 
             <!-- Sidebar (Right) -->
@@ -394,7 +392,34 @@ if (empty($galleryUrls)) {
                         </div>
                     </div>
                 </div>
-
+                <!-- Tour Version Info Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tags text-warning me-2"></i>
+                            Phiên bản Tour
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!empty($tour['version_name'])): ?>
+                            <div class="alert alert-info d-flex align-items-center">
+                                <i class="fas fa-info-circle me-3"></i>
+                                <div>
+                                    <h6 class="mb-1"><?= htmlspecialchars($tour['version_name']) ?></h6>
+                                    <?php if (!empty($tour['version_description'])): ?>
+                                        <p class="mb-0 small text-muted"><?= htmlspecialchars($tour['version_description']) ?></p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
+                                <h6>Chưa gán phiên bản</h6>
+                                <p class="mb-0 small">Tour này chưa được gán phiên bản cụ thể.</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
                 <script>
                     function openLightbox(index) {
                         // Create lightbox overlay

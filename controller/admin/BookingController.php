@@ -25,6 +25,9 @@ class BookingController
             $bookings = $this->model->getAllByRole('admin');
         }
 
+        // Lấy thống kê
+        $stats = $this->model->getStats();
+
         require_once PATH_VIEW_ADMIN . 'pages/bookings/index.php';
     }
 
@@ -167,6 +170,10 @@ class BookingController
         $customers = $customerModel->select('*', "role = :role", ['role' => 'customer']);
         $tours = $tourModel->select('*', null, [], 'name ASC');
 
+        // Get drivers list
+        $driverModel = new Driver();
+        $drivers = $driverModel->getAvailableDrivers();
+
         require_once PATH_VIEW_ADMIN . 'pages/bookings/edit.php';
     }
 
@@ -218,6 +225,7 @@ class BookingController
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
                 'status' => $status,
+                'driver_id' => $_POST['driver_id'] ?? null,
                 'notes' => $notes
             ], 'id = :id', ['id' => $id]);
 
@@ -524,7 +532,7 @@ class BookingController
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['success' => false, 'message' => 'Invalid method']);
-            return;
+            exit;
         }
 
         $customerId = $_POST['customer_id'] ?? null;
@@ -533,13 +541,13 @@ class BookingController
 
         if (!$customerId || !$status) {
             echo json_encode(['success' => false, 'message' => 'Missing required fields']);
-            return;
+            exit;
         }
 
         // Validate status
         if (!in_array($status, ['not_arrived', 'checked_in', 'absent'])) {
             echo json_encode(['success' => false, 'message' => 'Invalid status']);
-            return;
+            exit;
         }
 
         try {
@@ -564,8 +572,9 @@ class BookingController
             }
         } catch (Exception $e) {
             error_log('Check-in error: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống: ' . $e->getMessage()]);
         }
+        exit;
     }
 
     /**

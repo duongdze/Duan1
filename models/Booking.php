@@ -10,10 +10,7 @@ class Booking extends BaseModel
         'departure_id',
         'version_id',
         'customer_id',
-        'adults',
-        'children',
-        'infants',
-        'foc_pax',
+        'driver_id',
         'original_price',
         'final_price',
         'status',
@@ -37,10 +34,15 @@ class Booking extends BaseModel
         $sql = "SELECT 
                     B.*, 
                     T.name AS tour_name, 
-                    BC.full_name AS customer_name
+                    U.full_name AS customer_name,
+                    D.full_name AS driver_name,
+                    D.phone AS driver_phone,
+                    D.vehicle_plate AS driver_vehicle
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id";
+                LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
+                LEFT JOIN drivers AS D ON B.driver_id = D.id
+                ORDER BY B.booking_date DESC, B.id DESC";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -128,11 +130,18 @@ class Booking extends BaseModel
                     B.*, 
                     T.name AS tour_name,
                     T.base_price AS tour_base_price,
-                    BC.full_name AS customer_name,
-                    BC.phone AS customer_phone
+                    U.full_name AS customer_name,
+                    U.phone AS customer_phone,
+                    D.id AS driver_id,
+                    D.full_name AS driver_name,
+                    D.phone AS driver_phone,
+                    D.vehicle_type AS driver_vehicle_type,
+                    D.vehicle_plate AS driver_vehicle_plate,
+                    D.vehicle_brand AS driver_vehicle_brand
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id AND BC.passenger_type = 'adult'
+                LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
+                LEFT JOIN drivers AS D ON B.driver_id = D.id
                 WHERE B.id = :id";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['id' => $id]);
@@ -223,13 +232,6 @@ class Booking extends BaseModel
         $stmt->execute(['guide_id' => $guideId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    /**
-     * Lấy tất cả bookings với filter theo role
-     * @param string $userRole - 'admin' hoặc 'guide'
-     * @param int|null $guideId - Chỉ cần nếu role là 'guide'
-     * @return array
-     */
     public function getAllByRole($userRole, $guideId = null)
     {
         if ($userRole === 'admin') {
@@ -242,7 +244,6 @@ class Booking extends BaseModel
 
         return [];
     }
-
     /**
      * Cập nhật trạng thái booking
      * @param int $bookingId
@@ -267,5 +268,300 @@ class Booking extends BaseModel
             error_log('Error updating booking status: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Lấy thống kê booking theo khoảng thời gian
+     */
+    public function getBookingStats($dateFrom = null, $dateTo = null, $tourId = null, $status = null, $source = null, $skipGrowth = false)
+    {
+        $dateFrom = $dateFrom ?? date('Y-m-01');
+        $dateTo = $dateTo ?? date('Y-m-d');
+
+        $whereConditions = ["B.booking_date BETWEEN :date_from AND :date_to"];
+        $params = [':date_from' => $dateFrom, ':date_to' => $dateTo];
+
+        if ($tourId) {
+            $whereConditions[] = "B.tour_id = :tour_id";
+            $params[':tour_id'] = $tourId;
+        }
+
+        if ($status) {
+            $whereConditions[] = "B.status = :status";
+            $params[':status'] = $status;
+        }
+
+        if ($source) {
+            $whereConditions[] = "B.source = :source";
+            $params[':source'] = $source;
+        }
+
+        $whereClause = "WHERE " . implode(' AND ', $whereConditions);
+
+        // Tổng booking
+        $sql = "SELECT 
+                    COUNT(B.id) as total_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) as successful_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN B.final_price ELSE 0 END) as total_revenue,
+                    COALESCE(SUM(customer_counts.total_customers), 0) as total_customers
+                FROM bookings B 
+                LEFT JOIN (
+                    SELECT 
+                        booking_id,
+                        COUNT(id) as total_customers
+                    FROM booking_customers 
+                    GROUP BY booking_id
+                ) customer_counts ON B.id = customer_counts.booking_id
+                $whereClause";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute($params);
+        $stats = $stmt->fetch();
+
+        // Tính tỷ lệ thành công và chuyển đổi
+        $totalBookings = $stats['total_bookings'] ?? 0;
+        $successfulBookings = $stats['successful_bookings'] ?? 0;
+        $totalCustomers = $stats['total_customers'] ?? 0;
+        $successRate = $totalBookings > 0 ? ($successfulBookings / $totalBookings) * 100 : 0;
+        $avgCustomersPerBooking = $totalBookings > 0 ? $totalCustomers / $totalBookings : 0;
+
+        // Tỷ lệ chuyển đổi (ước tính từ pending -> successful)
+        $pendingBookings = $this->count(
+            "booking_date BETWEEN :date_from AND :date_to AND status = 'pending'",
+            [':date_from' => $dateFrom, ':date_to' => $dateTo]
+        );
+        $conversionRate = $pendingBookings > 0 ? ($successfulBookings / ($pendingBookings + $successfulBookings)) * 100 : 0;
+
+        // Lấy dữ liệu kỳ trước để tính growth (chỉ khi không skip)
+        $bookingGrowth = 0;
+        if (!$skipGrowth) {
+            $previousStats = $this->getPreviousPeriodStats($dateFrom, $dateTo, $tourId, $status, $source);
+            $bookingGrowth = $this->calculateGrowth($totalBookings, $previousStats['total_bookings']);
+        }
+
+        return [
+            'total_bookings' => $totalBookings,
+            'successful_bookings' => $successfulBookings,
+            'success_rate' => $successRate,
+            'conversion_rate' => $conversionRate,
+            'total_revenue' => $stats['total_revenue'] ?? 0,
+            'total_customers' => $totalCustomers,
+            'avg_customers_per_booking' => $avgCustomersPerBooking,
+            'booking_growth' => $bookingGrowth
+        ];
+    }
+
+    /**
+     * Lấy báo cáo booking chi tiết
+     */
+    public function getBookingReport($dateFrom = null, $dateTo = null, $tourId = null, $status = null, $source = null)
+    {
+        $dateFrom = $dateFrom ?? date('Y-m-01');
+        $dateTo = $dateTo ?? date('Y-m-d');
+
+        $whereConditions = ["B.booking_date BETWEEN :date_from AND :date_to"];
+        $params = [':date_from' => $dateFrom, ':date_to' => $dateTo];
+
+        if ($tourId) {
+            $whereConditions[] = "B.tour_id = :tour_id";
+            $params[':tour_id'] = $tourId;
+        }
+
+        if ($status) {
+            $whereConditions[] = "B.status = :status";
+            $params[':status'] = $status;
+        }
+
+        if ($source) {
+            $whereConditions[] = "B.source = :source";
+            $params[':source'] = $source;
+        }
+
+        $whereClause = "WHERE " . implode(' AND ', $whereConditions);
+
+        $sql = "SELECT 
+                    B.*,
+                    T.name AS tour_name,
+                    TC.name AS category_name,
+                    BC.full_name AS customer_name,
+                    BC.phone AS customer_phone
+                FROM bookings B
+                LEFT JOIN tours T ON B.tour_id = T.id
+                LEFT JOIN tour_categories TC ON T.category_id = TC.id
+                LEFT JOIN booking_customers BC ON B.id = BC.booking_id AND BC.passenger_type = 'adult'
+                $whereClause
+                ORDER BY B.booking_date DESC, B.id DESC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy tất cả bookings với filter theo role
+     * @param string $userRole - 'admin' hoặc 'guide'
+     * @param int|null $guideId - Chỉ cần nếu role là 'guide'
+     * @return array
+     */
+    public function getTopBookedTours($dateFrom = null, $dateTo = null, $limit = 10)
+    {
+        $dateFrom = $dateFrom ?? date('Y-m-01');
+        $dateTo = $dateTo ?? date('Y-m-d');
+
+        $sql = "SELECT 
+                    T.id,
+                    T.name AS tour_name,
+                    COUNT(B.id) AS booking_count,
+                    COALESCE(SUM(B.final_price), 0) AS revenue,
+                    COALESCE(AVG(B.final_price), 0) AS avg_price
+                FROM tours T
+                LEFT JOIN bookings B ON T.id = B.tour_id
+                WHERE B.booking_date BETWEEN :date_from AND :date_to
+                AND B.status IN ('completed', 'paid')
+                GROUP BY T.id, T.name
+                ORDER BY booking_count DESC, revenue DESC
+                LIMIT " . (int)$limit;
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Phân tích booking theo nguồn
+     */
+    public function getSourceAnalysis($dateFrom = null, $dateTo = null)
+    {
+        $dateFrom = $dateFrom ?? date('Y-m-01');
+        $dateTo = $dateTo ?? date('Y-m-d');
+
+        $sql = "SELECT 
+                    B.source,
+                    COUNT(B.id) AS booking_count,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) AS successful_bookings,
+                    COALESCE(SUM(B.final_price), 0) AS revenue
+                FROM bookings B
+                WHERE B.booking_date BETWEEN :date_from AND :date_to
+                AND B.source IS NOT NULL
+                GROUP BY B.source
+                ORDER BY booking_count DESC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Tính tỷ lệ chuyển đổi cho mỗi nguồn
+        foreach ($results as &$result) {
+            $totalBookings = $result['booking_count'];
+            $successfulBookings = $result['successful_bookings'];
+            $result['conversion_rate'] = $totalBookings > 0 ? ($successfulBookings / $totalBookings) * 100 : 0;
+        }
+
+        return $results;
+    }
+
+    /**
+     * Lấy dữ liệu booking theo tháng cho biểu đồ
+     */
+    public function getMonthlyBookingData($year = null, $tourId = null)
+    {
+        $year = $year ?? date('Y');
+
+        $whereConditions = ["YEAR(B.booking_date) = :year"];
+        $params = [':year' => $year];
+
+        if ($tourId) {
+            $whereConditions[] = "B.tour_id = :tour_id";
+            $params[':tour_id'] = $tourId;
+        }
+
+        $whereClause = "WHERE " . implode(' AND ', $whereConditions);
+
+        $sql = "SELECT 
+                    MONTH(B.booking_date) as month,
+                    COUNT(B.id) as total_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) as successful_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN B.final_price ELSE 0 END) as revenue,
+                    COALESCE(SUM(customer_counts.total_customers), 0) as total_customers
+                FROM bookings B 
+                LEFT JOIN (
+                    SELECT 
+                        booking_id,
+                        COUNT(id) as total_customers
+                    FROM booking_customers 
+                    GROUP BY booking_id
+                ) customer_counts ON B.id = customer_counts.booking_id
+                $whereClause
+                GROUP BY MONTH(B.booking_date)
+                ORDER BY month";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute($params);
+        $monthlyData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Đảm bảo có đủ 12 tháng
+        $result = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $monthData = array_filter($monthlyData, function ($data) use ($month) {
+                return $data['month'] == $month;
+            });
+
+            if (!empty($monthData)) {
+                $result[] = reset($monthData);
+            } else {
+                $result[] = [
+                    'month' => $month,
+                    'month_name' => "Tháng " . $month,
+                    'total_bookings' => 0,
+                    'successful_bookings' => 0,
+                    'revenue' => 0,
+                    'total_customers' => 0
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Lấy thống kê kỳ trước
+     */
+    private function getPreviousPeriodStats($dateFrom, $dateTo, $tourId = null, $status = null, $source = null)
+    {
+        // Tính khoảng thời gian kỳ trước
+        $days = (strtotime($dateTo) - strtotime($dateFrom)) / (60 * 60 * 24) + 1;
+        $prevDateTo = date('Y-m-d', strtotime($dateFrom . ' -1 day'));
+        $prevDateFrom = date('Y-m-d', strtotime($prevDateTo . ' -' . ($days - 1) . ' days'));
+
+        // Skip growth calculation để tránh vòng lặp vô hạn
+        return $this->getBookingStats($prevDateFrom, $prevDateTo, $tourId, $status, $source, true);
+    }
+
+    /**
+     * Tính tỷ lệ tăng trưởng
+     */
+    private function calculateGrowth($current, $previous)
+    {
+        if ($previous == 0) return $current > 0 ? 100 : 0;
+        return (($current - $previous) / $previous) * 100;
+    }
+
+    /**
+     * Lấy thống kê booking cho dashboard
+     */
+    public function getStats()
+    {
+        $sql = "SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = 'cho_xac_nhan' THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN status = 'da_coc' THEN 1 ELSE 0 END) as deposited,
+                    SUM(CASE WHEN status = 'hoan_tat' THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN status = 'da_huy' THEN 1 ELSE 0 END) as cancelled,
+                    SUM(final_price) as total_revenue
+                FROM bookings";
+        
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }

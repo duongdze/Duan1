@@ -363,11 +363,9 @@
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--tours-text-primary);
-  margin-bottom: 2px;
-  line-height: 1;
+    font-size: 0.8rem;
+    color: var(--tours-text-primary, #212529);
+    font-weight: 600;
 }
 
 .stat-label {
