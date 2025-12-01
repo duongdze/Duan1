@@ -52,6 +52,7 @@ match ($action) {
     'tours_versions/update' => (new TourVersionController)->update(),
     'tours_versions/delete' => (new TourVersionController)->delete(),
     'tours_versions/toggle-status' => (new TourVersionController)->toggleStatus(),
+    'tours_versions/tour_mapping' => (new TourVersionController)->tourMapping(),
 
 
     'tours/itineraries'         => (new ItineraryController)->index(),
@@ -111,6 +112,7 @@ match ($action) {
     'suppliers'            => (new SupplierController)->index(),
     'suppliers/create'     => (new SupplierController)->create(),
     'suppliers/store'      => (new SupplierController)->store(),
+    
     // Reports
     'reports'              => (new ReportController)->index(),
     'reports/financial'    => (new ReportController)->financial(),
