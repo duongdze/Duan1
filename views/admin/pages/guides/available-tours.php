@@ -65,7 +65,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <i class="fas fa-money-bill-wave"></i>
                                         <?= number_format($tour['base_price'], 0, ',', '.') ?> ₫
                                     </span>
-                                    <?php if ($tour['duration']): ?>
+                                    <?php if ($tour['duration'] ?? null): ?>
                                         <span class="badge bg-secondary">
                                             <i class="fas fa-clock"></i>
                                             <?= $tour['duration'] ?> ngày

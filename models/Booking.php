@@ -37,10 +37,11 @@ class Booking extends BaseModel
         $sql = "SELECT 
                     B.*, 
                     T.name AS tour_name, 
-                    BC.full_name AS customer_name
+                    U.full_name AS customer_name
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id";
+                LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
+                ORDER BY B.booking_date DESC, B.id DESC";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -128,11 +129,11 @@ class Booking extends BaseModel
                     B.*, 
                     T.name AS tour_name,
                     T.base_price AS tour_base_price,
-                    BC.full_name AS customer_name,
-                    BC.phone AS customer_phone
+                    U.full_name AS customer_name,
+                    U.phone AS customer_phone
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id AND BC.passenger_type = 'adult'
+                LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
                 WHERE B.id = :id";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['id' => $id]);
@@ -215,7 +216,7 @@ class Booking extends BaseModel
                 FROM {$this->table} AS B 
                 INNER JOIN tour_assignments AS TA ON B.tour_id = TA.tour_id
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN users AS U ON B.customer_id = U.user_id
+                LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
                 WHERE TA.guide_id = :guide_id
                 ORDER BY B.booking_date DESC, B.id DESC";
 

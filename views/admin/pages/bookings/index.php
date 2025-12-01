@@ -32,9 +32,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($bookings as $booking) : ?>
+                                <?php
+                                $stt = 1;
+                                foreach ($bookings as $booking) : ?>
                                     <tr>
-                                        <td><?= $booking['id'] ?></td>
+                                        <td><?= $stt++ ?></td>
                                         <td><?= $booking['customer_name'] ?></td>
                                         <td><?= $booking['tour_name'] ?></td>
                                         <td><?= $booking['booking_date'] ?></td>
