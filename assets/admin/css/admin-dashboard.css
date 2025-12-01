@@ -175,13 +175,15 @@ body {
 }
 
 .btn-primary {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
+  /* Đổi màu chính của nút từ xanh dương sang xanh lá */
+  background-color: #198754; /* Bootstrap success green */
+  border-color: #198754;
+  color: #fff;
 }
 
 .btn-primary:hover {
-  background-color: #0b5ed7;
-  border-color: #0a58ca;
+  background-color: #157347;
+  border-color: #12603a;
 }
 
 .btn-outline-primary:hover {

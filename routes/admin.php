@@ -7,6 +7,7 @@ require_once 'controller/admin/TourVersionController.php';
 require_once 'controller/admin/TourCategoriesController.php';
 require_once 'controller/admin/TourLogController.php';
 require_once 'controller/admin/ItineraryController.php';
+require_once 'controller/admin/TourHistory.php';
 // require_once 'controller/admin/BookingController.php';
 // require_once 'controller/admin/GuideController.php';
 // require_once 'controller/admin/SupplierController.php';
@@ -70,6 +71,11 @@ match ($action) {
     'tours_logs/edit'   => (new TourLogController)->edit(),
     'tours_logs/update' => (new TourLogController)->update(),
     'tours_logs/delete' => (new TourLogController)->delete(),
+    // Tour History
+    'tours_history'        => (new TourHistoryController)->index(),
+    'tours_history/delete' => (new TourHistoryController)->delete(),
+    'tours_history/bulk_delete' => (new TourHistoryController)->bulk_delete(),
+    'tours_history/clear_all' => (new TourHistoryController)->clear_all(),
 
     // Bookings
     'bookings'                  => (new BookingController)->index(),
