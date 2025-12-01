@@ -1,108 +1,139 @@
 <?php
-
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
+
+$preSelectedTourId = $_GET['tour_id'] ?? null;
 ?>
-<main class="wrapper">
-    <div class="main-content">
-        <div class="container-fluid">
-            <div class="page-header d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-0">Thêm nhật ký Tour</h1>
-                    <p class="text-muted small">Ghi lại diễn biến, xử lý sự cố và phản hồi khách</p>
+<main class="dashboard tour-logs-page">
+    <div class="dashboard-container">
+        <!-- Page Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="breadcrumb-modern">
+                        <a href="<?= BASE_URL_ADMIN ?>&action=/" class="breadcrumb-link">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <a href="<?= BASE_URL_ADMIN ?>&action=tours_logs" class="breadcrumb-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Nhật ký Tour</span>
+                        </a>
+                        <?php if ($preSelectedTourId): ?>
+                            <span class="breadcrumb-separator">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                            <a href="<?= BASE_URL_ADMIN ?>&action=tours_logs/tour_detail&id=<?= $preSelectedTourId ?>" class="breadcrumb-link">
+                                <span>Chi tiết Tour</span>
+                            </a>
+                        <?php endif; ?>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <span class="breadcrumb-current">Thêm mới</span>
+                    </div>
                 </div>
-                <a href="<?= BASE_URL_ADMIN . '&action=tours_logs'  ?>" class="btn btn-secondary">Quay lại</a>
             </div>
+        </header>
 
-            <div class="card mx-auto" style="max-width:1000px;">
-                <div class="card-body">
-                    <form method="post" action="<?= BASE_URL_ADMIN . '&action=tour_logs/store' ?>">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Chọn tour</label>
-                                <select name="tour_id" class="form-select" required>
-                                    <option value="">-- Chọn tour --</option>
-                                    <?php if (!empty($tours)): ?>
-                                        <?php foreach ($tours as $t): ?>
-                                            <option value="<?= htmlspecialchars($t['id']) ?>"><?= htmlspecialchars($t['name']) ?></option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title fw-bold text-primary mb-0">
+                            <i class="fas fa-plus-circle me-2"></i>Thêm nhật ký mới
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form action="<?= BASE_URL_ADMIN . '&action=tours_logs/store' ?>" method="POST">
+
+                            <!-- Tour Selection -->
+                            <div class="mb-4">
+                                <label for="tour_id" class="form-label fw-medium">Chọn Tour <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tour_id" name="tour_id" required>
+                                    <option value="">-- Chọn Tour --</option>
+                                    <?php foreach ($tours as $tour): ?>
+                                        <option value="<?= $tour['id'] ?>" <?= ($preSelectedTourId == $tour['id']) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($tour['name']) ?> (#<?= htmlspecialchars($tour['id']) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Chọn HDV</label>
-                                <select name="guide_id" class="form-select" required>
-                                    <option value="">-- Chọn HDV --</option>
-                                    <?php if (!empty($guides)): ?>
-                                        <?php foreach ($guides as $g): ?>
-                                            <option value="<?= htmlspecialchars($g['id']) ?>"><?= htmlspecialchars($g['full_name']) ?></option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </select>
+                            <!-- Date & Guide -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="date" class="form-label fw-medium">Ngày ghi nhận <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="date" name="date" value="<?= date('Y-m-d') ?>" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Hướng dẫn viên</label>
+                                    <input type="text" class="form-control bg-light" value="<?= $_SESSION['user_name'] ?? 'Admin' ?>" readonly>
+                                    <input type="hidden" name="guide_id" value="<?= $_SESSION['guide_id'] ?? '' ?>">
+                                    <small class="text-muted">Tự động lấy theo tài khoản đăng nhập</small>
+                                </div>
                             </div>
 
-                            <div class="col-md-4">
-                                <label class="form-label">Ngày</label>
-                                <input type="date" name="date" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                            <!-- Main Content -->
+                            <div class="mb-4">
+                                <label for="description" class="form-label fw-medium">Mô tả hoạt động <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="description" name="description" rows="4" placeholder="Mô tả chi tiết các hoạt động trong ngày..." required></textarea>
                             </div>
 
-                            <div class="col-md-8">
-                                <label class="form-label">Thời tiết</label>
-                                <input type="text" name="weather" class="form-control" placeholder="Ví dụ: Nắng / Mưa / Gió">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="weather" class="form-label fw-medium">Thời tiết</label>
+                                    <input type="text" class="form-control" id="weather" name="weather" placeholder="VD: Nắng đẹp, 25 độ C">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="health_status" class="form-label fw-medium">Tình trạng sức khỏe đoàn</label>
+                                    <input type="text" class="form-control" id="health_status" name="health_status" placeholder="VD: Tốt, có 1 khách say xe">
+                                </div>
                             </div>
 
-                            <div class="col-12">
-                                <label class="form-label">Mô tả diễn biến</label>
-                                <textarea name="description" class="form-control" rows="3"></textarea>
+                            <!-- Issues -->
+                            <div class="mb-4">
+                                <label for="issue" class="form-label fw-medium text-danger">Vấn đề phát sinh (nếu có)</label>
+                                <textarea class="form-control border-danger bg-danger bg-opacity-10" id="issue" name="issue" rows="2" placeholder="Mô tả sự cố hoặc vấn đề..."></textarea>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Sự cố (issue)</label>
-                                <textarea name="issue" class="form-control" rows="2"></textarea>
+                            <div class="mb-4">
+                                <label for="solution" class="form-label fw-medium text-success">Giải pháp đã thực hiện</label>
+                                <textarea class="form-control border-success bg-success bg-opacity-10" id="solution" name="solution" rows="2" placeholder="Cách xử lý vấn đề..."></textarea>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Cách xử lý (solution)</label>
-                                <textarea name="solution" class="form-control" rows="2"></textarea>
+                            <!-- Feedback & Rating -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-8">
+                                    <label for="customer_feedback" class="form-label fw-medium">Phản hồi của khách</label>
+                                    <input type="text" class="form-control" id="customer_feedback" name="customer_feedback" placeholder="Ghi nhận ý kiến khách hàng">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="guide_rating" class="form-label fw-medium">Tự đánh giá (1-5)</label>
+                                    <select class="form-select" id="guide_rating" name="guide_rating">
+                                        <option value="5">5 - Xuất sắc</option>
+                                        <option value="4">4 - Tốt</option>
+                                        <option value="3">3 - Khá</option>
+                                        <option value="2">2 - Trung bình</option>
+                                        <option value="1">1 - Kém</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Chi tiết sự cố (incident)</label>
-                                <textarea name="incident" class="form-control" rows="2"></textarea>
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                                <a href="<?= $preSelectedTourId ? BASE_URL_ADMIN . '&action=tours_logs/tour_detail&id=' . $preSelectedTourId : BASE_URL_ADMIN . '&action=tours_logs' ?>" class="btn btn-light">
+                                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                </a>
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-2"></i>Lưu nhật ký
+                                </button>
                             </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Ghi chú xử lý (handling_notes)</label>
-                                <textarea name="handling_notes" class="form-control" rows="2"></textarea>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Tình trạng sức khỏe khách</label>
-                                <input type="text" name="health_status" class="form-control">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Hoạt động đặc biệt</label>
-                                <input type="text" name="special_activity" class="form-control">
-                            </div>
-
-                            <div class="col-12">
-                                <label class="form-label">Phản hồi khách</label>
-                                <textarea name="customer_feedback" class="form-control" rows="2"></textarea>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">Đánh giá HDV (1-5)</label>
-                                <input type="number" name="guide_rating" min="1" max="5" class="form-control">
-                            </div>
-                        </div>
-
-                        <div class="mt-4 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">Lưu nhật ký</button>
-                            <a href="<?= BASE_URL_ADMIN . '?mode=admin&action=tour_logs' ?>" class="btn btn-secondary">Hủy</a>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

@@ -2,108 +2,133 @@
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 ?>
-<main class="wrapper">
-    <div class="main-content">
-        <div class="container-fluid">
-            <div class="page-header d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 mb-0">Sửa nhật ký Tour</h1>
-                    <p class="text-muted small">Cập nhật diễn biến, xử lý sự cố và phản hồi khách</p>
+<main class="dashboard tour-logs-page">
+    <div class="dashboard-container">
+        <!-- Page Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="breadcrumb-modern">
+                        <a href="<?= BASE_URL_ADMIN ?>&action=/" class="breadcrumb-link">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <a href="<?= BASE_URL_ADMIN ?>&action=tours_logs" class="breadcrumb-link">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Nhật ký Tour</span>
+                        </a>
+                        <?php if (!empty($log['tour_id'])): ?>
+                            <span class="breadcrumb-separator">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                            <a href="<?= BASE_URL_ADMIN ?>&action=tours_logs/tour_detail&id=<?= $log['tour_id'] ?>" class="breadcrumb-link">
+                                <span>Chi tiết Tour</span>
+                            </a>
+                        <?php endif; ?>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <span class="breadcrumb-current">Chỉnh sửa</span>
+                    </div>
                 </div>
-                <a href="<?= BASE_URL_ADMIN . '&action=tours_logs'  ?>" class="btn btn-secondary">Quay lại</a>
             </div>
+        </header>
 
-            <div class="card mx-auto" style="max-width:1000px;">
-                <div class="card-body">
-                    <form method="post" action="<?= BASE_URL_ADMIN . '&action=tours_logs/update' ?>">
-                        <input type="hidden" name="id" value="<?= htmlspecialchars($log['id']) ?>">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title fw-bold text-warning mb-0">
+                            <i class="fas fa-edit me-2"></i>Chỉnh sửa nhật ký
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form action="<?= BASE_URL_ADMIN . '&action=tours_logs/update' ?>" method="POST">
+                            <input type="hidden" name="id" value="<?= $log['id'] ?>">
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Chọn tour</label>
-                                <select name="tour_id" class="form-select" required>
-                                    <option value="">-- Chọn tour --</option>
-                                    <?php foreach ($tours as $t): ?>
-                                        <option value="<?= htmlspecialchars($t['id']) ?>" <?= ($t['id'] == $log['tour_id']) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($t['name']) ?>
+                            <!-- Tour Selection -->
+                            <div class="mb-4">
+                                <label for="tour_id" class="form-label fw-medium">Tour <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tour_id" name="tour_id" required>
+                                    <?php foreach ($tours as $tour): ?>
+                                        <option value="<?= $tour['id'] ?>" <?= ($log['tour_id'] == $tour['id']) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($tour['name']) ?> (#<?= htmlspecialchars($tour['id']) ?>)
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Chọn HDV</label>
-                                <select name="guide_id" class="form-select" required>
-                                    <option value="">-- Chọn HDV --</option>
-                                    <?php foreach ($guides as $g): ?>
-                                        <option value="<?= htmlspecialchars($g['id']) ?>" <?= ($g['id'] == $log['guide_id']) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($g['full_name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                            <!-- Date & Guide -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="date" class="form-label fw-medium">Ngày ghi nhận <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="date" name="date" value="<?= $log['date'] ?>" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Hướng dẫn viên</label>
+                                    <input type="text" class="form-control bg-light" value="<?= $_SESSION['user_name'] ?? 'Admin' ?>" readonly>
+                                    <input type="hidden" name="guide_id" value="<?= $log['guide_id'] ?>">
+                                </div>
                             </div>
 
-                            <div class="col-md-4">
-                                <label class="form-label">Ngày</label>
-                                <input type="date" name="date" class="form-control" value="<?= htmlspecialchars(substr($log['date'] ?? '', 0, 10)) ?>" required>
+                            <!-- Main Content -->
+                            <div class="mb-4">
+                                <label for="description" class="form-label fw-medium">Mô tả hoạt động <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="description" name="description" rows="4" required><?= htmlspecialchars($log['description']) ?></textarea>
                             </div>
 
-                            <div class="col-md-8">
-                                <label class="form-label">Thời tiết</label>
-                                <input type="text" name="weather" class="form-control" value="<?= htmlspecialchars($log['weather'] ?? '') ?>">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="weather" class="form-label fw-medium">Thời tiết</label>
+                                    <input type="text" class="form-control" id="weather" name="weather" value="<?= htmlspecialchars($log['weather']) ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="health_status" class="form-label fw-medium">Tình trạng sức khỏe đoàn</label>
+                                    <input type="text" class="form-control" id="health_status" name="health_status" value="<?= htmlspecialchars($log['health_status']) ?>">
+                                </div>
                             </div>
 
-                            <div class="col-12">
-                                <label class="form-label">Mô tả diễn biến</label>
-                                <textarea name="description" class="form-control" rows="3"><?= htmlspecialchars($log['description'] ?? '') ?></textarea>
+                            <!-- Issues -->
+                            <div class="mb-4">
+                                <label for="issue" class="form-label fw-medium text-danger">Vấn đề phát sinh</label>
+                                <textarea class="form-control border-danger bg-danger bg-opacity-10" id="issue" name="issue" rows="2"><?= htmlspecialchars($log['issue']) ?></textarea>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Sự cố (issue)</label>
-                                <textarea name="issue" class="form-control" rows="2"><?= htmlspecialchars($log['issue'] ?? '') ?></textarea>
+                            <div class="mb-4">
+                                <label for="solution" class="form-label fw-medium text-success">Giải pháp đã thực hiện</label>
+                                <textarea class="form-control border-success bg-success bg-opacity-10" id="solution" name="solution" rows="2"><?= htmlspecialchars($log['solution']) ?></textarea>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Cách xử lý (solution)</label>
-                                <textarea name="solution" class="form-control" rows="2"><?= htmlspecialchars($log['solution'] ?? '') ?></textarea>
+                            <!-- Feedback & Rating -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-8">
+                                    <label for="customer_feedback" class="form-label fw-medium">Phản hồi của khách</label>
+                                    <input type="text" class="form-control" id="customer_feedback" name="customer_feedback" value="<?= htmlspecialchars($log['customer_feedback']) ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="guide_rating" class="form-label fw-medium">Tự đánh giá (1-5)</label>
+                                    <select class="form-select" id="guide_rating" name="guide_rating">
+                                        <?php for ($i = 5; $i >= 1; $i--): ?>
+                                            <option value="<?= $i ?>" <?= ($log['guide_rating'] == $i) ? 'selected' : '' ?>><?= $i ?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">Chi tiết sự cố (incident)</label>
-                                <textarea name="incident" class="form-control" rows="2"><?= htmlspecialchars($log['incident'] ?? '') ?></textarea>
+                            <!-- Actions -->
+                            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                                <a href="<?= !empty($log['tour_id']) ? BASE_URL_ADMIN . '&action=tours_logs/tour_detail&id=' . $log['tour_id'] : BASE_URL_ADMIN . '&action=tours_logs' ?>" class="btn btn-light">
+                                    <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                </a>
+                                <button type="submit" class="btn btn-warning px-4">
+                                    <i class="fas fa-save me-2"></i>Cập nhật
+                                </button>
                             </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Ghi chú xử lý (handling_notes)</label>
-                                <textarea name="handling_notes" class="form-control" rows="2"><?= htmlspecialchars($log['handling_notes'] ?? '') ?></textarea>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Tình trạng sức khỏe khách</label>
-                                <input type="text" name="health_status" class="form-control" value="<?= htmlspecialchars($log['health_status'] ?? '') ?>">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Hoạt động đặc biệt</label>
-                                <input type="text" name="special_activity" class="form-control" value="<?= htmlspecialchars($log['special_activity'] ?? '') ?>">
-                            </div>
-
-                            <div class="col-12">
-                                <label class="form-label">Phản hồi khách</label>
-                                <textarea name="customer_feedback" class="form-control" rows="2"><?= htmlspecialchars($log['customer_feedback'] ?? '') ?></textarea>
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">Đánh giá HDV (1-5)</label>
-                                <input type="number" name="guide_rating" min="1" max="5" class="form-control" value="<?= htmlspecialchars($log['guide_rating'] ?? '') ?>">
-                            </div>
-                        </div>
-
-                        <div class="mt-4 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-                            <a href="<?= BASE_URL_ADMIN . '&action=tours_logs' ?>" class="btn btn-secondary">Hủy</a>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

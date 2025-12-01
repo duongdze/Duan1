@@ -2,118 +2,92 @@
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 ?>
-<main class="wrapper">
-	<div class="main-content">
-		<!-- Page Header -->
-		<div class="tour-logs-header">
-			<h2>Nhật ký Tour</h2>
-			<a href="<?= BASE_URL_ADMIN . '&action=tours_logs/create' ?>" class="btn btn-primary">
-				<i class="fas fa-plus me-2"></i>Thêm nhật ký
-			</a>
-		</div>
+<main class="dashboard tour-logs-page">
+    <div class="dashboard-container">
+        <!-- Page Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="breadcrumb-modern">
+                        <a href="<?= BASE_URL_ADMIN ?>&action=/" class="breadcrumb-link">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <span class="breadcrumb-current">Nhật ký Tour</span>
+                    </div>
+                    <div class="page-title-section">
+                        <h1 class="page-title">
+                            <i class="fas fa-clipboard-list title-icon"></i>
+                            Quản lý Nhật ký Tour
+                        </h1>
+                        <p class="page-subtitle">Theo dõi và quản lý nhật ký hoạt động của các tour du lịch</p>
+                    </div>
+                </div>
+            </div>
+        </header>
 
-		<!-- Logs Table Card -->
-		<div class="tour-logs-card">
-			<div class="card-body p-0">
-				<div class="table-responsive">
-					<table class="tour-logs-table table table-hover align-middle mb-0">
-						<thead>
-							<tr>
-								<th>Ngày</th>
-								<th>Tour</th>
-								<th>HDV</th>
-								<th>Mô tả</th>
-								<th>Issue</th>
-								<th>Solution</th>
-								<th>Phản hồi KH</th>
-								<th>Thời tiết</th>
-								<th>Incident</th>
-								<th>Tình trạng KH</th>
-								<th>Hoạt động ĐB</th>
-								<th>Ghi chú xử lý</th>
-								<th>Đánh giá HDV</th>
-								<th>Hành động</th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php if (!empty($logs)): ?>
-								<?php foreach ($logs as $log): ?>
-									<tr>
-										<td><?= htmlspecialchars($log['date']) ?></td>
-										<td><?= htmlspecialchars($log['tour_name'] ?? '') ?></td>
-										<td><?= htmlspecialchars($log['guide_name'] ?? '') ?></td>
+        <!-- Tours Grid -->
+        <div class="row g-4">
+            <?php if (!empty($tours)): ?>
+                <?php foreach ($tours as $tour): ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0 tour-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title fw-bold text-primary mb-0">
+                                        <?= htmlspecialchars($tour['name']) ?>
+                                    </h5>
+                                    <span class="badge bg-light text-dark border">
+                                        #<?= htmlspecialchars($tour['id']) ?>
+                                    </span>
+                                </div>
+                                
+                                <div class="tour-stats mb-4">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-circle me-3 p-2">
+                                            <i class="fas fa-book-open"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Tổng số nhật ký</small>
+                                            <span class="fw-bold fs-5"><?= $tour['log_count'] ?></span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon-box bg-info bg-opacity-10 text-info rounded-circle me-3 p-2">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">Cập nhật lần cuối</small>
+                                            <span class="fw-medium">
+                                                <?= $tour['last_log_date'] ? date('d/m/Y', strtotime($tour['last_log_date'])) : 'Chưa có' ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
 
-										<td>
-											<span class="log-cell-truncate" title="<?= htmlspecialchars($log['description'] ?? '') ?>">
-												<?= htmlspecialchars($log['description'] ?? '') ?>
-											</span>
-										</td>
-										<td>
-											<span class="log-cell-truncate" title="<?= htmlspecialchars($log['issue'] ?? '') ?>">
-												<?= htmlspecialchars($log['issue'] ?? '') ?>
-											</span>
-										</td>
-										<td>
-											<span class="log-cell-truncate" title="<?= htmlspecialchars($log['solution'] ?? '') ?>">
-												<?= htmlspecialchars($log['solution'] ?? '') ?>
-											</span>
-										</td>
-										<td>
-											<span class="log-cell-truncate" title="<?= htmlspecialchars($log['customer_feedback'] ?? '') ?>">
-												<?= htmlspecialchars($log['customer_feedback'] ?? '') ?>
-											</span>
-										</td>
-
-										<td><?= htmlspecialchars($log['weather'] ?? '') ?></td>
-
-										<td>
-											<span class="log-cell-truncate" title="<?= htmlspecialchars($log['incident'] ?? '') ?>">
-												<?= htmlspecialchars($log['incident'] ?? '') ?>
-											</span>
-										</td>
-
-										<td><?= htmlspecialchars($log['health_status'] ?? '') ?></td>
-										<td><?= htmlspecialchars($log['special_activity'] ?? '') ?></td>
-
-										<td>
-											<span class="log-cell-truncate" title="<?= htmlspecialchars($log['handling_notes'] ?? '') ?>">
-												<?= htmlspecialchars($log['handling_notes'] ?? '') ?>
-											</span>
-										</td>
-
-										<td><?= htmlspecialchars($log['guide_rating'] ?? '') ?></td>
-
-										<td>
-											<div class="log-actions">
-												<a class="btn btn-sm btn-outline-primary" href="<?= BASE_URL_ADMIN . '&action=tours_logs/edit&id=' . urlencode($log['id']) ?>">
-													<i class="fas fa-edit"></i> Sửa
-												</a>
-												<form method="post" action="<?= BASE_URL_ADMIN . '&action=tours_logs/delete' ?>" onsubmit="return confirm('Bạn có chắc muốn xóa nhật ký này?')">
-													<input type="hidden" name="id" value="<?= htmlspecialchars($log['id']) ?>">
-													<button class="btn btn-sm btn-outline-danger">
-														<i class="fas fa-trash"></i> Xóa
-													</button>
-												</form>
-											</div>
-										</td>
-									</tr>
-								<?php endforeach; ?>
-							<?php else: ?>
-								<tr>
-									<td colspan="14">
-										<div class="tour-logs-empty">
-											<i class="fas fa-book-open"></i>
-											<p>Chưa có nhật ký nào.</p>
-										</div>
-									</td>
-								</tr>
-							<?php endif; ?>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-	</div>
+                                <a href="<?= BASE_URL_ADMIN . '&action=tours_logs/tour_detail&id=' . $tour['id'] ?>" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-eye me-2"></i>Xem chi tiết nhật ký
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <div class="empty-state">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Chưa có tour nào</h5>
+                            <p class="text-muted">Hiện tại chưa có tour nào để ghi nhật ký.</p>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 </main>
 <?php
 include_once PATH_VIEW_ADMIN . 'default/footer.php';
