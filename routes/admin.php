@@ -68,6 +68,8 @@ match ($action) {
     'tours_logs/edit'   => (new TourLogController)->edit(),
     'tours_logs/update' => (new TourLogController)->update(),
     'tours_logs/delete' => (new TourLogController)->delete(),
+    'tours_logs/detail' => (new TourLogController)->detail(),
+    'tours_logs/tour_detail' => (new TourLogController)->tourDetail(),
 
     // Bookings
     'bookings'                  => (new BookingController)->index(),

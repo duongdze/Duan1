@@ -305,6 +305,7 @@ $canEdit = $bookingModel->canUserEditBooking($booking['id'], $userId, $userRole)
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
+
                             </div>
                         <?php else: ?>
                             <div class="text-center text-muted py-3">

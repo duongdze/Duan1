@@ -230,4 +230,29 @@ class TourAssignment extends BaseModel
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['count'] > 0;
     }
+
+    /**
+     * Lấy danh sách assignment nào chưa có start_date
+     * @return array
+     */
+    public function getAssignmentsMissingDates()
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE start_date IS NULL OR start_date = ''";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Cập nhật start_date/end_date cho assignment
+     * @param int $id
+     * @param string|null $startDate
+     * @param string|null $endDate
+     * @return bool|int
+     */
+    public function updateAssignmentDates($id, $startDate = null, $endDate = null)
+    {
+        $data = ['start_date' => $startDate, 'end_date' => $endDate];
+        return $this->update($data, 'id = :id', ['id' => $id]);
+    }
 }

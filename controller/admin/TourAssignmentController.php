@@ -208,13 +208,21 @@ class TourAssignmentController
 
         try {
             $tourAssignmentModel = new TourAssignment();
+            // Convert logged-in user -> guide id
+            require_once 'models/Guide.php';
+            $guideModel = new Guide();
+            $guide = $guideModel->getByUserId($userId);
+            if (!$guide) {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy hồ sơ HDV tương ứng. Vui lòng liên hệ quản trị.']);
+                exit;
+            }
+            $guideId = $guide['id'];
 
             // Kiểm tra tour đã có HDV chưa (race condition protection)
             if ($tourAssignmentModel->tourHasGuide($tourId)) {
                 echo json_encode(['success' => false, 'message' => 'Tour này đã có HDV khác nhận rồi']);
                 exit;
             }
-
             // Kiểm tra HDV đã nhận tour này chưa
             if ($tourAssignmentModel->isGuideAssignedToTour($guideId, $tourId)) {
                 echo json_encode(['success' => false, 'message' => 'Bạn đã nhận tour này rồi']);

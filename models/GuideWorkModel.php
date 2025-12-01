@@ -34,10 +34,10 @@ class GuideWorkModel
     public static function getAssignmentsByGuideId($guideId)
     {
         $pdo = self::ensurePdo();
-        $sql = "SELECT TA.*, T.name as tour_name, T.description, T.id as tour_id
-                FROM tour_assignments TA
-                JOIN tours T ON TA.tour_id = T.id
-                WHERE TA.guide_id = ?";
+        $sql = "SELECT TA.guide_id, TA.*, T.name as tour_name, T.description, T.id as tour_id
+            FROM tour_assignments TA
+            JOIN tours T ON TA.tour_id = T.id
+            WHERE TA.guide_id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$guideId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

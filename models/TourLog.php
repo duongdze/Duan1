@@ -65,4 +65,31 @@ class TourLog extends BaseModel
         $stmt = self::$pdo->prepare("DELETE FROM tour_logs WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
+
+    public function getLogsByTourId($tourId)
+    {
+        $sql = "SELECT tl.*, u.full_name as guide_name 
+                FROM {$this->table} tl
+                LEFT JOIN guides g ON tl.guide_id = g.id
+                LEFT JOIN users u ON g.user_id = u.user_id
+                WHERE tl.tour_id = :tour_id
+                ORDER BY tl.date DESC";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getToursWithLogStats()
+    {
+        $sql = "SELECT t.id, t.name, 
+                       COUNT(tl.id) as log_count, 
+                       MAX(tl.date) as last_log_date
+                FROM tours t
+                LEFT JOIN tour_logs tl ON t.id = tl.tour_id
+                GROUP BY t.id, t.name
+                ORDER BY last_log_date DESC";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
