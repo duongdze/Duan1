@@ -161,7 +161,7 @@ class TourAssignmentController
     {
         // Chỉ HDV và Admin mới được xem
         $userRole = $_SESSION['user']['role'] ?? 'customer';
-        if (!in_array($userRole, ['hdv', 'admin'])) {
+        if (!in_array($userRole, ['guide', 'admin'])) {
             $_SESSION['error'] = 'Bạn không có quyền truy cập trang này';
             header('Location:' . BASE_URL_ADMIN);
             exit;
@@ -183,7 +183,7 @@ class TourAssignmentController
         $userRole = $_SESSION['user']['role'] ?? 'customer';
         $guideId = $_SESSION['user']['user_id'] ?? null;
 
-        if (!in_array($userRole, ['hdv', 'admin'])) {
+        if (!in_array($userRole, ['guide', 'admin'])) {
             echo json_encode(['success' => false, 'message' => 'Bạn không có quyền nhận tour']);
             exit;
         }

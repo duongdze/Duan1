@@ -108,6 +108,16 @@ class Booking extends BaseModel
     }
 
     /**
+     * Lấy tất cả bookings của một tour
+     * @param int $tourId
+     * @return array
+     */
+    public function getByTourId($tourId)
+    {
+        return $this->select('*', 'tour_id = :tour_id', ['tour_id' => $tourId], 'id ASC');
+    }
+
+    /**
      * Lấy thông tin booking chi tiết kèm tour và customer
      * @param int $id
      * @return array|false
@@ -158,7 +168,7 @@ class Booking extends BaseModel
      * Kiểm tra user có quyền sửa booking không
      * @param int $bookingId
      * @param int $userId
-     * @param string $userRole - 'admin' hoặc 'hdv'
+     * @param string $userRole - 'admin' hoặc 'guide'
      * @return bool
      */
     public function canUserEditBooking($bookingId, $userId, $userRole)
@@ -169,7 +179,7 @@ class Booking extends BaseModel
         }
 
         // HDV chỉ được sửa booking của tour mình phụ trách
-        if ($userRole === 'hdv') {
+        if ($userRole === 'guide') {
             // Lấy thông tin booking
             $booking = $this->getById($bookingId);
             if (!$booking) {
@@ -330,7 +340,10 @@ class Booking extends BaseModel
     }
 
     /**
-     * Lấy top tours được booking nhiều nhất
+     * Lấy tất cả bookings với filter theo role
+     * @param string $userRole - 'admin' hoặc 'guide'
+     * @param int|null $guideId - Chỉ cần nếu role là 'guide'
+     * @return array
      */
     public function getTopBookedTours($dateFrom = null, $dateTo = null, $limit = 10)
     {

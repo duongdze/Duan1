@@ -9,7 +9,7 @@ class DashboardController
     public function index()
     {
         // Kiểm tra quyền: chỉ admin và hdv (qtv) được truy cập
-        check_role(['admin', 'hdv']);
+        check_role(['admin', 'guide']);
 
 
         $tourModel = new Tour();

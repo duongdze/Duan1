@@ -90,7 +90,7 @@ $currentAction = $_GET['action'] ?? '';
                             <i class="fas fa-list fa-fw me-2"></i> Quản lý Booking
                         </a>
                     </li>
-                    <?php if (in_array($_SESSION['user']['role'] ?? '', ['hdv', 'admin'])): ?>
+                    <?php if (in_array($_SESSION['user']['role'] ?? '', ['guide', 'admin'])): ?>
                         <li class="nav-item">
                             <a class="nav-link <?= isActive('guides/available-tours') ?>" href="<?= BASE_URL_ADMIN ?>&action=guides/available-tours">
                                 <i class="fas fa-hand-paper fa-fw me-2"></i> Tour Khả Dụng
