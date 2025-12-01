@@ -257,4 +257,61 @@ class TourVersionController
             echo json_encode(['success' => false, 'message' => 'Internal server error']);
         }
     }
+
+    /**
+     * Show tour version and policy mapping
+     */
+    public function tourMapping()
+    {
+        // Load all tours with version and policy info
+        $pdo = BaseModel::getPdo();
+
+        // Get tours with version and category info
+        $stmt = $pdo->prepare("
+            SELECT t.*, tc.name as category_name, tv.name as version_name, tv.description as version_description
+            FROM tours t 
+            LEFT JOIN tour_categories tc ON t.category_id = tc.id 
+            LEFT JOIN tour_versions tv ON t.tour_version_id = tv.id
+            ORDER BY t.name ASC
+        ");
+        $stmt->execute();
+        $tours = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Load policies for each tour
+        foreach ($tours as &$tour) {
+            $stmt = $pdo->prepare("
+                SELECT p.* FROM tour_policies p
+                INNER JOIN tour_policy_assignments tpa ON p.id = tpa.policy_id
+                WHERE tpa.tour_id = :tour_id
+            ");
+            $stmt->execute(['tour_id' => $tour['id']]);
+            $tour['policies'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        // Load all versions
+        $versions = $this->model->getAllVersions();
+
+        // Load all policies
+        require_once 'models/TourPolicy.php';
+        $policyModel = new TourPolicy();
+        $policies = $policyModel->select();
+
+        // Load version-policies mapping
+        $versionPolicies = [];
+        foreach ($versions as $version) {
+            $stmt = $pdo->prepare("
+                SELECT p.* FROM tour_policies p
+                INNER JOIN tour_version_policies tvp ON p.id = tvp.policy_id
+                WHERE tvp.version_id = :version_id
+            ");
+            $stmt->execute(['version_id' => $version['id']]);
+            $versionPolicies[] = [
+                'version' => $version,
+                'version_name' => $version['name'],
+                'policies' => $stmt->fetchAll(PDO::FETCH_ASSOC)
+            ];
+        }
+
+        require_once PATH_VIEW_ADMIN . 'pages/tours_versions/tour_mapping.php';
+    }
 }

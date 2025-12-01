@@ -201,61 +201,269 @@ class Booking extends BaseModel
         $sql = "SELECT 
                     B.*, 
                     T.name AS tour_name, 
-                    U.full_name AS customer_name
-                FROM {$this->table} AS B 
-                INNER JOIN tour_assignments AS TA ON B.tour_id = TA.tour_id
+                    BC.full_name AS customer_name
+                FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN users AS U ON B.customer_id = U.user_id
+                LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id
+                LEFT JOIN tour_assignments TA ON T.id = TA.tour_id
                 WHERE TA.guide_id = :guide_id
-                ORDER BY B.booking_date DESC, B.id DESC";
-
+                ORDER BY B.booking_date DESC";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['guide_id' => $guideId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
-     * Lấy tất cả bookings với filter theo role
-     * @param string $userRole - 'admin' hoặc 'hdv'
-     * @param int|null $guideId - Chỉ cần nếu role là 'hdv'
-     * @return array
+     * Lấy thống kê booking theo khoảng thời gian
      */
-    public function getAllByRole($userRole, $guideId = null)
+    public function getBookingStats($dateFrom = null, $dateTo = null, $tourId = null, $status = null, $source = null)
     {
-        if ($userRole === 'admin') {
-            // Admin xem tất cả
-            return $this->getAll();
-        } elseif ($userRole === 'hdv' && $guideId) {
-            // HDV chỉ xem bookings của tour mình phụ trách
-            return $this->getBookingsForGuide($guideId);
+        $dateFrom = $dateFrom ?? date('Y-m-01');
+        $dateTo = $dateTo ?? date('Y-m-d');
+
+        $whereConditions = ["B.booking_date BETWEEN :date_from AND :date_to"];
+        $params = [':date_from' => $dateFrom, ':date_to' => $dateTo];
+
+        if ($tourId) {
+            $whereConditions[] = "B.tour_id = :tour_id";
+            $params[':tour_id'] = $tourId;
         }
 
-        return [];
+        if ($status) {
+            $whereConditions[] = "B.status = :status";
+            $params[':status'] = $status;
+        }
+
+        if ($source) {
+            $whereConditions[] = "B.source = :source";
+            $params[':source'] = $source;
+        }
+
+        $whereClause = "WHERE " . implode(' AND ', $whereConditions);
+
+        // Tổng booking
+        $sql = "SELECT 
+                    COUNT(B.id) as total_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) as successful_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN B.final_price ELSE 0 END) as total_revenue,
+                    SUM(B.adults + B.children + B.infants) as total_customers,
+                    AVG(B.adults + B.children + B.infants) as avg_customers_per_booking
+                FROM bookings B 
+                $whereClause";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute($params);
+        $stats = $stmt->fetch();
+
+        // Tính tỷ lệ thành công và chuyển đổi
+        $totalBookings = $stats['total_bookings'] ?? 0;
+        $successfulBookings = $stats['successful_bookings'] ?? 0;
+        $successRate = $totalBookings > 0 ? ($successfulBookings / $totalBookings) * 100 : 0;
+
+        // Tỷ lệ chuyển đổi (ước tính từ pending -> successful)
+        $pendingBookings = $this->count(
+            "booking_date BETWEEN :date_from AND :date_to AND status = 'pending'",
+            [':date_from' => $dateFrom, ':date_to' => $dateTo]
+        );
+        $conversionRate = $pendingBookings > 0 ? ($successfulBookings / ($pendingBookings + $successfulBookings)) * 100 : 0;
+
+        // Lấy dữ liệu kỳ trước để tính growth
+        $previousStats = $this->getPreviousPeriodStats($dateFrom, $dateTo, $tourId, $status, $source);
+        $bookingGrowth = $this->calculateGrowth($totalBookings, $previousStats['total_bookings']);
+
+        return [
+            'total_bookings' => $totalBookings,
+            'successful_bookings' => $successfulBookings,
+            'success_rate' => $successRate,
+            'conversion_rate' => $conversionRate,
+            'total_revenue' => $stats['total_revenue'] ?? 0,
+            'total_customers' => $stats['total_customers'] ?? 0,
+            'avg_customers_per_booking' => $stats['avg_customers_per_booking'] ?? 0,
+            'booking_growth' => $bookingGrowth
+        ];
     }
 
     /**
-     * Cập nhật trạng thái booking
-     * @param int $bookingId
-     * @param string $newStatus
-     * @return bool
+     * Lấy báo cáo booking chi tiết
      */
-    public function updateStatus($bookingId, $newStatus)
+    public function getBookingReport($dateFrom = null, $dateTo = null, $tourId = null, $status = null, $source = null)
     {
-        try {
-            // Validate status
-            $validStatuses = ['cho_xac_nhan', 'da_coc', 'hoan_tat', 'da_huy'];
-            if (!in_array($newStatus, $validStatuses)) {
-                return false;
-            }
+        $dateFrom = $dateFrom ?? date('Y-m-01');
+        $dateTo = $dateTo ?? date('Y-m-d');
 
-            return $this->update(
-                ['status' => $newStatus],
-                'id = :id',
-                ['id' => $bookingId]
-            );
-        } catch (Exception $e) {
-            error_log('Error updating booking status: ' . $e->getMessage());
-            return false;
+        $whereConditions = ["B.booking_date BETWEEN :date_from AND :date_to"];
+        $params = [':date_from' => $dateFrom, ':date_to' => $dateTo];
+
+        if ($tourId) {
+            $whereConditions[] = "B.tour_id = :tour_id";
+            $params[':tour_id'] = $tourId;
         }
+
+        if ($status) {
+            $whereConditions[] = "B.status = :status";
+            $params[':status'] = $status;
+        }
+
+        if ($source) {
+            $whereConditions[] = "B.source = :source";
+            $params[':source'] = $source;
+        }
+
+        $whereClause = "WHERE " . implode(' AND ', $whereConditions);
+
+        $sql = "SELECT 
+                    B.*,
+                    T.name AS tour_name,
+                    TC.name AS category_name,
+                    BC.full_name AS customer_name,
+                    BC.phone AS customer_phone
+                FROM bookings B
+                LEFT JOIN tours T ON B.tour_id = T.id
+                LEFT JOIN tour_categories TC ON T.category_id = TC.id
+                LEFT JOIN booking_customers BC ON B.id = BC.booking_id AND BC.passenger_type = 'adult'
+                $whereClause
+                ORDER BY B.booking_date DESC, B.id DESC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy top tours được booking nhiều nhất
+     */
+    public function getTopBookedTours($dateFrom = null, $dateTo = null, $limit = 10)
+    {
+        $dateFrom = $dateFrom ?? date('Y-m-01');
+        $dateTo = $dateTo ?? date('Y-m-d');
+
+        $sql = "SELECT 
+                    T.id,
+                    T.name AS tour_name,
+                    COUNT(B.id) AS booking_count,
+                    COALESCE(SUM(B.final_price), 0) AS revenue,
+                    COALESCE(AVG(B.final_price / (B.adults + B.children + B.infants)), 0) AS avg_price
+                FROM tours T
+                LEFT JOIN bookings B ON T.id = B.tour_id
+                WHERE B.booking_date BETWEEN :date_from AND :date_to
+                AND B.status IN ('completed', 'paid')
+                GROUP BY T.id, T.name
+                ORDER BY booking_count DESC, revenue DESC
+                LIMIT " . (int)$limit;
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Phân tích booking theo nguồn
+     */
+    public function getSourceAnalysis($dateFrom = null, $dateTo = null)
+    {
+        $dateFrom = $dateFrom ?? date('Y-m-01');
+        $dateTo = $dateTo ?? date('Y-m-d');
+
+        $sql = "SELECT 
+                    B.source,
+                    COUNT(B.id) AS booking_count,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) AS successful_bookings,
+                    COALESCE(SUM(B.final_price), 0) AS revenue
+                FROM bookings B
+                WHERE B.booking_date BETWEEN :date_from AND :date_to
+                AND B.source IS NOT NULL
+                GROUP BY B.source
+                ORDER BY booking_count DESC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Tính tỷ lệ chuyển đổi cho mỗi nguồn
+        foreach ($results as &$result) {
+            $totalBookings = $result['booking_count'];
+            $successfulBookings = $result['successful_bookings'];
+            $result['conversion_rate'] = $totalBookings > 0 ? ($successfulBookings / $totalBookings) * 100 : 0;
+        }
+
+        return $results;
+    }
+
+    /**
+     * Lấy dữ liệu booking theo tháng cho biểu đồ
+     */
+    public function getMonthlyBookingData($year = null, $tourId = null)
+    {
+        $year = $year ?? date('Y');
+
+        $whereConditions = ["YEAR(B.booking_date) = :year"];
+        $params = [':year' => $year];
+
+        if ($tourId) {
+            $whereConditions[] = "B.tour_id = :tour_id";
+            $params[':tour_id'] = $tourId;
+        }
+
+        $whereClause = "WHERE " . implode(' AND ', $whereConditions);
+
+        $sql = "SELECT 
+                    MONTH(B.booking_date) as month,
+                    COUNT(B.id) as total_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) as successful_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN B.final_price ELSE 0 END) as revenue,
+                    SUM(B.adults + B.children + B.infants) as total_customers
+                FROM bookings B 
+                $whereClause
+                GROUP BY MONTH(B.booking_date)
+                ORDER BY month";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute($params);
+        $monthlyData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Đảm bảo có đủ 12 tháng
+        $result = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $monthData = array_filter($monthlyData, function ($data) use ($month) {
+                return $data['month'] == $month;
+            });
+
+            if (!empty($monthData)) {
+                $result[] = reset($monthData);
+            } else {
+                $result[] = [
+                    'month' => $month,
+                    'month_name' => "Tháng " . $month,
+                    'total_bookings' => 0,
+                    'successful_bookings' => 0,
+                    'revenue' => 0,
+                    'total_customers' => 0
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Lấy thống kê kỳ trước
+     */
+    private function getPreviousPeriodStats($dateFrom, $dateTo, $tourId = null, $status = null, $source = null)
+    {
+        // Tính khoảng thời gian kỳ trước
+        $days = (strtotime($dateTo) - strtotime($dateFrom)) / (60 * 60 * 24) + 1;
+        $prevDateTo = date('Y-m-d', strtotime($dateFrom . ' -1 day'));
+        $prevDateFrom = date('Y-m-d', strtotime($prevDateTo . ' -' . ($days - 1) . ' days'));
+
+        return $this->getBookingStats($prevDateFrom, $prevDateTo, $tourId, $status, $source);
+    }
+
+    /**
+     * Tính tỷ lệ tăng trưởng
+     */
+    private function calculateGrowth($current, $previous)
+    {
+        if ($previous == 0) return $current > 0 ? 100 : 0;
+        return (($current - $previous) / $previous) * 100;
     }
 }

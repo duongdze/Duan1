@@ -118,10 +118,47 @@ $currentAction = $_GET['action'] ?? '';
             </a>
         </li>
 
+        <!-- Phần Báo cáo -->
         <li class="nav-item">
-            <a class="nav-link <?= isActive('reports') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports">
-                <i class="fas fa-chart-line fa-fw me-2"></i> Báo cáo
+            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('reports') ? 'active' : '' ?>"
+                href="#" role="button"
+
+                aria-expanded="<?= isParentActive('reports') ? 'true' : 'false' ?>"
+                aria-controls="reportsMenu"
+                data-menu-key="reports"
+                data-collapse-id="reportsMenu">
+                <span><i class="fas fa-chart-line fa-fw me-2"></i>Báo cáo</span>
+                <i class="fas fa-chevron-down fa-xs"></i>
             </a>
+            <div class="collapse <?= isParentActive('reports') ?>" id="reportsMenu">
+                <ul class="nav flex-column ms-3">
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('reports') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports">
+                            <i class="fas fa-tachometer-alt fa-fw me-2"></i> Tổng quan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('reports/financial') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports/financial">
+                            <i class="fas fa-dollar-sign fa-fw me-2"></i> Báo cáo tài chính
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('reports/bookings') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports/bookings">
+                            <i class="fas fa-calendar-check fa-fw me-2"></i> Báo cáo booking
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('reports/conversion') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports/conversion">
+                            <i class="fas fa-chart-pie fa-fw me-2"></i> Báo cáo chuyển đổi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('reports/feedback') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports/feedback">
+                            <i class="fas fa-comments fa-fw me-2"></i> Báo cáo phản hồi
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </li>
 
         <li class="nav-item">
