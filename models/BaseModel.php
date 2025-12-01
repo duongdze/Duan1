@@ -88,7 +88,7 @@ class BaseModel
      * 
      * @param string $conditions Mệnh đề điều kiện đặt ở đây
      * @param array $params giá trị của các tham số ảo trong $conditions
-     * @return array
+     * @return int
      * 
      * Khi dùng: $obj->count('id > :id', ['id' => 5])
      */
