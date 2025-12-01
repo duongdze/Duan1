@@ -21,7 +21,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <hr>
             <p><strong>Trạng thái phân công:</strong> <?= htmlspecialchars($assignment['status'] ?? '') ?></p>
             <p><strong>Tài xế / Liên hệ:</strong> <?= htmlspecialchars($assignment['driver_name'] ?? '') ?></p>
-            <p><strong>Ngày bắt đầu:</strong> <?= htmlspecialchars($assignment['start_date'] ?? '') ?> — <strong>Ngày kết thúc:</strong> <?= htmlspecialchars($assignment['end_date'] ?? '') ?></p>
+            <p><strong>Ngày bắt đầu:</strong> <?= !empty($assignment['start_date']) ? htmlspecialchars(date('d/m/Y', strtotime($assignment['start_date']))) : '-' ?> — <strong>Ngày kết thúc:</strong> <?= !empty($assignment['end_date']) ? htmlspecialchars(date('d/m/Y', strtotime($assignment['end_date']))) : '-' ?></p>
           <?php endif; ?>
         </div>
       </div>

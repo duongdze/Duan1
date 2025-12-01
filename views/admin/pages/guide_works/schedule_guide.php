@@ -22,9 +22,21 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
               <tbody>
                 <?php foreach ($assignments as $a): ?>
                   <tr>
-                    <td><?= htmlspecialchars($a['tour_name']) ?></td>
-                    <td><?= htmlspecialchars($a['start_date']) ?> - <?= htmlspecialchars($a['end_date']) ?></td>
-                    <td><?= htmlspecialchars($a['status']) ?></td>
+                    <td><?= htmlspecialchars($a['tour_name'] ?? '') ?></td>
+                    <td>
+                      <?php if (!empty($a['start_date'])): ?>
+                        <?= htmlspecialchars(date('d/m/Y', strtotime($a['start_date']))) ?>
+                      <?php else: ?>
+                        -
+                      <?php endif; ?>
+                      &nbsp;-&nbsp;
+                      <?php if (!empty($a['end_date'])): ?>
+                        <?= htmlspecialchars(date('d/m/Y', strtotime($a['end_date']))) ?>
+                      <?php else: ?>
+                        -
+                      <?php endif; ?>
+                    </td>
+                    <td><?= htmlspecialchars($a['status'] ?? '') ?></td>
                     <td>
                       <a href="<?= BASE_URL_ADMIN ?>&action=guide/tourDetail&id=<?= $a['tour_id'] ?>&guide_id=<?= $a['guide_id'] ?>" class="btn btn-sm btn-info">
                         <i class="fas fa-eye"></i> Chi tiết
