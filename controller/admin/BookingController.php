@@ -25,6 +25,9 @@ class BookingController
             $bookings = $this->model->getAllByRole('admin');
         }
 
+        // Lấy thống kê
+        $stats = $this->model->getStats();
+
         require_once PATH_VIEW_ADMIN . 'pages/bookings/index.php';
     }
 
@@ -167,6 +170,10 @@ class BookingController
         $customers = $customerModel->select('*', "role = :role", ['role' => 'customer']);
         $tours = $tourModel->select('*', null, [], 'name ASC');
 
+        // Get drivers list
+        $driverModel = new Driver();
+        $drivers = $driverModel->getAvailableDrivers();
+
         require_once PATH_VIEW_ADMIN . 'pages/bookings/edit.php';
     }
 
@@ -218,6 +225,7 @@ class BookingController
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
                 'status' => $status,
+                'driver_id' => $_POST['driver_id'] ?? null,
                 'notes' => $notes
             ], 'id = :id', ['id' => $id]);
 

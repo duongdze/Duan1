@@ -1,9 +1,11 @@
 <?php
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
+
+$currentUserRole = $_SESSION['user']['role'] ?? 'customer';
 ?>
 
-<main class="dashboard guide-create-page">
+<main class="dashboard user-create-page">
     <div class="dashboard-container">
         <!-- Modern Page Header -->
         <header class="dashboard-header">
@@ -17,31 +19,31 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         <span class="breadcrumb-separator">
                             <i class="fas fa-chevron-right"></i>
                         </span>
-                        <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="breadcrumb-link">
-                            <i class="fas fa-user-tie"></i>
-                            <span>Quản lý HDV</span>
+                        <a href="<?= BASE_URL_ADMIN ?>&action=users" class="breadcrumb-link">
+                            <i class="fas fa-users"></i>
+                            <span>Quản lý User</span>
                         </a>
                         <span class="breadcrumb-separator">
                             <i class="fas fa-chevron-right"></i>
                         </span>
-                        <span class="breadcrumb-current">Thêm HDV Mới</span>
+                        <span class="breadcrumb-current">Thêm User Mới</span>
                     </div>
                     <div class="page-title-section">
                         <h1 class="page-title">
-                            <i class="fas fa-plus-circle title-icon"></i>
-                            Thêm Hướng Dẫn Viên Mới
+                            <i class="fas fa-user-plus title-icon"></i>
+                            Thêm User Mới
                         </h1>
-                        <p class="page-subtitle">Tạo hồ sơ cho hướng dẫn viên mới</p>
+                        <p class="page-subtitle">Tạo tài khoản người dùng mới</p>
                     </div>
                 </div>
                 <div class="header-right">
-                    <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="btn btn-modern btn-secondary">
+                    <a href="<?= BASE_URL_ADMIN ?>&action=users" class="btn btn-modern btn-secondary">
                         <i class="fas fa-times me-2"></i>
                         Hủy bỏ
                     </a>
-                    <button type="submit" form="guide-form" class="btn btn-modern btn-primary">
+                    <button type="submit" form="user-form" class="btn btn-modern btn-primary">
                         <i class="fas fa-save me-2"></i>
-                        Lưu HDV
+                        Lưu User
                     </button>
                 </div>
             </div>
@@ -68,13 +70,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 </div>
                 <div class="step" data-step="2">
                     <div class="step-number">2</div>
-                    <div class="step-label">Chuyên môn</div>
+                    <div class="step-label">Mật khẩu</div>
                 </div>
             </div>
         </div>
 
-        <!-- Guide Form -->
-        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=guides/store" enctype="multipart/form-data" id="guide-form">
+        <!-- User Form -->
+        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=users/store" id="user-form">
             <div class="row">
                 <!-- Main Content -->
                 <div class="col-lg-8">
@@ -105,124 +107,64 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="tel" class="form-control" id="phone" name="phone" required placeholder=" ">
-                                            <label for="phone">Số điện thoại <span class="text-danger">*</span></label>
+                                            <input type="tel" class="form-control" id="phone" name="phone" placeholder=" ">
+                                            <label for="phone">Số điện thoại</label>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- Avatar Upload -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-image text-success me-2"></i>
-                                    Ảnh đại diện
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="main-image-upload">
-                                    <div class="upload-area" id="avatarDropZone" onclick="document.getElementById('avatar').click()">
-                                        <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
-                                        <p class="mb-1">Kéo thả hoặc click để chọn ảnh</p>
-                                        <span class="text-muted small">JPG, PNG, GIF. Tối đa 5MB</span>
-                                        <input type="file" name="avatar" id="avatar" accept="image/*" style="display: none;">
-                                    </div>
-                                    <div class="main-image-preview" id="avatarPreview" style="display: none;">
-                                        <img src="" alt="Avatar Preview" class="img-fluid rounded">
-                                        <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeAvatar()">
-                                            <i class="fas fa-trash"></i> Xóa
-                                        </button>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="role" name="role" required>
+                                                <option value="">-- Chọn vai trò --</option>
+                                                <option value="customer">Khách hàng</option>
+                                                <?php if ($currentUserRole === 'admin'): ?>
+                                                    <option value="guide">Hướng dẫn viên</option>
+                                                <?php endif; ?>
+                                            </select>
+                                            <label for="role">Vai trò <span class="text-danger">*</span></label>
+                                        </div>
+                                        <?php if ($currentUserRole === 'guide'): ?>
+                                            <small class="text-muted d-block mt-2">
+                                                <i class="fas fa-info-circle"></i>
+                                                Bạn chỉ có thể tạo tài khoản Khách hàng
+                                            </small>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 2: Professional Information -->
+                    <!-- Step 2: Password -->
                     <div class="form-step" id="step-2">
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-briefcase text-warning me-2"></i>
-                                    Thông tin chuyên môn
+                                    <i class="fas fa-key text-warning me-2"></i>
+                                    Mật khẩu
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <select class="form-select" id="guide_type" name="guide_type">
-                                                <option value="domestic">Nội địa</option>
-                                                <option value="international">Quốc tế</option>
-                                                <option value="specialized">Chuyên môn</option>
-                                            </select>
-                                            <label for="guide_type">Loại hướng dẫn viên</label>
+                                            <input type="password" class="form-control" id="password" name="password" required placeholder=" " minlength="6">
+                                            <label for="password">Mật khẩu <span class="text-danger">*</span></label>
                                         </div>
+                                        <small class="text-muted d-block mt-2">Tối thiểu 6 ký tự</small>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="specialization" name="specialization" placeholder=" ">
-                                            <label for="specialization">Chuyên môn</label>
+                                            <input type="password" class="form-control" id="password_confirm" name="password_confirm" required placeholder=" " minlength="6">
+                                            <label for="password_confirm">Xác nhận mật khẩu <span class="text-danger">*</span></label>
                                         </div>
-                                        <small class="text-muted d-block mt-2">VD: Chuyên tuyến miền Bắc, Chuyên khách đoàn...</small>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <input type="text" class="form-control" id="languages" name="languages" placeholder=" ">
-                                            <label for="languages">Ngôn ngữ sử dụng</label>
-                                        </div>
-                                        <small class="text-muted d-block mt-2">Phân cách bằng dấu phẩy</small>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <input type="number" class="form-control" id="experience_years" name="experience_years" min="0" value="0" placeholder=" ">
-                                            <label for="experience_years">Số năm kinh nghiệm</label>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <select class="form-select" id="health_status" name="health_status">
-                                                <option value="">-- Chọn --</option>
-                                                <option value="Tốt">Tốt</option>
-                                                <option value="Khá">Khá</option>
-                                                <option value="Trung bình">Trung bình</option>
-                                                <option value="Cần theo dõi">Cần theo dõi</option>
-                                            </select>
-                                            <label for="health_status">Tình trạng sức khỏe</label>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-12">
-                                        <div class="form-floating">
-                                            <textarea class="form-control" id="notes" name="notes" style="height: 120px" placeholder=" "></textarea>
-                                            <label for="notes">Ghi chú</label>
-                                        </div>
-                                        <small class="text-muted d-block mt-2">Chứng chỉ, chuyên môn, kinh nghiệm đặc biệt...</small>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- System Info -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-info-circle text-info me-2"></i>
-                                    Thông tin hệ thống
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="alert alert-info mb-0">
-                                    <i class="fas fa-key me-2"></i>
-                                    Mật khẩu mặc định: <strong>123456</strong>
-                                    <br>
-                                    <small>HDV có thể đổi mật khẩu sau khi đăng nhập lần đầu</small>
+                                <div class="alert alert-info mt-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Lưu ý:</strong> Người dùng có thể đổi mật khẩu sau khi đăng nhập lần đầu
                                 </div>
                             </div>
                         </div>
@@ -238,11 +180,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div class="card-body">
                             <div class="d-grid gap-2">
-                                <button type="submit" form="guide-form" class="btn btn-primary">
+                                <button type="submit" form="user-form" class="btn btn-primary">
                                     <i class="fas fa-save me-2"></i>
-                                    Tạo hướng dẫn viên
+                                    Tạo User
                                 </button>
-                                <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="btn btn-secondary">
+                                <a href="<?= BASE_URL_ADMIN ?>&action=users" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left me-2"></i>
                                     Hủy
                                 </a>
@@ -262,6 +204,38 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             </div>
                         </div>
                     </div>
+
+                    <!-- Info Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Hướng dẫn
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Điền đầy đủ thông tin bắt buộc
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Email phải là duy nhất
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-check text-success me-2"></i>
+                                    Mật khẩu tối thiểu 6 ký tự
+                                </li>
+                                <?php if ($currentUserRole === 'guide'): ?>
+                                    <li class="mb-0">
+                                        <i class="fas fa-info text-info me-2"></i>
+                                        Chỉ tạo được Khách hàng
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
@@ -274,7 +248,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeForm();
-        setupAvatarUpload();
+        setupPasswordValidation();
     });
 
     function initializeForm() {
@@ -282,26 +256,17 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         updateNavigationButtons();
     }
 
-    function setupAvatarUpload() {
-        document.getElementById('avatar').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('avatarDropZone').style.display = 'none';
-                    const preview = document.getElementById('avatarPreview');
-                    preview.querySelector('img').src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
+    function setupPasswordValidation() {
+        const password = document.getElementById('password');
+        const passwordConfirm = document.getElementById('password_confirm');
+
+        passwordConfirm.addEventListener('input', function() {
+            if (password.value !== passwordConfirm.value) {
+                passwordConfirm.setCustomValidity('Mật khẩu không khớp');
+            } else {
+                passwordConfirm.setCustomValidity('');
             }
         });
-    }
-
-    function removeAvatar() {
-        document.getElementById('avatar').value = '';
-        document.getElementById('avatarDropZone').style.display = 'flex';
-        document.getElementById('avatarPreview').style.display = 'none';
     }
 
     function nextStep() {

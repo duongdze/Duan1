@@ -17,20 +17,20 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         <span class="breadcrumb-separator">
                             <i class="fas fa-chevron-right"></i>
                         </span>
-                        <span class="breadcrumb-current">Quản lý HDV</span>
+                        <span class="breadcrumb-current">Quản lý Tài Xế</span>
                     </div>
                     <div class="page-title-section">
                         <h1 class="page-title">
-                            <i class="fas fa-user-tie title-icon"></i>
-                            Quản lý Hướng Dẫn Viên
+                            <i class="fas fa-car title-icon"></i>
+                            Quản lý Tài Xế
                         </h1>
-                        <p class="page-subtitle">Quản lý toàn bộ hướng dẫn viên du lịch trong hệ thống</p>
+                        <p class="page-subtitle">Quản lý toàn bộ tài xế và phương tiện trong hệ thống</p>
                     </div>
                 </div>
                 <div class="header-right">
-                    <button class="btn btn-modern btn-primary btn-lg" onclick="window.location.href='<?= BASE_URL_ADMIN . '&action=guides/create' ?>'">
+                    <button class="btn btn-modern btn-primary btn-lg" onclick="window.location.href='<?= BASE_URL_ADMIN . '&action=drivers/create' ?>'">
                         <i class="fas fa-plus-circle me-2"></i>
-                        Thêm HDV Mới
+                        Thêm Tài Xế Mới
                     </button>
                 </div>
             </div>
@@ -64,15 +64,15 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <div class="stats-grid">
                 <div class="stat-card stat-primary">
                     <div class="stat-icon-wrapper">
-                        <i class="fas fa-user-tie"></i>
+                        <i class="fas fa-car"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value"><?= number_format(count($guides)) ?></div>
-                        <div class="stat-label">Tổng HDV</div>
+                        <div class="stat-value"><?= number_format($stats['total'] ?? 0) ?></div>
+                        <div class="stat-label">Tổng Tài Xế</div>
                     </div>
                     <div class="stat-trend">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+6%</span>
+                        <span>+5%</span>
                     </div>
                 </div>
 
@@ -81,43 +81,26 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value">
-                            <?php
-                            $activeCount = 0;
-                            foreach ($guides as $g) {
-                                if (($g['status'] ?? 'active') === 'active') $activeCount++;
-                            }
-                            echo number_format($activeCount);
-                            ?>
-                        </div>
-                        <div class="stat-label">Đang Hoạt Động</div>
+                        <div class="stat-value"><?= number_format($stats['active'] ?? 0) ?></div>
+                        <div class="stat-label">Sẵn Sàng</div>
                     </div>
                     <div class="stat-trend">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+8%</span>
+                        <span>+10%</span>
                     </div>
                 </div>
 
                 <div class="stat-card stat-warning">
                     <div class="stat-icon-wrapper">
-                        <i class="fas fa-briefcase"></i>
+                        <i class="fas fa-hourglass-half"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value">
-                            <?php
-                            $totalExp = 0;
-                            foreach ($guides as $g) {
-                                $totalExp += ($g['experience_years'] ?? 0);
-                            }
-                            $avgExp = count($guides) > 0 ? $totalExp / count($guides) : 0;
-                            echo number_format($avgExp, 1);
-                            ?>
-                        </div>
-                        <div class="stat-label">Kinh Nghiệm TB (năm)</div>
+                        <div class="stat-value"><?= number_format($stats['busy'] ?? 0) ?></div>
+                        <div class="stat-label">Đang Bận</div>
                     </div>
                     <div class="stat-trend">
-                        <i class="fas fa-arrow-up"></i>
-                        <span>+0.5</span>
+                        <i class="fas fa-arrow-down"></i>
+                        <span>-2%</span>
                     </div>
                 </div>
 
@@ -126,21 +109,12 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         <i class="fas fa-star"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value">
-                            <?php
-                            $totalRating = 0;
-                            foreach ($guides as $g) {
-                                $totalRating += ($g['rating'] ?? 5);
-                            }
-                            $avgRating = count($guides) > 0 ? $totalRating / count($guides) : 5;
-                            echo number_format($avgRating, 1);
-                            ?>
-                        </div>
+                        <div class="stat-value"><?= number_format($stats['avg_rating'] ?? 5, 1) ?></div>
                         <div class="stat-label">Đánh Giá TB</div>
                     </div>
                     <div class="stat-trend">
                         <i class="fas fa-arrow-up"></i>
-                        <span>+0.3</span>
+                        <span>+0.2</span>
                     </div>
                 </div>
             </div>
@@ -156,8 +130,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     </h3>
                 </div>
 
-                <form method="GET" action="<?= BASE_URL_ADMIN . '&action=guides' ?>" class="filter-form">
-                    <input type="hidden" name="action" value="guides">
+                <form method="GET" action="<?= BASE_URL_ADMIN . '&action=drivers' ?>" class="filter-form">
+                    <input type="hidden" name="action" value="drivers">
 
                     <div class="filter-row">
                         <div class="filter-group">
@@ -168,16 +142,17 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 </span>
                                 <input type="text" class="form-control" name="keyword"
                                     value="<?= htmlspecialchars($_GET['keyword'] ?? '') ?>"
-                                    placeholder="Tên, email, SĐT...">
+                                    placeholder="Tên, SĐT, biển số...">
                             </div>
                         </div>
 
                         <div class="filter-group">
-                            <label class="filter-label">Đánh giá tối thiểu</label>
-                            <select class="form-select" name="rating_min">
+                            <label class="filter-label">Trạng thái</label>
+                            <select class="form-select" name="status">
                                 <option value="">Tất cả</option>
-                                <option value="4" <?= (($_GET['rating_min'] ?? '') == '4') ? 'selected' : '' ?>>≥ 4 sao</option>
-                                <option value="3" <?= (($_GET['rating_min'] ?? '') == '3') ? 'selected' : '' ?>>≥ 3 sao</option>
+                                <option value="active" <?= (($_GET['status'] ?? '') == 'active') ? 'selected' : '' ?>>Sẵn sàng</option>
+                                <option value="busy" <?= (($_GET['status'] ?? '') == 'busy') ? 'selected' : '' ?>>Đang bận</option>
+                                <option value="inactive" <?= (($_GET['status'] ?? '') == 'inactive') ? 'selected' : '' ?>>Nghỉ</option>
                             </select>
                         </div>
 
@@ -186,7 +161,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <i class="fas fa-search me-2"></i>
                                 Tìm kiếm
                             </button>
-                            <a href="<?= BASE_URL_ADMIN . '&action=guides' ?>" class="btn btn-outline-secondary">
+                            <a href="<?= BASE_URL_ADMIN . '&action=drivers' ?>" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-2"></i>
                                 Xóa lọc
                             </a>
@@ -196,80 +171,90 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             </div>
         </section>
 
-        <!-- Guides Table Section -->
+        <!-- Drivers Table Section -->
         <section class="tours-section">
             <div class="tours-header">
                 <div class="tours-info">
                     <div class="select-all-wrapper">
                         <i class="fas fa-list"></i>
                         <label class="select-all-label">
-                            Danh sách Hướng Dẫn Viên
+                            Danh sách Tài Xế
                         </label>
                     </div>
                     <div class="tours-count">
                         <span class="count-info">
-                            <?= count($guides) ?> HDV
+                            <?= count($drivers) ?> tài xế
                         </span>
                     </div>
                 </div>
             </div>
 
             <div class="tours-container">
-                <?php if (!empty($guides)) : ?>
+                <?php if (!empty($drivers)) : ?>
                     <div class="table-responsive">
                         <table class="table table-modern">
                             <thead>
                                 <tr>
-                                    <th>Ảnh</th>
-                                    <th>Họ và Tên</th>
+                                    <th>STT</th>
+                                    <th>Họ Tên</th>
                                     <th>Liên Hệ</th>
-                                    <th>Ngôn Ngữ</th>
-                                    <th>Kinh Nghiệm</th>
+                                    <th>Bằng Lái</th>
+                                    <th>Phương Tiện</th>
+                                    <th>Trạng Thái</th>
                                     <th>Đánh Giá</th>
                                     <th>Hành Động</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($guides as $guide) : ?>
+                                <?php foreach ($drivers as $index => $driver) : ?>
                                     <tr>
+                                        <td><strong><?= $index + 1 ?></strong></td>
                                         <td>
-                                            <?php if (!empty($guide['avatar'])): ?>
-                                                <img src="<?= htmlspecialchars($guide['avatar']) ?>"
-                                                    alt="Avatar"
-                                                    class="rounded-circle"
-                                                    style="width: 45px; height: 45px; object-fit: cover;">
-                                            <?php else: ?>
-                                                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center"
-                                                    style="width: 45px; height: 45px;">
-                                                    <i class="fas fa-user text-white"></i>
-                                                </div>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <div class="guide-name">
-                                                <strong><?= htmlspecialchars($guide['full_name'] ?? 'N/A') ?></strong>
+                                            <div class="customer-info">
+                                                <i class="fas fa-user-circle me-2 text-primary"></i>
+                                                <strong><?= htmlspecialchars($driver['full_name']) ?></strong>
                                             </div>
                                         </td>
                                         <td>
                                             <div class="contact-info">
-                                                <div><i class="fas fa-envelope me-2 text-primary"></i><?= htmlspecialchars($guide['email'] ?? 'N/A') ?></div>
-                                                <div><i class="fas fa-phone me-2 text-success"></i><?= htmlspecialchars($guide['phone'] ?? 'N/A') ?></div>
+                                                <div><i class="fas fa-phone me-2 text-success"></i><?= htmlspecialchars($driver['phone']) ?></div>
+                                            </div>
+                                        </td>
+                                        <td><?= htmlspecialchars($driver['license_number']) ?></td>
+                                        <td>
+                                            <div class="vehicle-info">
+                                                <div><i class="fas fa-car me-2 text-info"></i><?= htmlspecialchars($driver['vehicle_type'] ?? '-') ?></div>
+                                                <small class="text-muted"><?= htmlspecialchars($driver['vehicle_plate'] ?? '-') ?></small>
                                             </div>
                                         </td>
                                         <td>
-                                            <span class="badge badge-modern badge-info">
-                                                <i class="fas fa-language me-1"></i>
-                                                <?= htmlspecialchars($guide['languages'] ?? 'N/A') ?>
+                                            <?php
+                                            $statusClass = [
+                                                'active' => 'success',
+                                                'busy' => 'warning',
+                                                'inactive' => 'secondary'
+                                            ];
+                                            $statusText = [
+                                                'active' => 'Sẵn sàng',
+                                                'busy' => 'Đang bận',
+                                                'inactive' => 'Nghỉ'
+                                            ];
+                                            $statusIcon = [
+                                                'active' => 'check-circle',
+                                                'busy' => 'hourglass-half',
+                                                'inactive' => 'pause-circle'
+                                            ];
+                                            ?>
+                                            <span class="badge badge-modern badge-<?= $statusClass[$driver['status']] ?? 'secondary' ?>">
+                                                <i class="fas fa-<?= $statusIcon[$driver['status']] ?? 'circle' ?> me-1"></i>
+                                                <?= $statusText[$driver['status']] ?? $driver['status'] ?>
                                             </span>
-                                        </td>
-                                        <td>
-                                            <strong><?= htmlspecialchars($guide['experience_years'] ?? 0) ?></strong> năm
                                         </td>
                                         <td>
                                             <div class="rating-display">
                                                 <div class="stars">
                                                     <?php
-                                                    $rating = $guide['rating'] ?? 0;
+                                                    $rating = $driver['rating'] ?? 5;
                                                     $fullStars = floor($rating);
                                                     for ($i = 1; $i <= 5; $i++): ?>
                                                         <i class="fas fa-star <?= $i <= $fullStars ? 'filled' : 'empty' ?>"></i>
@@ -280,25 +265,25 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </td>
                                         <td>
                                             <div class="action-buttons">
-                                                <a href="<?= BASE_URL_ADMIN . '&action=guides/detail&id=' . $guide['id'] ?>"
+                                                <a href="<?= BASE_URL_ADMIN . '&action=drivers/detail&id=' . $driver['id'] ?>"
                                                     class="btn-action btn-view"
                                                     data-bs-toggle="tooltip"
                                                     title="Xem chi tiết">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="<?= BASE_URL_ADMIN . '&action=guides/edit&id=' . $guide['id'] ?>"
+                                                <a href="<?= BASE_URL_ADMIN . '&action=drivers/edit&id=' . $driver['id'] ?>"
                                                     class="btn-action btn-edit"
                                                     data-bs-toggle="tooltip"
                                                     title="Chỉnh sửa">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a href="<?= BASE_URL_ADMIN . '&action=guides/delete&id=' . $guide['id'] ?>"
+                                                <button type="button"
                                                     class="btn-action btn-delete"
-                                                    onclick="return confirm('Bạn có chắc chắn muốn xóa hướng dẫn viên này?')"
+                                                    onclick="deleteDriver(<?= $driver['id'] ?>, '<?= htmlspecialchars($driver['full_name']) ?>')"
                                                     data-bs-toggle="tooltip"
                                                     title="Xóa">
                                                     <i class="fas fa-trash"></i>
-                                                </a>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -309,15 +294,15 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 <?php else : ?>
                     <div class="empty-state">
                         <div class="empty-icon">
-                            <i class="fas fa-user-tie"></i>
+                            <i class="fas fa-car"></i>
                         </div>
-                        <h3 class="empty-title">Chưa có hướng dẫn viên nào</h3>
+                        <h3 class="empty-title">Chưa có tài xế nào</h3>
                         <p class="empty-description">
-                            Bắt đầu thêm hướng dẫn viên đầu tiên vào hệ thống.
+                            Bắt đầu thêm tài xế đầu tiên vào hệ thống.
                         </p>
-                        <button class="btn btn-primary" onclick="window.location.href='<?= BASE_URL_ADMIN . '&action=guides/create' ?>'">
+                        <button class="btn btn-primary" onclick="window.location.href='<?= BASE_URL_ADMIN . '&action=drivers/create' ?>'">
                             <i class="fas fa-plus me-2"></i>
-                            Thêm HDV Mới
+                            Thêm Tài Xế Mới
                         </button>
                     </div>
                 <?php endif; ?>
@@ -325,6 +310,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         </section>
     </div>
 </main>
+
+<!-- Form xóa tài xế -->
+<form id="deleteForm" method="POST" action="<?= BASE_URL_ADMIN ?>&action=drivers/delete" style="display: none;">
+    <input type="hidden" name="id" id="deleteId">
+</form>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -334,6 +324,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     });
+
+    function deleteDriver(id, name) {
+        if (confirm('Bạn có chắc muốn xóa tài xế "' + name + '"?\nLưu ý: Các booking đã phân công tài xế này sẽ bị ảnh hưởng.')) {
+            document.getElementById('deleteId').value = id;
+            document.getElementById('deleteForm').submit();
+        }
+    }
 </script>
 
 <?php

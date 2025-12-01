@@ -2,13 +2,15 @@
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
-// Calculate stats (you may need to pass these from controller)
-$totalTours = $guide['total_tours'] ?? 0;
-$experienceYears = $guide['experience_years'] ?? 0;
-$rating = $guide['rating'] ?? 4.5;
+$roleMap = [
+    'customer' => ['text' => 'Khách hàng', 'class' => 'success', 'icon' => 'user'],
+    'guide' => ['text' => 'Hướng dẫn viên', 'class' => 'info', 'icon' => 'user-tie'],
+    'admin' => ['text' => 'Admin', 'class' => 'danger', 'icon' => 'user-shield']
+];
+$roleInfo = $roleMap[$user['role']] ?? ['text' => $user['role'], 'class' => 'secondary', 'icon' => 'user'];
 ?>
 
-<main class="dashboard guide-detail-page">
+<main class="dashboard user-detail-page">
     <div class="dashboard-container">
         <!-- Modern Page Header -->
         <header class="dashboard-header">
@@ -22,29 +24,29 @@ $rating = $guide['rating'] ?? 4.5;
                         <span class="breadcrumb-separator">
                             <i class="fas fa-chevron-right"></i>
                         </span>
-                        <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="breadcrumb-link">
-                            <i class="fas fa-user-tie"></i>
-                            <span>Quản lý HDV</span>
+                        <a href="<?= BASE_URL_ADMIN ?>&action=users" class="breadcrumb-link">
+                            <i class="fas fa-users"></i>
+                            <span>Quản lý User</span>
                         </a>
                         <span class="breadcrumb-separator">
                             <i class="fas fa-chevron-right"></i>
                         </span>
-                        <span class="breadcrumb-current">Chi tiết HDV</span>
+                        <span class="breadcrumb-current">Chi tiết User</span>
                     </div>
                     <div class="page-title-section">
                         <h1 class="page-title">
-                            <i class="fas fa-user-tie title-icon"></i>
-                            <?= htmlspecialchars($guide['full_name']) ?>
+                            <i class="fas fa-user-circle title-icon"></i>
+                            <?= htmlspecialchars($user['full_name']) ?>
                         </h1>
-                        <p class="page-subtitle">Hướng dẫn viên <?= htmlspecialchars($guide['guide_type'] ?? 'Nội địa') ?></p>
+                        <p class="page-subtitle"><?= $roleInfo['text'] ?></p>
                     </div>
                 </div>
                 <div class="header-right">
-                    <a href="<?= BASE_URL_ADMIN ?>&action=guides/edit&id=<?= $guide['id'] ?>" class="btn btn-modern btn-secondary">
+                    <a href="<?= BASE_URL_ADMIN ?>&action=users/edit&id=<?= $user['user_id'] ?>" class="btn btn-modern btn-secondary">
                         <i class="fas fa-edit me-2"></i>
                         Chỉnh sửa
                     </a>
-                    <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="btn btn-modern btn-primary">
+                    <a href="<?= BASE_URL_ADMIN ?>&action=users" class="btn btn-modern btn-primary">
                         <i class="fas fa-arrow-left me-2"></i>
                         Quay lại
                     </a>
@@ -64,57 +66,51 @@ $rating = $guide['rating'] ?? 4.5;
             </div>
         <?php endif; ?>
 
-        <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert-modern alert-danger alert-dismissible fade show" role="alert">
-                <div class="alert-content">
-                    <i class="fas fa-exclamation-circle alert-icon"></i>
-                    <span><?= $_SESSION['error'] ?></span>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                <?php unset($_SESSION['error']); ?>
-            </div>
-        <?php endif; ?>
-
         <!-- Statistics Cards -->
         <section class="stats-section">
             <div class="stats-grid">
-                <div class="stat-card stat-primary">
+                <div class="stat-card stat-<?= $roleInfo['class'] ?>">
                     <div class="stat-icon-wrapper">
-                        <i class="fas fa-route"></i>
+                        <i class="fas fa-<?= $roleInfo['icon'] ?>"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value"><?= $totalTours ?></div>
-                        <div class="stat-label">Tổng tour</div>
+                        <div class="stat-value"><?= $roleInfo['text'] ?></div>
+                        <div class="stat-label">Vai trò</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?= date('d/m/Y', strtotime($user['created_at'])) ?></div>
+                        <div class="stat-label">Ngày tạo</div>
                     </div>
                 </div>
 
                 <div class="stat-card stat-success">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value"><?= $experienceYears ?></div>
-                        <div class="stat-label">Năm kinh nghiệm</div>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-warning">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value"><?= number_format($rating, 1) ?></div>
-                        <div class="stat-label">Đánh giá</div>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-info">
                     <div class="stat-icon-wrapper">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-value">Hoạt động</div>
                         <div class="stat-label">Trạng thái</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-info">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">
+                            <?php
+                            $days = floor((time() - strtotime($user['created_at'])) / 86400);
+                            echo $days . ' ngày';
+                            ?>
+                        </div>
+                        <div class="stat-label">Thời gian tham gia</div>
                     </div>
                 </div>
             </div>
@@ -124,79 +120,68 @@ $rating = $guide['rating'] ?? 4.5;
         <div class="row">
             <!-- Main Column (Left) -->
             <div class="col-lg-8">
-                <!-- Professional Information Card -->
+                <!-- User Information Card -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-briefcase text-primary me-2"></i>
-                            Thông tin chuyên môn
+                            <i class="fas fa-user text-primary me-2"></i>
+                            Thông tin người dùng
                         </h5>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="info-item">
-                                    <label class="info-label">Loại hướng dẫn viên</label>
+                                    <label class="info-label">ID User</label>
+                                    <div class="info-value">#<?= $user['user_id'] ?></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">Họ và tên</label>
+                                    <div class="info-value"><?= htmlspecialchars($user['full_name']) ?></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">Email</label>
+                                    <div class="info-value"><?= htmlspecialchars($user['email']) ?></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">Số điện thoại</label>
+                                    <div class="info-value"><?= htmlspecialchars($user['phone'] ?? 'N/A') ?></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label class="info-label">Vai trò</label>
                                     <div class="info-value">
-                                        <?php
-                                        $typeMap = [
-                                            'domestic' => 'Nội địa',
-                                            'international' => 'Quốc tế',
-                                            'specialized' => 'Chuyên môn'
-                                        ];
-                                        echo $typeMap[$guide['guide_type'] ?? 'domestic'] ?? 'Nội địa';
-                                        ?>
+                                        <span class="badge bg-<?= $roleInfo['class'] ?>">
+                                            <i class="fas fa-<?= $roleInfo['icon'] ?> me-1"></i>
+                                            <?= $roleInfo['text'] ?>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="info-item">
-                                    <label class="info-label">Chuyên môn</label>
-                                    <div class="info-value"><?= htmlspecialchars($guide['specialization'] ?? 'N/A') ?></div>
+                                    <label class="info-label">Ngày tạo</label>
+                                    <div class="info-value"><?= date('d/m/Y H:i', strtotime($user['created_at'])) ?></div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label class="info-label">Ngôn ngữ sử dụng</label>
-                                    <div class="info-value"><?= htmlspecialchars($guide['languages'] ?? 'N/A') ?></div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label class="info-label">Số năm kinh nghiệm</label>
-                                    <div class="info-value"><?= $experienceYears ?> năm</div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label class="info-label">Tình trạng sức khỏe</label>
-                                    <div class="info-value">
-                                        <?php
-                                        $healthStatus = $guide['health_status'] ?? 'Tốt';
-                                        $healthClass = $healthStatus === 'Tốt' ? 'success' : ($healthStatus === 'Khá' ? 'info' : 'warning');
-                                        ?>
-                                        <span class="badge bg-<?= $healthClass ?>"><?= htmlspecialchars($healthStatus) ?></span>
+                            <?php if (!empty($user['updated_at'])): ?>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <label class="info-label">Cập nhật lần cuối</label>
+                                        <div class="info-value"><?= date('d/m/Y H:i', strtotime($user['updated_at'])) ?></div>
                                     </div>
                                 </div>
-                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
-
-                <!-- Notes Card -->
-                <?php if (!empty($guide['notes'])): ?>
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0">
-                                <i class="fas fa-comment text-warning me-2"></i>
-                                Ghi chú
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="mb-0"><?= nl2br(htmlspecialchars($guide['notes'])) ?></p>
-                        </div>
-                    </div>
-                <?php endif; ?>
             </div>
 
             <!-- Sidebar (Right) -->
@@ -206,29 +191,16 @@ $rating = $guide['rating'] ?? 4.5;
                     <div class="card-header">
                         <h5 class="card-title mb-0">
                             <i class="fas fa-image text-primary me-2"></i>
-                            Ảnh đại diện
+                            Avatar
                         </h5>
                     </div>
                     <div class="card-body text-center">
-                        <?php if (!empty($guide['avatar'])): ?>
-                            <img src="<?= htmlspecialchars($guide['avatar']) ?>"
-                                alt="Avatar"
-                                class="img-fluid rounded-circle mb-3"
-                                style="width: 200px; height: 200px; object-fit: cover;">
-                        <?php else: ?>
-                            <div class="avatar-placeholder rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
-                                style="width: 200px; height: 200px; background: #e9ecef;">
-                                <i class="fas fa-user fa-5x text-muted"></i>
-                            </div>
-                        <?php endif; ?>
-                        <h5><?= htmlspecialchars($guide['full_name']) ?></h5>
-                        <p class="text-muted mb-2">Hướng dẫn viên</p>
-                        <div class="rating mb-2">
-                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                <i class="fas fa-star <?= $i <= $rating ? 'text-warning' : 'text-muted' ?>"></i>
-                            <?php endfor; ?>
-                            <span class="text-muted ms-1">(<?= number_format($rating, 1) ?>)</span>
+                        <div class="avatar-placeholder rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                            style="width: 150px; height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-<?= $roleInfo['icon'] ?> fa-4x text-white"></i>
                         </div>
+                        <h5><?= htmlspecialchars($user['full_name']) ?></h5>
+                        <p class="text-muted mb-0"><?= $roleInfo['text'] ?></p>
                     </div>
                 </div>
 
@@ -246,7 +218,7 @@ $rating = $guide['rating'] ?? 4.5;
                                 <i class="fas fa-envelope text-primary me-2"></i>
                                 <div>
                                     <small class="text-muted d-block">Email</small>
-                                    <span><?= htmlspecialchars($guide['email'] ?? 'N/A') ?></span>
+                                    <span><?= htmlspecialchars($user['email']) ?></span>
                                 </div>
                             </div>
                         </div>
@@ -255,7 +227,7 @@ $rating = $guide['rating'] ?? 4.5;
                                 <i class="fas fa-phone text-success me-2"></i>
                                 <div>
                                     <small class="text-muted d-block">Điện thoại</small>
-                                    <span><?= htmlspecialchars($guide['phone'] ?? 'N/A') ?></span>
+                                    <span><?= htmlspecialchars($user['phone'] ?? 'N/A') ?></span>
                                 </div>
                             </div>
                         </div>
@@ -272,14 +244,16 @@ $rating = $guide['rating'] ?? 4.5;
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            <a href="<?= BASE_URL_ADMIN ?>&action=guides/edit&id=<?= $guide['id'] ?>" class="btn btn-primary">
+                            <a href="<?= BASE_URL_ADMIN ?>&action=users/edit&id=<?= $user['user_id'] ?>" class="btn btn-primary">
                                 <i class="fas fa-edit me-2"></i>
                                 Chỉnh sửa thông tin
                             </a>
-                            <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&guide_id=<?= $guide['id'] ?>" class="btn btn-success">
-                                <i class="fas fa-calendar-plus me-2"></i>
-                                Tạo booking
-                            </a>
+                            <?php if ($user['role'] === 'customer'): ?>
+                                <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&customer_id=<?= $user['user_id'] ?>" class="btn btn-success">
+                                    <i class="fas fa-calendar-plus me-2"></i>
+                                    Tạo booking
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

@@ -10,6 +10,7 @@ class Booking extends BaseModel
         'departure_id',
         'version_id',
         'customer_id',
+        'driver_id',
         'original_price',
         'final_price',
         'status',
@@ -33,10 +34,14 @@ class Booking extends BaseModel
         $sql = "SELECT 
                     B.*, 
                     T.name AS tour_name, 
-                    U.full_name AS customer_name
+                    U.full_name AS customer_name,
+                    D.full_name AS driver_name,
+                    D.phone AS driver_phone,
+                    D.vehicle_plate AS driver_vehicle
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
                 LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
+                LEFT JOIN drivers AS D ON B.driver_id = D.id
                 ORDER BY B.booking_date DESC, B.id DESC";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
@@ -126,10 +131,17 @@ class Booking extends BaseModel
                     T.name AS tour_name,
                     T.base_price AS tour_base_price,
                     U.full_name AS customer_name,
-                    U.phone AS customer_phone
+                    U.phone AS customer_phone,
+                    D.id AS driver_id,
+                    D.full_name AS driver_name,
+                    D.phone AS driver_phone,
+                    D.vehicle_type AS driver_vehicle_type,
+                    D.vehicle_plate AS driver_vehicle_plate,
+                    D.vehicle_brand AS driver_vehicle_brand
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
                 LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
+                LEFT JOIN drivers AS D ON B.driver_id = D.id
                 WHERE B.id = :id";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['id' => $id]);
@@ -532,5 +544,24 @@ class Booking extends BaseModel
     {
         if ($previous == 0) return $current > 0 ? 100 : 0;
         return (($current - $previous) / $previous) * 100;
+    }
+
+    /**
+     * Lấy thống kê booking cho dashboard
+     */
+    public function getStats()
+    {
+        $sql = "SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = 'cho_xac_nhan' THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN status = 'da_coc' THEN 1 ELSE 0 END) as deposited,
+                    SUM(CASE WHEN status = 'hoan_tat' THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN status = 'da_huy' THEN 1 ELSE 0 END) as cancelled,
+                    SUM(final_price) as total_revenue
+                FROM bookings";
+        
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }

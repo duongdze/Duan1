@@ -32,7 +32,6 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('tours') ? 'active' : '' ?>"
                 href="#" role="button"
-
                 aria-expanded="<?= isParentActive('tours') ? 'true' : 'false' ?>"
                 aria-controls="tourMenu"
                 data-menu-key="tours"
@@ -75,15 +74,14 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('bookings') ? 'active' : '' ?>"
                 href="#" role="button"
-
-                aria-expanded="<?= isParentActive('bookings') ? 'true' : 'false' ?>"
+                aria-expanded="<?= (isParentActive('bookings') || isActive('guides/available-tours')) ? 'true' : 'false' ?>"
                 aria-controls="bookingMenu"
                 data-menu-key="bookings"
                 data-collapse-id="bookingMenu">
                 <span><i class="fas fa-calendar-check fa-fw me-2"></i>Booking</span>
                 <i class="fas fa-chevron-down fa-xs"></i>
             </a>
-            <div class="collapse <?= isParentActive('bookings') ?>" id="bookingMenu">
+            <div class="collapse <?= (isParentActive('bookings') || isActive('guides/available-tours')) ? 'show' : '' ?>" id="bookingMenu">
                 <ul class="nav flex-column ms-3">
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('bookings') ?>" href="<?= BASE_URL_ADMIN ?>&action=bookings">
@@ -101,17 +99,47 @@ $currentAction = $_GET['action'] ?? '';
             </div>
         </li>
 
-        <!-- Phần HDV -->
+        <!-- Phần Quản Lý Nhân Sự -->
         <li class="nav-item">
-            <a class="nav-link <?= isActive('guides') ?>" href="<?= BASE_URL_ADMIN ?>&action=guides">
-                <i class="fas fa-user-tie fa-fw me-2"></i> Quản lý HDV
+            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= (isActive('guides') || isParentActive('drivers')) ? 'active' : '' ?>"
+                href="#" role="button"
+                aria-expanded="<?= (isActive('guides') || isParentActive('drivers')) ? 'true' : 'false' ?>"
+                aria-controls="staffMenu"
+                data-menu-key="staff"
+                data-collapse-id="staffMenu">
+                <span><i class="fas fa-users fa-fw me-2"></i>Quản Lý Nhân Sự</span>
+                <i class="fas fa-chevron-down fa-xs"></i>
+            </a>
+            <div class="collapse <?= (isActive('guides') || isParentActive('drivers')) ? 'show' : '' ?>" id="staffMenu">
+                <ul class="nav flex-column ms-3">
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('guides') ?>" href="<?= BASE_URL_ADMIN ?>&action=guides">
+                            <i class="fas fa-user-tie fa-fw me-2"></i> Quản lý HDV
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('drivers') ?>" href="<?= BASE_URL_ADMIN ?>&action=drivers">
+                            <i class="fas fa-car fa-fw me-2"></i> Quản lý Tài Xế
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link <?= isActive('users') ?>" href="<?= BASE_URL_ADMIN ?>&action=users">
+                <i class="fas fa-user fa-fw me-2"></i> User
             </a>
         </li>
+
+        <!-- Lịch làm việc HDV -->
         <li class="nav-item">
             <a class="nav-link <?= isActive('guide/schedule') ?>" href="<?= BASE_URL_ADMIN ?>&action=guide/schedule">
-                <i class="fas fa-calendar-day fa-fw me-2"></i> Lịch làm việc của HDV
+                <i class="fas fa-calendar-day fa-fw me-2"></i> Lịch làm việc HDV
             </a>
         </li>
+
+        <!-- Lịch khởi hành -->
         <li class="nav-item">
             <a class="nav-link <?= isActive('schedule') ?>" href="<?= BASE_URL_ADMIN ?>&action=schedule">
                 <i class="fas fa-calendar-alt fa-fw me-2"></i> Lịch khởi hành
@@ -122,7 +150,6 @@ $currentAction = $_GET['action'] ?? '';
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('reports') ? 'active' : '' ?>"
                 href="#" role="button"
-
                 aria-expanded="<?= isParentActive('reports') ? 'true' : 'false' ?>"
                 aria-controls="reportsMenu"
                 data-menu-key="reports"
@@ -161,6 +188,7 @@ $currentAction = $_GET['action'] ?? '';
             </div>
         </li>
 
+        <!-- Cài đặt -->
         <li class="nav-item">
             <a class="nav-link <?= isActive('settings') ?>" href="<?= BASE_URL_ADMIN ?>&action=settings">
                 <i class="fas fa-cogs fa-fw me-2"></i> Cài đặt

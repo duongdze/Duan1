@@ -1,9 +1,9 @@
 <?php
 // Include controllers
-require_once 'controller/admin/AuthorController.php';
-require_once 'controller/admin/DashboardController.php';
-require_once 'controller/admin/TourController.php';
-require_once 'controller/admin/TourVersionController.php';
+// require_once 'controller/admin/AuthorController.php';
+// require_once 'controller/admin/DashboardController.php';
+// require_once 'controller/admin/TourController.php';
+// require_once 'controller/admin/TourVersionController.php';
 // require_once 'controller/admin/BookingController.php';
 // require_once 'controller/admin/GuideController.php';
 // require_once 'controller/admin/SupplierController.php';
@@ -108,11 +108,29 @@ match ($action) {
     'guides/available-tours' => (new TourAssignmentController)->availableTours(),
     'guides/claim-tour'      => (new TourAssignmentController)->claimTour(), // AJAX
 
+    // Drivers
+    'drivers'            => (new DriverController)->index(),
+    'drivers/create'     => (new DriverController)->create(),
+    'drivers/store'      => (new DriverController)->store(),
+    'drivers/edit'       => (new DriverController)->edit(),
+    'drivers/update'     => (new DriverController)->update(),
+    'drivers/delete'     => (new DriverController)->delete(),
+    'drivers/detail'     => (new DriverController)->detail(),
+
+    // Users
+    'users'              => (new UserController)->index(),
+    'users/create'       => (new UserController)->create(),
+    'users/store'        => (new UserController)->store(),
+    'users/edit'         => (new UserController)->edit(),
+    'users/update'       => (new UserController)->update(),
+    'users/delete'       => (new UserController)->delete(),
+    'users/detail'       => (new UserController)->detail(),
+
     // Suppliers
     'suppliers'            => (new SupplierController)->index(),
     'suppliers/create'     => (new SupplierController)->create(),
     'suppliers/store'      => (new SupplierController)->store(),
-    
+
     // Reports
     'reports'              => (new ReportController)->index(),
     'reports/financial'    => (new ReportController)->financial(),
