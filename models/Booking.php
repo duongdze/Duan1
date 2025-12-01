@@ -261,7 +261,7 @@ class Booking extends BaseModel
     /**
      * Lấy thống kê booking theo khoảng thời gian
      */
-    public function getBookingStats($dateFrom = null, $dateTo = null, $tourId = null, $status = null, $source = null)
+    public function getBookingStats($dateFrom = null, $dateTo = null, $tourId = null, $status = null, $source = null, $skipGrowth = false)
     {
         $dateFrom = $dateFrom ?? date('Y-m-01');
         $dateTo = $dateTo ?? date('Y-m-d');
@@ -320,9 +320,12 @@ class Booking extends BaseModel
         );
         $conversionRate = $pendingBookings > 0 ? ($successfulBookings / ($pendingBookings + $successfulBookings)) * 100 : 0;
 
-        // Lấy dữ liệu kỳ trước để tính growth
-        $previousStats = $this->getPreviousPeriodStats($dateFrom, $dateTo, $tourId, $status, $source);
-        $bookingGrowth = $this->calculateGrowth($totalBookings, $previousStats['total_bookings']);
+        // Lấy dữ liệu kỳ trước để tính growth (chỉ khi không skip)
+        $bookingGrowth = 0;
+        if (!$skipGrowth) {
+            $previousStats = $this->getPreviousPeriodStats($dateFrom, $dateTo, $tourId, $status, $source);
+            $bookingGrowth = $this->calculateGrowth($totalBookings, $previousStats['total_bookings']);
+        }
 
         return [
             'total_bookings' => $totalBookings,
@@ -518,7 +521,8 @@ class Booking extends BaseModel
         $prevDateTo = date('Y-m-d', strtotime($dateFrom . ' -1 day'));
         $prevDateFrom = date('Y-m-d', strtotime($prevDateTo . ' -' . ($days - 1) . ' days'));
 
-        return $this->getBookingStats($prevDateFrom, $prevDateTo, $tourId, $status, $source);
+        // Skip growth calculation để tránh vòng lặp vô hạn
+        return $this->getBookingStats($prevDateFrom, $prevDateTo, $tourId, $status, $source, true);
     }
 
     /**
