@@ -212,15 +212,54 @@ class Booking extends BaseModel
         $sql = "SELECT 
                     B.*, 
                     T.name AS tour_name, 
-                    BC.full_name AS customer_name
-                FROM bookings AS B 
+                    U.full_name AS customer_name
+                FROM {$this->table} AS B 
+                INNER JOIN tour_assignments AS TA ON B.tour_id = TA.tour_id
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
+                LEFT JOIN users AS U ON B.customer_id = U.user_id
                 WHERE TA.guide_id = :guide_id
-                ORDER BY B.booking_date DESC";
+                ORDER BY B.booking_date DESC, B.id DESC";
+
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['guide_id' => $guideId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function getAllByRole($userRole, $guideId = null)
+    {
+        if ($userRole === 'admin') {
+            // Admin xem tất cả
+            return $this->getAll();
+        } elseif ($userRole === 'guide' && $guideId) {
+            // HDV chỉ xem bookings của tour mình phụ trách
+            return $this->getBookingsForGuide($guideId);
+        }
+
+        return [];
+    }
+    /**
+     * Cập nhật trạng thái booking
+     * @param int $bookingId
+     * @param string $newStatus
+     * @return bool
+     */
+    public function updateStatus($bookingId, $newStatus)
+    {
+        try {
+            // Validate status
+            $validStatuses = ['cho_xac_nhan', 'da_coc', 'hoan_tat', 'da_huy'];
+            if (!in_array($newStatus, $validStatuses)) {
+                return false;
+            }
+
+            return $this->update(
+                ['status' => $newStatus],
+                'id = :id',
+                ['id' => $bookingId]
+            );
+        } catch (Exception $e) {
+            error_log('Error updating booking status: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**

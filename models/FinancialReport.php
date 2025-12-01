@@ -18,7 +18,7 @@ class FinancialReport extends BaseModel
     /**
      * Lấy báo cáo tài chính tổng quan theo khoảng thời gian
      */
-    public function getFinancialSummary($dateFrom = null, $dateTo = null, $filters = [])
+    public function getFinancialSummary($dateFrom = null, $dateTo = null, $filters = [], $skipGrowth = false)
     {
         $dateFrom = $dateFrom ?? date('Y-m-01');
         $dateTo = $dateTo ?? date('Y-m-d');
@@ -61,8 +61,17 @@ class FinancialReport extends BaseModel
         $profit = $totalRevenue - $totalExpense;
         $profitMargin = $totalRevenue > 0 ? ($profit / $totalRevenue) * 100 : 0;
 
-        // Lấy dữ liệu kỳ trước để tính growth
-        $previousPeriodData = $this->getPreviousPeriodData($dateFrom, $dateTo, $filters);
+        // Lấy dữ liệu kỳ trước để tính growth (chỉ khi không skip)
+        $revenueGrowth = 0;
+        $expenseGrowth = 0;
+        $profitGrowth = 0;
+
+        if (!$skipGrowth) {
+            $previousPeriodData = $this->getPreviousPeriodData($dateFrom, $dateTo, $filters);
+            $revenueGrowth = $this->calculateGrowth($totalRevenue, $previousPeriodData['total_revenue']);
+            $expenseGrowth = $this->calculateGrowth($totalExpense, $previousPeriodData['total_expense']);
+            $profitGrowth = $this->calculateGrowth($profit, $previousPeriodData['profit']);
+        }
 
         return [
             'total_revenue' => $totalRevenue,
@@ -73,9 +82,9 @@ class FinancialReport extends BaseModel
             'avg_booking_value' => $revenueData['avg_booking_value'] ?? 0,
             'cost_count' => $costData['cost_count'] ?? 0,
             'avg_cost' => $costData['avg_cost'] ?? 0,
-            'revenue_growth' => $this->calculateGrowth($totalRevenue, $previousPeriodData['total_revenue']),
-            'expense_growth' => $this->calculateGrowth($totalExpense, $previousPeriodData['total_expense']),
-            'profit_growth' => $this->calculateGrowth($profit, $previousPeriodData['profit'])
+            'revenue_growth' => $revenueGrowth,
+            'expense_growth' => $expenseGrowth,
+            'profit_growth' => $profitGrowth
         ];
     }
 
@@ -263,7 +272,8 @@ class FinancialReport extends BaseModel
         $prevDateTo = date('Y-m-d', strtotime($dateFrom . ' -1 day'));
         $prevDateFrom = date('Y-m-d', strtotime($prevDateTo . ' -' . ($days - 1) . ' days'));
 
-        return $this->getFinancialSummary($prevDateFrom, $prevDateTo, $filters);
+        // Skip growth calculation để tránh vòng lặp vô hạn
+        return $this->getFinancialSummary($prevDateFrom, $prevDateTo, $filters, true);
     }
 
     /**
