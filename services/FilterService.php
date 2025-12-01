@@ -17,7 +17,7 @@ class FilterService
      */
     public function getFilteredTours($filters = [])
     {
-        $whereConditions = ["T.is_active = 1"];
+        $whereConditions = [];
         $params = [];
 
         // Filter theo category
@@ -36,32 +36,10 @@ class FilterService
             $params[':price_max'] = $filters['price_max'];
         }
 
-        // Filter theo rating
-        if (!empty($filters['rating_min'])) {
-            $whereConditions[] = "COALESCE(T.avg_rating, 0) >= :rating_min";
-            $params[':rating_min'] = $filters['rating_min'];
-        }
-
         // Filter theo keyword
         if (!empty($filters['keyword'])) {
             $whereConditions[] = "(T.name LIKE :keyword OR T.description LIKE :keyword)";
             $params[':keyword'] = '%' . $filters['keyword'] . '%';
-        }
-
-        // Filter theo duration
-        if (!empty($filters['duration_min'])) {
-            $whereConditions[] = "T.duration >= :duration_min";
-            $params[':duration_min'] = $filters['duration_min'];
-        }
-        if (!empty($filters['duration_max'])) {
-            $whereConditions[] = "T.duration <= :duration_max";
-            $params[':duration_max'] = $filters['duration_max'];
-        }
-
-        // Filter theo departure location
-        if (!empty($filters['departure_location'])) {
-            $whereConditions[] = "T.departure_location LIKE :departure_location";
-            $params[':departure_location'] = '%' . $filters['departure_location'] . '%';
         }
 
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
@@ -72,10 +50,7 @@ class FilterService
                     T.category_id,
                     TC.name as category_name,
                     T.base_price,
-                    T.duration,
-                    T.departure_location,
-                    T.avg_rating,
-                    T.is_active
+                    T.description
                 FROM tours T
                 LEFT JOIN tour_categories TC ON T.category_id = TC.id
                 $whereClause
@@ -91,7 +66,7 @@ class FilterService
      */
     public function getCategories()
     {
-        $sql = "SELECT id, name, parent_id FROM tour_categories WHERE is_active = 1 ORDER BY name ASC";
+        $sql = "SELECT id, name FROM tour_categories ORDER BY name ASC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -99,18 +74,12 @@ class FilterService
 
     /**
      * Lấy danh sách departure locations
+     * Note: Column không tồn tại trong database hiện tại
      */
     public function getDepartureLocations()
     {
-        $sql = "SELECT DISTINCT departure_location 
-                FROM tours 
-                WHERE departure_location IS NOT NULL 
-                AND departure_location != '' 
-                AND is_active = 1
-                ORDER BY departure_location ASC";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        // Database hiện tại không có departure_location column
+        return [];
     }
 
     /**
@@ -122,8 +91,7 @@ class FilterService
                     MIN(base_price) as min_price,
                     MAX(base_price) as max_price,
                     AVG(base_price) as avg_price
-                FROM tours 
-                WHERE is_active = 1";
+                FROM tours";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetch();
@@ -171,46 +139,17 @@ class FilterService
      */
     public function getDurationRanges()
     {
-        $sql = "SELECT 
-                    MIN(duration) as min_duration,
-                    MAX(duration) as max_duration,
-                    AVG(duration) as avg_duration
-                FROM tours 
-                WHERE is_active = 1
-                AND duration IS NOT NULL
-                AND duration > 0";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute();
-        $result = $stmt->fetch();
-
-        if (!$result || $result['min_duration'] === null) {
-            return [
-                'min' => 1,
-                'max' => 30,
-                'ranges' => [
-                    ['min' => 1, 'max' => 3, 'label' => '1-3 ngày'],
-                    ['min' => 4, 'max' => 7, 'label' => '4-7 ngày'],
-                    ['min' => 8, 'max' => 14, 'label' => '8-14 ngày'],
-                    ['min' => 15, 'max' => 30, 'label' => '15-30 ngày']
-                ]
-            ];
-        }
-
-        $min = $result['min_duration'];
-        $max = $result['max_duration'];
-
-        $ranges = [
-            ['min' => 1, 'max' => 3, 'label' => '1-3 ngày'],
-            ['min' => 4, 'max' => 7, 'label' => '4-7 ngày'],
-            ['min' => 8, 'max' => 14, 'label' => '8-14 ngày'],
-            ['min' => 15, 'max' => $max, 'label' => '15+ ngày']
-        ];
-
+        // Database hiện tại không có duration column, trả về giá trị mặc định
         return [
-            'min' => $min,
-            'max' => $max,
-            'avg' => $result['avg_duration'],
-            'ranges' => $ranges
+            'min' => 1,
+            'max' => 30,
+            'ranges' => [
+                ['min' => 1, 'max' => 3, 'label' => '1-3 ngày'],
+                ['min' => 4, 'max' => 7, 'label' => '4-7 ngày'],
+                ['min' => 8, 'max' => 14, 'label' => '8-14 ngày'],
+                ['min' => 15, 'max' => 30, 'label' => '15-30 ngày']
+            ],
+            'avg' => 7
         ];
     }
 
@@ -376,16 +315,6 @@ class FilterService
                     }
                     break;
 
-                case 'rating_min':
-                    $whereConditions[] = "$field >= :$key";
-                    $params[":$key"] = $value;
-                    break;
-
-                case 'rating_max':
-                    $whereConditions[] = "$field <= :$key";
-                    $params[":$key"] = $value;
-                    break;
-
                 case 'price_min':
                     $whereConditions[] = "$field >= :$key";
                     $params[":$key"] = $value;
@@ -441,20 +370,6 @@ class FilterService
         if (!empty($filters['price_min']) && !empty($filters['price_max'])) {
             if ($filters['price_min'] > $filters['price_max']) {
                 $errors['price_range'] = 'Giá tối thiểu không thể lớn hơn giá tối đa';
-            }
-        }
-
-        // Validate rating range
-        if (!empty($filters['rating_min']) && !empty($filters['rating_max'])) {
-            if ($filters['rating_min'] > $filters['rating_max']) {
-                $errors['rating_range'] = 'Đánh giá tối thiểu không thể lớn hơn đánh giá tối đa';
-            }
-        }
-
-        // Validate duration range
-        if (!empty($filters['duration_min']) && !empty($filters['duration_max'])) {
-            if ($filters['duration_min'] > $filters['duration_max']) {
-                $errors['duration_range'] = 'Thời gian tối thiểu không thể lớn hơn thời gian tối đa';
             }
         }
 

@@ -10,10 +10,6 @@ class Booking extends BaseModel
         'departure_id',
         'version_id',
         'customer_id',
-        'adults',
-        'children',
-        'infants',
-        'foc_pax',
         'original_price',
         'final_price',
         'status',
@@ -295,9 +291,15 @@ class Booking extends BaseModel
                     COUNT(B.id) as total_bookings,
                     SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) as successful_bookings,
                     SUM(CASE WHEN B.status IN ('completed', 'paid') THEN B.final_price ELSE 0 END) as total_revenue,
-                    SUM(B.adults + B.children + B.infants) as total_customers,
-                    AVG(B.adults + B.children + B.infants) as avg_customers_per_booking
+                    COALESCE(SUM(customer_counts.total_customers), 0) as total_customers
                 FROM bookings B 
+                LEFT JOIN (
+                    SELECT 
+                        booking_id,
+                        COUNT(id) as total_customers
+                    FROM booking_customers 
+                    GROUP BY booking_id
+                ) customer_counts ON B.id = customer_counts.booking_id
                 $whereClause";
 
         $stmt = self::$pdo->prepare($sql);
@@ -307,7 +309,9 @@ class Booking extends BaseModel
         // Tính tỷ lệ thành công và chuyển đổi
         $totalBookings = $stats['total_bookings'] ?? 0;
         $successfulBookings = $stats['successful_bookings'] ?? 0;
+        $totalCustomers = $stats['total_customers'] ?? 0;
         $successRate = $totalBookings > 0 ? ($successfulBookings / $totalBookings) * 100 : 0;
+        $avgCustomersPerBooking = $totalBookings > 0 ? $totalCustomers / $totalBookings : 0;
 
         // Tỷ lệ chuyển đổi (ước tính từ pending -> successful)
         $pendingBookings = $this->count(
@@ -326,8 +330,8 @@ class Booking extends BaseModel
             'success_rate' => $successRate,
             'conversion_rate' => $conversionRate,
             'total_revenue' => $stats['total_revenue'] ?? 0,
-            'total_customers' => $stats['total_customers'] ?? 0,
-            'avg_customers_per_booking' => $stats['avg_customers_per_booking'] ?? 0,
+            'total_customers' => $totalCustomers,
+            'avg_customers_per_booking' => $avgCustomersPerBooking,
             'booking_growth' => $bookingGrowth
         ];
     }
@@ -394,7 +398,7 @@ class Booking extends BaseModel
                     T.name AS tour_name,
                     COUNT(B.id) AS booking_count,
                     COALESCE(SUM(B.final_price), 0) AS revenue,
-                    COALESCE(AVG(B.final_price / (B.adults + B.children + B.infants)), 0) AS avg_price
+                    COALESCE(AVG(B.final_price), 0) AS avg_price
                 FROM tours T
                 LEFT JOIN bookings B ON T.id = B.tour_id
                 WHERE B.booking_date BETWEEN :date_from AND :date_to
@@ -463,8 +467,15 @@ class Booking extends BaseModel
                     COUNT(B.id) as total_bookings,
                     SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) as successful_bookings,
                     SUM(CASE WHEN B.status IN ('completed', 'paid') THEN B.final_price ELSE 0 END) as revenue,
-                    SUM(B.adults + B.children + B.infants) as total_customers
+                    COALESCE(SUM(customer_counts.total_customers), 0) as total_customers
                 FROM bookings B 
+                LEFT JOIN (
+                    SELECT 
+                        booking_id,
+                        COUNT(id) as total_customers
+                    FROM booking_customers 
+                    GROUP BY booking_id
+                ) customer_counts ON B.id = customer_counts.booking_id
                 $whereClause
                 GROUP BY MONTH(B.booking_date)
                 ORDER BY month";
