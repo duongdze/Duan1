@@ -2,220 +2,499 @@
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 ?>
-<main class="wrapper">
-    <div class="main-content">
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb-modern mb-4" aria-label="breadcrumb">
-            <a href="<?= BASE_URL_ADMIN ?>&action=dashboard">Dashboard</a>
-            <span class="separator">/</span>
-            <a href="<?= BASE_URL_ADMIN ?>&action=tours">Quản lý Tour</a>
-            <span class="separator">/</span>
-            <a href="<?= BASE_URL_ADMIN ?>&action=tours/detail&id=<?= $tour['id'] ?>"><?= htmlspecialchars($tour['name']) ?></a>
-            <span class="separator">/</span>
-            <span class="active">Phiên bản</span>
-        </nav>
-
-        <!-- Page Header -->
-        <div class="page-header-modern mb-4">
-            <div>
-                <h1 class="h2 page-title">Quản lý phiên bản</h1>
-                <p class="text-muted lead"><?= htmlspecialchars($tour['name']) ?></p>
+<main class="dashboard">
+    <div class="dashboard-container">
+        <!-- Modern Page Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="breadcrumb-modern">
+                        <a href="<?= BASE_URL_ADMIN ?>&action=/" class="breadcrumb-link">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <span class="breadcrumb-current">Phiên bản Tour</span>
+                    </div>
+                    <div class="page-title-section">
+                        <h1 class="page-title">
+                            <i class="fas fa-code-branch title-icon"></i>
+                            Phiên bản Tour
+                        </h1>
+                        <p class="page-subtitle">
+                            Quản lý các phiên bản tour của hệ thống
+                        </p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <a href="<?= BASE_URL_ADMIN ?>&action=tours_versions/create" class="btn btn-modern btn-primary btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Thêm Phiên Bản Mới
+                    </a>
+                </div>
             </div>
-            <div class="header-actions">
-                <a href="<?= BASE_URL_ADMIN ?>&action=tours_versions/create&tour_id=<?= $tour['id'] ?>" class="btn-modern btn-primary">
-                    <i class="fas fa-plus me-2"></i> Thêm phiên bản
-                </a>
-                <a href="<?= BASE_URL_ADMIN ?>&action=tours/detail&id=<?= $tour['id'] ?>" class="btn-modern btn-secondary">
-                    <i class="fas fa-arrow-left me-2"></i> Quay lại
-                </a>
-            </div>
-        </div>
+        </header>
 
         <!-- Alert Messages -->
         <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <?= $_SESSION['success'] ?>
+            <div class="alert-modern alert-success alert-dismissible fade show" role="alert">
+                <div class="alert-content">
+                    <i class="fas fa-check-circle alert-icon"></i>
+                    <span><?= $_SESSION['success'] ?></span>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 <?php unset($_SESSION['success']); ?>
             </div>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <?= $_SESSION['error'] ?>
+            <div class="alert-modern alert-danger alert-dismissible fade show" role="alert">
+                <div class="alert-content">
+                    <i class="fas fa-exclamation-circle alert-icon"></i>
+                    <span><?= $_SESSION['error'] ?></span>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 <?php unset($_SESSION['error']); ?>
             </div>
         <?php endif; ?>
 
         <!-- Statistics Cards -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-3">
-                <div class="stat-card h-100">
-                    <div class="stat-icon text-primary"><i class="fas fa-layer-group"></i></div>
-                    <div class="stat-info">
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-code-branch"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?= count($versions) ?></div>
                         <div class="stat-label">Tổng phiên bản</div>
-                        <div class="stat-value"><?= count($versions ?? []) ?></div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card h-100">
-                    <div class="stat-icon text-success"><i class="fas fa-check-circle"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-label">Đang hoạt động</div>
-                        <div class="stat-value"><?= count(array_filter($versions ?? [], fn($v) => $v['status'] === 'active')) ?></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card h-100">
-                    <div class="stat-icon text-warning"><i class="fas fa-pause-circle"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-label">Tạm ẩn</div>
-                        <div class="stat-value"><?= count(array_filter($versions ?? [], fn($v) => $v['status'] === 'inactive')) ?></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card h-100">
-                    <div class="stat-icon text-info"><i class="fas fa-calendar"></i></div>
-                    <div class="stat-info">
-                        <div class="stat-label">Ngày tạo</div>
-                        <div class="stat-value"><?= date('d/m/Y') ?></div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Versions Table -->
-        <div class="card-modern">
-            <div class="card-body p-0">
+                <div class="stat-card stat-success">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?= count(array_filter($versions, fn($v) => $v['status'] === 'active')) ?></div>
+                        <div class="stat-label">Đang hoạt động</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-warning">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-pause-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?= count(array_filter($versions, fn($v) => $v['status'] === 'inactive')) ?></div>
+                        <div class="stat-label">Tạm dừng</div>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-info">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value"><?= date('d/m/Y', strtotime($versions[0]['created_at'] ?? 'now')) ?></div>
+                        <div class="stat-label">Ngày tạo gần nhất</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Versions List -->
+        <section class="versions-section">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2 class="section-heading">
+                        <i class="fas fa-list me-2"></i>
+                        Danh sách phiên bản
+                    </h2>
+                    <p class="section-description">
+                        Tổng hợp các phiên bản của tour với trạng thái và thông tin chi tiết
+                    </p>
+                </div>
+                <div class="section-actions">
+                    <a href="<?= BASE_URL_ADMIN ?>&action=tours" class="btn btn-modern btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Quay lại Tours
+                    </a>
+                </div>
+            </div>
+
+            <div class="versions-container">
                 <?php if (!empty($versions)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-modern table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Tên phiên bản</th>
-                                    <th>Mô tả</th>
-                                    <th>Trạng thái</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Ngày cập nhật</th>
-                                    <th class="text-end">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($versions as $version): ?>
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="me-2">
-                                                    <?php if ($version['status'] === 'active'): ?>
-                                                        <span class="badge bg-success me-2">Đang hoạt động</span>
-                                                    <?php endif; ?>
-                                                    <strong><?= htmlspecialchars($version['name']) ?></strong>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $description = $version['description'] ?? '';
-                                            if (strlen($description) > 100) {
-                                                echo htmlspecialchars(substr($description, 0, 100)) . '...';
-                                            } else {
-                                                echo htmlspecialchars($description) ?: '<span class="text-muted">Không có mô tả</span>';
-                                            }
-                                            ?>
-                                        </td>
-                                        <td>
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input toggle-status"
-                                                    type="checkbox"
-                                                    data-id="<?= $version['id'] ?>"
-                                                    <?= $version['status'] === 'active' ? 'checked' : '' ?>>
-                                                <label class="form-check-label">
-                                                    <?= $version['status'] === 'active' ? 'Đang bật' : 'Đang tắt' ?>
-                                                </label>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="text-nowrap"><?= date('d/m/Y', strtotime($version['created_at'])) ?></div>
-                                            <div class="text-muted small"><?= date('H:i', strtotime($version['created_at'])) ?></div>
-                                        </td>
-                                        <td>
-                                            <?php if ($version['updated_at'] && $version['updated_at'] !== $version['created_at']): ?>
-                                                <div class="text-nowrap"><?= date('d/m/Y', strtotime($version['updated_at'])) ?></div>
-                                                <div class="text-muted small"><?= date('H:i', strtotime($version['updated_at'])) ?></div>
-                                            <?php else: ?>
-                                                <span class="text-muted">Chưa cập nhật</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="text-end">
-                                            <div class="btn-group" role="group">
-                                                <a href="<?= BASE_URL_ADMIN ?>&action=tours_versions/edit&id=<?= $version['id'] ?>&tour_id=<?= $tour['id'] ?>"
-                                                    class="btn btn-sm btn-outline-primary"
-                                                    data-bs-toggle="tooltip"
-                                                    title="Chỉnh sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <button type="button"
-                                                    class="btn btn-sm btn-outline-danger delete-version"
-                                                    data-id="<?= $version['id'] ?>"
-                                                    data-name="<?= htmlspecialchars($version['name']) ?>"
-                                                    data-bs-toggle="tooltip"
-                                                    title="Xóa">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                    <div class="versions-grid">
+                        <?php foreach ($versions as $version): ?>
+                            <div class="version-card-modern" data-id="<?= $version['id'] ?>">
+                                <div class="version-card-header">
+                                    <div class="version-info">
+                                        <h3 class="version-name"><?= htmlspecialchars($version['name']) ?></h3>
+                                        <div class="version-meta">
+                                            <span class="version-id">#<?= str_pad($version['id'], 4, '0', STR_PAD_LEFT) ?></span>
+                                            <span class="version-date">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                <?= date('d/m/Y', strtotime($version['created_at'])) ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="version-status">
+                                        <span class="status-badge status-<?= $version['status'] ?>">
+                                            <i class="fas fa-<?= $version['status'] === 'active' ? 'check' : 'pause' ?> me-1"></i>
+                                            <?= $version['status'] === 'active' ? 'Đang hoạt động' : 'Tạm dừng' ?>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="version-card-body">
+                                    <div class="version-description">
+                                        <p><?= htmlspecialchars($version['description'] ?? 'Chưa có mô tả') ?></p>
+                                    </div>
+
+                                    <div class="version-stats">
+                                        <div class="stat-item">
+                                            <span class="stat-label">Ngày tạo:</span>
+                                            <span class="stat-value"><?= date('H:i d/m/Y', strtotime($version['created_at'])) ?></span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Cập nhật:</span>
+                                            <span class="stat-value"><?= date('H:i d/m/Y', strtotime($version['updated_at'])) ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="version-card-footer">
+                                    <div class="version-actions">
+                                        <button class="action-btn action-edit" onclick="editVersion(<?= $version['id'] ?>)" title="Chỉnh sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="action-btn action-toggle" onclick="toggleVersionStatus(<?= $version['id'] ?>, '<?= $version['status'] ?>')" title="<?= $version['status'] === 'active' ? 'Tạm dừng' : 'Kích hoạt' ?>">
+                                            <i class="fas fa-<?= $version['status'] === 'active' ? 'pause' : 'play' ?>"></i>
+                                        </button>
+                                        <button class="action-btn action-delete" onclick="deleteVersion(<?= $version['id'] ?>, '<?= htmlspecialchars($version['name']) ?>')" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
                 <?php else: ?>
-                    <div class="empty-state p-5 text-center">
+                    <div class="empty-state-modern">
                         <div class="empty-state-icon">
-                            <i class="fas fa-layer-group fa-3x text-muted"></i>
+                            <i class="fas fa-code-branch"></i>
                         </div>
-                        <h4 class="empty-state-title mt-3">Chưa có phiên bản nào</h4>
+                        <h3 class="empty-state-title">Chưa có phiên bản nào</h3>
                         <p class="empty-state-description">
-                            Bạn chưa tạo phiên bản nào cho tour này. Hãy bắt đầu bằng cách tạo phiên bản đầu tiên.
+                            Chưa có phiên bản tour nào trong hệ thống. Hãy tạo phiên bản đầu tiên để bắt đầu quản lý.
                         </p>
-                        <a href="<?= BASE_URL_ADMIN ?>&action=tours_versions/create&tour_id=<?= $tour['id'] ?>" class="btn btn-primary mt-3">
-                            <i class="fas fa-plus me-2"></i> Thêm phiên bản mới
-                        </a>
+                        <div class="empty-state-actions">
+                            <a href="<?= BASE_URL_ADMIN ?>&action=tours_versions/create" class="btn btn-modern btn-primary">
+                                <i class="fas fa-plus-circle me-2"></i>
+                                Tạo Phiên Bản Đầu Tiên
+                            </a>
+                            <a href="<?= BASE_URL_ADMIN ?>&action=tours" class="btn btn-modern btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Quay lại Tours
+                            </a>
+                        </div>
                     </div>
                 <?php endif; ?>
             </div>
-        </div>
+        </section>
     </div>
 </main>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Xác nhận xóa</h5>
+                <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa phiên bản</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa phiên bản <strong id="versionName"></strong>?</p>
-                <p class="text-danger">Hành động này không thể hoàn tác!</p>
+                <div class="delete-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h6>Bạn có chắc chắn muốn xóa phiên bản này?</h6>
+                    <p class="mb-0">
+                        <strong id="deleteVersionName"></strong>
+                    </p>
+                    <p class="text-muted small">Hành động này không thể hoàn tác.</p>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <form id="deleteForm" method="POST" style="display: inline;">
                     <input type="hidden" name="_method" value="DELETE">
-                    <button type="submit" class="btn btn-danger">Xóa</button>
+                    <button type="submit" class="btn btn-danger">Xóa phiên bản</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>
+<style>
+    /* Versions Styles - Sync with tours and tours_categories */
+    .versions-section {
+        margin-bottom: 32px;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        background: var(--tours-bg-primary, #ffffff);
+        border: 1px solid var(--tours-border-light, #e9ecef);
+        border-radius: var(--tours-radius-lg, 12px);
+        padding: 24px 32px;
+        margin-bottom: 24px;
+        box-shadow: var(--tours-shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.04));
+    }
+
+    .section-title {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .section-heading {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--tours-text-primary, #212529);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-description {
+        color: var(--tours-text-secondary, #6c757d);
+        font-size: 0.95rem;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .section-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .versions-container {
+        margin-top: 24px;
+    }
+
+    .versions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+
+    .version-card-modern {
+        background: var(--tours-bg-primary, #ffffff);
+        border-radius: var(--tours-radius-lg, 12px);
+        box-shadow: var(--tours-shadow, 0 4px 12px rgba(0, 0, 0, 0.08));
+        border: 1px solid var(--tours-border-light, #e9ecef);
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .version-card-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--tours-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.12));
+    }
+
+    .version-card-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--tours-border-light, #e9ecef);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .version-info {
+        flex: 1;
+    }
+
+    .version-name {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--tours-text-primary, #212529);
+        margin: 0 0 8px 0;
+        line-height: 1.3;
+    }
+
+    .version-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .version-id {
+        font-family: 'Courier New', monospace;
+        background: var(--tours-bg-secondary, #f8f9fa);
+        color: var(--tours-text-secondary, #6c757d);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        width: fit-content;
+    }
+
+    .version-date {
+        font-size: 0.85rem;
+        color: var(--tours-text-secondary, #6c757d);
+        display: flex;
+        align-items: center;
+    }
+
+    .version-status {
+        flex-shrink: 0;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-active {
+        background: rgba(25, 135, 84, 0.1);
+        color: #198754;
+        border: 1px solid rgba(25, 135, 84, 0.2);
+    }
+
+    .status-inactive {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.2);
+    }
+
+    .version-card-body {
+        padding: 20px 24px;
+    }
+
+    .version-description {
+        margin-bottom: 16px;
+    }
+
+    .version-description p {
+        color: var(--tours-text-secondary, #6c757d);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .version-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        background: var(--tours-bg-secondary, #f8f9fa);
+        border-radius: 6px;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--tours-text-secondary, #6c757d);
+        font-weight: 500;
+    }
+
+    .stat-value {
+        font-size: 0.8rem;
+        color: var(--tours-text-primary, #212529);
+        font-weight: 600;
+    }
+
+    .version-card-footer {
+        padding: 16px 24px;
+        background: var(--tours-bg-secondary, #f8f9fa);
+        border-top: 1px solid var(--tours-border-light, #e9ecef);
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .version-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--tours-border, #dee2e6);
+        background: var(--tours-bg-primary, #ffffff);
+        color: var(--tours-text-secondary, #6c757d);
+        cursor: pointer;
+        transition: var(--tours-transition, all 0.3s ease);
+    }
+
+    .action-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .action-edit:hover {
+        background: var(--tours-primary, #0d6efd);
+        color: white;
+        border-color: var(--tours-primary, #0d6efd);
+    }
+
+    .action-toggle:hover {
+        background: var(--tours-warning, #ffc107);
+        color: white;
+        border-color: var(--tours-warning, #ffc107);
+    }
+
+    .action-delete:hover {
+        background: var(--tours-danger, #dc3545);
+        color: white;
+        border-color: var(--tours-danger, #dc3545);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .versions-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .version-card-header {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .version-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -225,82 +504,51 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
 
-        // Delete version
-        var deleteButtons = document.querySelectorAll('.delete-version');
+        // Delete version functionality
         var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        var versionName = document.getElementById('versionName');
         var deleteForm = document.getElementById('deleteForm');
+        var deleteVersionName = document.getElementById('deleteVersionName');
 
-        deleteButtons.forEach(function(button) {
-            button.addEventListener('click', function() {
-                var versionId = this.getAttribute('data-id');
-                var name = this.getAttribute('data-name');
+        window.deleteVersion = function(id, name) {
+            deleteVersionName.textContent = name;
+            deleteForm.action = '<?= BASE_URL_ADMIN ?>&action=tours_versions/delete&id=' + id;
+            deleteModal.show();
+        };
 
-                versionName.textContent = name;
-                deleteForm.action = '<?= BASE_URL_ADMIN ?>&action=tours_versions/delete&id=' + versionId + '&tour_id=<?= $tour['id'] ?>';
-                deleteModal.show();
-            });
-        });
+        // Edit version
+        window.editVersion = function(id) {
+            window.location.href = '<?= BASE_URL_ADMIN ?>&action=tours_versions/edit&id=' + id;
+        };
 
         // Toggle version status
-        var toggleSwitches = document.querySelectorAll('.toggle-status');
-        toggleSwitches.forEach(function(toggle) {
-            toggle.addEventListener('change', function() {
-                var versionId = this.getAttribute('data-id');
-                var isActive = this.checked;
-                var status = isActive ? 'active' : 'inactive';
-                var label = this.nextElementSibling;
+        window.toggleVersionStatus = function(id, currentStatus) {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+            const actionText = newStatus === 'active' ? 'Kích hoạt' : 'Tạm dừng';
 
-                // Show loading state
-                var originalText = label.textContent;
-                label.textContent = 'Đang xử lý...';
+            if (confirm(`Bạn có chắc muốn ${actionText.toLowerCase()} phiên bản này?`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '<?= BASE_URL_ADMIN ?>&action=tours_versions/toggleStatus&id=' + id;
 
-                // Disable the toggle while processing
-                this.disabled = true;
+                const methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = '_method';
+                methodInput.value = 'PATCH';
 
-                // Send AJAX request
-                fetch('<?= BASE_URL_ADMIN ?>&action=tours_versions/toggle-status', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: 'id=' + versionId + '&status=' + status + '&_method=PATCH'
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Update UI on success
-                            if (isActive) {
-                                label.textContent = 'Đang bật';
-                            } else {
-                                label.textContent = 'Đang tắt';
-                            }
+                const statusInput = document.createElement('input');
+                statusInput.type = 'hidden';
+                statusInput.name = 'status';
+                statusInput.value = newStatus;
 
-                            // Show success message
-                            showToast('Cập nhật trạng thái thành công', 'success');
-                        } else {
-                            // Revert on error
-                            this.checked = !isActive;
-                            label.textContent = isActive ? 'Đang tắt' : 'Đang bật';
-                            showToast('Có lỗi xảy ra: ' + (data.message || 'Vui lòng thử lại'), 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        this.checked = !isActive;
-                        label.textContent = isActive ? 'Đang tắt' : 'Đang bật';
-                        showToast('Có lỗi xảy ra. Vui lòng thử lại', 'error');
-                    })
-                    .finally(() => {
-                        this.disabled = false;
-                    });
-            });
-        });
-
-        // Helper function to show toast notifications
-        function showToast(message, type = 'success') {
-            // Simple alert for now - you can replace with a proper toast library
-            console.log(type.toUpperCase() + ': ' + message);
-        }
+                form.appendChild(methodInput);
+                form.appendChild(statusInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        };
     });
 </script>
+
+<?php
+include_once PATH_VIEW_ADMIN . 'default/footer.php';
+?>

@@ -40,33 +40,53 @@ class TourVersion extends BaseModel
     }
 
     /**
-     * Get active version for a tour
-     * @param int $tourId
-     * @return array|null
-     */
-    public function getActiveVersion($tourId)
-    {
-        return $this->find('*', 'tour_id = :tour_id AND status = "active"', ['tour_id' => $tourId]);
-    }
-
-    /**
-     * Deactivate all versions except one
-     * @param int $tourId
-     * @param int $exceptId
-     * @return bool
-     */
-    public function deactivateOthers($tourId, $exceptId)
-    {
-        return $this->update(['status' => 'inactive'], 'tour_id = :tour_id AND id != :id', ['tour_id' => $tourId, 'id' => $exceptId]);
-    }
-
-    /**
-     * Get versions by tour ID
-     * @param int $tourId
+     * Get all versions ordered by creation date
      * @return array
      */
-    public function getByTourId($tourId)
+    public function getAllVersions()
     {
-        return $this->select('*', 'tour_id = :tour_id ORDER BY created_at DESC', ['tour_id' => $tourId]);
+        return $this->select('*', '1=1 ORDER BY created_at DESC');
+    }
+
+    /**
+     * Get versions by status
+     * @param string $status
+     * @return array
+     */
+    public function getByStatus($status)
+    {
+        return $this->select('*', 'status = :status ORDER BY created_at DESC', ['status' => $status]);
+    }
+
+    /**
+     * Get versions with pagination
+     * @param int $limit
+     * @param int $offset
+     * @return array
+     */
+    public function getWithPagination($limit = 20, $offset = 0)
+    {
+        return $this->select('*', '1=1 ORDER BY created_at DESC LIMIT :limit OFFSET :offset', ['limit' => $limit, 'offset' => $offset]);
+    }
+
+    /**
+     * Count total versions
+     * @return int
+     */
+    public function countTotal()
+    {
+        $result = $this->select('COUNT(*) as total', '1=1');
+        return $result[0]['total'] ?? 0;
+    }
+
+    /**
+     * Count versions by status
+     * @param string $status
+     * @return int
+     */
+    public function countByStatus($status)
+    {
+        $result = $this->select('COUNT(*) as total', 'status = :status', ['status' => $status]);
+        return $result[0]['total'] ?? 0;
     }
 }

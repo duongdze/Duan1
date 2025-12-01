@@ -43,7 +43,7 @@ $departures = $departures ?? [];
 <?php include_once PATH_VIEW_ADMIN . 'default/header.php'; ?>
 <?php include_once PATH_VIEW_ADMIN . 'default/sidebar.php'; ?>
 
-<main class="tours-dashboard tour-edit-page">
+<main class="dashboard tour-edit-page">
     <div class="dashboard-container">
         <!-- Modern Page Header -->
         <header class="dashboard-header">
@@ -187,6 +187,21 @@ $departures = $departures ?? [];
                                         <div class="form-floating">
                                             <input type="number" name="base_price" id="base_price" class="form-control" required min="0" step="1000" placeholder=" " value="<?= $tour['base_price'] ?? 0 ?>">
                                             <label for="base_price">Giá cơ bản (VNĐ) <span class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select name="tour_version_id" id="tour_version_id" class="form-select">
+                                                <option value="">-- Chọn phiên bản --</option>
+                                                <?php if (!empty($versions)): ?>
+                                                    <?php foreach ($versions as $version): ?>
+                                                        <option value="<?= $version['id'] ?>" <?= ($version['id'] == ($tour['tour_version_id'] ?? '')) ? 'selected' : '' ?>>
+                                                            <?= htmlspecialchars($version['name']) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </select>
+                                            <label for="tour_version_id">Phiên bản Tour</label>
                                         </div>
                                     </div>
                                     <div class="col-12">

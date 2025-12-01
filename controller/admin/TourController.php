@@ -88,6 +88,9 @@ class TourController
         $categoryModel = new TourCategory();
         $categories = $categoryModel->select();
 
+        // Load tour versions for version dropdown
+        $versionModel = new TourVersion();
+        $versions = $versionModel->getAllVersions();
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/create.php';
     }
@@ -124,6 +127,7 @@ class TourController
                 'category_id' => (int)$_POST['category_id'],
                 'description' => trim($_POST['description'] ?? ''),
                 'base_price' => (float)$_POST['base_price'],
+                'tour_version_id' => !empty($_POST['tour_version_id']) ? (int)$_POST['tour_version_id'] : null,
             ];
 
             // Handle image uploads with security checks
@@ -258,9 +262,8 @@ class TourController
         }, $images ?: []);
 
         // Load versions (tour_versions is a standalone table, not related to specific tour)
-        // $versionModel = new TourVersion();
-        // $versions = $versionModel->select('*', 'tour_id = :tour_id ORDER BY start_date DESC', ['tour_id' => $id]);
-        $versions = []; // Tour versions are managed separately
+        $versionModel = new TourVersion();
+        $versions = $versionModel->getAllVersions(); // Load all versions for dropdown
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
@@ -295,6 +298,7 @@ class TourController
                 'category_id' => (int)$_POST['category_id'],
                 'description' => $_POST['description'] ?? '',
                 'base_price' => (float)$_POST['base_price'],
+                'tour_version_id' => !empty($_POST['tour_version_id']) ? (int)$_POST['tour_version_id'] : null,
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
 
@@ -635,8 +639,18 @@ class TourController
             return;
         }
 
-        // Load main tour (reuse model)
-        $tour = $this->model->find('*', 'id = :id', ['id' => $id]);
+        // Load main tour with category name and version info using custom query
+        $pdo = BaseModel::getPdo();
+        $stmt = $pdo->prepare("
+            SELECT t.*, tc.name as category_name, tv.name as version_name, tv.description as version_description
+            FROM tours t 
+            LEFT JOIN tour_categories tc ON t.category_id = tc.id 
+            LEFT JOIN tour_versions tv ON t.tour_version_id = tv.id
+            WHERE t.id = :id
+        ");
+        $stmt->execute(['id' => $id]);
+        $tour = $stmt->fetch();
+
         if (!$tour) {
             $_SESSION['error'] = 'Không tìm thấy Tour.';
             header('Location: ' . BASE_URL_ADMIN . '&action=tours');

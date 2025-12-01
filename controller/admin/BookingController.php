@@ -25,6 +25,9 @@ class BookingController
             $bookings = $this->model->getAllByRole('admin');
         }
 
+        // Lấy thống kê
+        $stats = $this->model->getStats();
+
         require_once PATH_VIEW_ADMIN . 'pages/bookings/index.php';
     }
 
@@ -167,6 +170,10 @@ class BookingController
         $customers = $customerModel->select('*', "role = :role", ['role' => 'customer']);
         $tours = $tourModel->select('*', null, [], 'name ASC');
 
+        // Get drivers list
+        $driverModel = new Driver();
+        $drivers = $driverModel->getAvailableDrivers();
+
         require_once PATH_VIEW_ADMIN . 'pages/bookings/edit.php';
     }
 
@@ -218,6 +225,7 @@ class BookingController
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
                 'status' => $status,
+                'driver_id' => $_POST['driver_id'] ?? null,
                 'notes' => $notes
             ], 'id = :id', ['id' => $id]);
 
@@ -480,5 +488,181 @@ class BookingController
             echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
         }
         exit;
+    }
+
+    /**
+     * Hiển thị trang check-in
+     */
+    public function checkin()
+    {
+        $bookingId = $_GET['id'] ?? null;
+
+        if (!$bookingId) {
+            $_SESSION['error'] = 'Không tìm thấy booking';
+            header('Location: ' . BASE_URL_ADMIN . '&action=bookings');
+            return;
+        }
+
+        // Lấy thông tin booking
+        $booking = $this->model->getById($bookingId);
+        if (!$booking) {
+            $_SESSION['error'] = 'Booking không tồn tại';
+            header('Location: ' . BASE_URL_ADMIN . '&action=bookings');
+            return;
+        }
+
+        // Lấy thông tin tour
+        $tourModel = new Tour();
+        $tour = $tourModel->find('*', 'id = :id', ['id' => $booking['tour_id']]);
+
+        // Lấy danh sách khách
+        $customerModel = new BookingCustomer();
+        $customers = $customerModel->getCustomersWithCheckinStatus($bookingId);
+        $stats = $customerModel->getCheckinStats($bookingId);
+
+        require_once PATH_VIEW_ADMIN . 'pages/bookings/checkin.php';
+    }
+
+    /**
+     * Cập nhật trạng thái check-in (AJAX)
+     */
+    public function updateCheckin()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid method']);
+            exit;
+        }
+
+        $customerId = $_POST['customer_id'] ?? null;
+        $status = $_POST['status'] ?? null;
+        $notes = $_POST['notes'] ?? null;
+
+        if (!$customerId || !$status) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            exit;
+        }
+
+        // Validate status
+        if (!in_array($status, ['not_arrived', 'checked_in', 'absent'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid status']);
+            exit;
+        }
+
+        try {
+            $userId = $_SESSION['user']['user_id'] ?? null;
+            $customerModel = new BookingCustomer();
+
+            $result = $customerModel->updateCheckinStatus(
+                $customerId,
+                $status,
+                $userId,
+                $notes
+            );
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Cập nhật thành công',
+                    'timestamp' => date('H:i d/m/Y')
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Cập nhật thất bại']);
+            }
+        } catch (Exception $e) {
+            error_log('Check-in error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Check-in hàng loạt
+     */
+    public function bulkCheckin()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid method']);
+            return;
+        }
+
+        $customerIds = $_POST['customer_ids'] ?? [];
+        $status = $_POST['status'] ?? 'checked_in';
+
+        if (empty($customerIds)) {
+            echo json_encode(['success' => false, 'message' => 'Chưa chọn khách']);
+            return;
+        }
+
+        try {
+            $userId = $_SESSION['user']['user_id'] ?? null;
+            $customerModel = new BookingCustomer();
+            $count = 0;
+
+            foreach ($customerIds as $customerId) {
+                if ($customerModel->updateCheckinStatus($customerId, $status, $userId)) {
+                    $count++;
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => "Đã check-in {$count} khách",
+                'count' => $count
+            ]);
+        } catch (Exception $e) {
+            error_log('Bulk check-in error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * In danh sách đoàn
+     */
+    public function printGroupList()
+    {
+        $bookingId = $_GET['id'] ?? null;
+
+        if (!$bookingId) {
+            $_SESSION['error'] = 'Không tìm thấy booking';
+            header('Location: ' . BASE_URL_ADMIN . '&action=bookings');
+            return;
+        }
+
+        // Lấy thông tin booking
+        $booking = $this->model->getById($bookingId);
+        if (!$booking) {
+            $_SESSION['error'] = 'Booking không tồn tại';
+            header('Location: ' . BASE_URL_ADMIN . '&action=bookings');
+            return;
+        }
+
+        // Lấy thông tin tour
+        $tourModel = new Tour();
+        $tour = $tourModel->find('*', 'id = :id', ['id' => $booking['tour_id']]);
+
+        // Lấy danh sách khách
+        $customerModel = new BookingCustomer();
+        $customers = $customerModel->getByBooking($bookingId);
+
+        // Thống kê theo loại khách
+        $stats = [
+            'adults' => 0,
+            'children' => 0,
+            'infants' => 0,
+            'total' => count($customers)
+        ];
+
+        foreach ($customers as $customer) {
+            $type = $customer['passenger_type'] ?? 'adult';
+            if ($type === 'adult') $stats['adults']++;
+            elseif ($type === 'child') $stats['children']++;
+            elseif ($type === 'infant') $stats['infants']++;
+        }
+
+        require_once PATH_VIEW_ADMIN . 'pages/bookings/print-group-list.php';
     }
 }

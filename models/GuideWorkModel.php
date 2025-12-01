@@ -47,9 +47,9 @@ class GuideWorkModel
     {
         $pdo = self::ensurePdo();
         $sql = "SELECT T.*, TC.name as category_name
-            FROM tours T
-            LEFT JOIN tour_categories TC ON T.category_id = TC.id
-            WHERE T.id = ?";
+                FROM tours T
+                LEFT JOIN tour_categories TC ON T.category_id = TC.id
+                WHERE T.id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$tourId]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;

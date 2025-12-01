@@ -2,7 +2,7 @@
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 ?>
-<main class="tours-dashboard">
+<main class="dashboard">
     <div class="dashboard-container">
         <!-- Modern Header -->
         <header class="dashboard-header">

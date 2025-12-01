@@ -188,6 +188,17 @@ class TourAssignmentController
             exit;
         }
 
+        // Get the actual guide ID from the guides table
+        require_once 'models/GuideWorkModel.php';
+        $guide = GuideWorkModel::getGuideByUserId($userId);
+
+        if (!$guide) {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy thông tin hướng dẫn viên']);
+            exit;
+        }
+
+        $guideId = $guide['id'];
+
         $tourId = $_POST['tour_id'] ?? null;
 
         if (!$tourId) {

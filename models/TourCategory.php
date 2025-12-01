@@ -10,10 +10,6 @@ class TourCategory extends BaseModel
         'slug',
         'description',
         'icon',
-        'type',
-        'parent_id',
-        'sort_order',
-        'is_active',
         'created_at',
         'updated_at'
     ];
@@ -24,43 +20,11 @@ class TourCategory extends BaseModel
     }
 
     /**
-     * Get all active categories with type filter
+     * Get all categories
      */
-    public function getActiveCategories($type = null)
+    public function getAllCategories()
     {
-        $where = 'is_active = 1';
-        $params = [];
-
-        if ($type) {
-            $where .= ' AND type = :type';
-            $params['type'] = $type;
-        }
-
-        return $this->select('*', $where . ' ORDER BY sort_order ASC, name ASC', $params);
-    }
-
-    /**
-     * Get categories by type
-     */
-    public function getByType($type)
-    {
-        return $this->select('*', 'type = :type ORDER BY sort_order ASC, name ASC', ['type' => $type]);
-    }
-
-    /**
-     * Get parent categories
-     */
-    public function getParentCategories()
-    {
-        return $this->select('*', 'parent_id IS NULL OR parent_id = 0 ORDER BY sort_order ASC, name ASC');
-    }
-
-    /**
-     * Get child categories by parent ID
-     */
-    public function getChildCategories($parentId)
-    {
-        return $this->select('*', 'parent_id = :parent_id ORDER BY sort_order ASC, name ASC', ['parent_id' => $parentId]);
+        return $this->select('*', '1 ORDER BY name ASC');
     }
 
     /**
@@ -105,44 +69,6 @@ class TourCategory extends BaseModel
     }
 
     /**
-     * Toggle category status
-     */
-    public function toggleStatus($id)
-    {
-        $category = $this->findById($id);
-        if (!$category) {
-            return false;
-        }
-
-        $newStatus = $category['is_active'] ? 0 : 1;
-        return $this->update(['is_active' => $newStatus, 'updated_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => $id]);
-    }
-
-    /**
-     * Get category tree structure
-     */
-    public function getCategoryTree()
-    {
-        $categories = $this->select('*', 'is_active = 1 ORDER BY sort_order ASC, name ASC');
-        $tree = [];
-
-        foreach ($categories as $category) {
-            if ($category['parent_id'] == null || $category['parent_id'] == 0) {
-                $category['children'] = [];
-                $tree[$category['id']] = $category;
-            }
-        }
-
-        foreach ($categories as $category) {
-            if ($category['parent_id'] != null && $category['parent_id'] != 0 && isset($tree[$category['parent_id']])) {
-                $tree[$category['parent_id']]['children'][] = $category;
-            }
-        }
-
-        return array_values($tree);
-    }
-
-    /**
      * Find category by ID
      */
     public function findById($id)
@@ -184,14 +110,12 @@ class TourCategory extends BaseModel
 
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['updated_at'] = date('Y-m-d H:i:s');
-        $data['is_active'] = $data['is_active'] ?? 1;
-        $data['sort_order'] = $data['sort_order'] ?? 0;
 
         return $this->insert($data);
     }
 
     /**
-     * Delete category (check if it has tours or children)
+     * Delete category (check if it has tours)
      */
     public function deleteCategory($id)
     {
@@ -202,12 +126,6 @@ class TourCategory extends BaseModel
 
         if (!empty($tours)) {
             throw new Exception('Không thể xóa danh mục này vì đang có tour sử dụng.');
-        }
-
-        // Check if category has children
-        $children = $this->getChildCategories($id);
-        if (!empty($children)) {
-            throw new Exception('Không thể xóa danh mục này vì có danh mục con.');
         }
 
         return $this->delete('id = :id', ['id' => $id]);
