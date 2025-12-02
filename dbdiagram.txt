@@ -138,7 +138,7 @@ Table bookings as B {
 
   // Giá – chỉ cần 2 trường là đủ
   original_price decimal [null]                // giá tính tự động ban đầu
-  final_price    decimal                       // giá cuối cùng khách trả (sau giảm/tặng/phụ thu)
+  final_price    decimal [default: 0]          // giá cuối cùng khách trả (sau giảm/tặng/phụ thu)
 
   // Trạng thái + nguồn
   status varchar [default: 'pending']          // pending, confirmed, deposited, paid, cancelled, completed
@@ -153,7 +153,7 @@ Table bookings as B {
   discount_note   text [null]                  // admin ghi: "giảm 5tr", "tặng 2 FOC", "phụ thu Tết +8tr"
 
   // Ai tạo
-  created_by int [ref: > U.user_id]
+  created_by int [ref: > U.user_id, null]
   created_at datetime
   updated_at datetime
 

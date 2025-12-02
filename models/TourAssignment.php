@@ -197,17 +197,23 @@ class TourAssignment extends BaseModel
     public function getAvailableTours()
     {
         $sql = "SELECT t.*, 
-            COUNT(DISTINCT b.id) as booking_count,
-            MIN(b.booking_date) as nearest_booking_date
-            FROM tours t
-            LEFT JOIN bookings b ON t.id = b.tour_id
-            WHERE t.id NOT IN (
-                SELECT DISTINCT tour_id 
-                FROM tour_assignments 
-                WHERE status = 'active'
-            )
-            GROUP BY t.id
-            ORDER BY nearest_booking_date ASC";
+        COUNT(DISTINCT b.id) as booking_count,
+        MIN(b.booking_date) as nearest_booking_date
+        FROM tours t
+        LEFT JOIN bookings b ON t.id = b.tour_id 
+            AND b.status NOT IN ('hoan_tat', 'da_huy')
+        WHERE t.id NOT IN (
+            SELECT DISTINCT tour_id 
+            FROM tour_assignments 
+            WHERE status = 'active'
+        )
+        AND EXISTS (
+            SELECT 1 FROM bookings 
+            WHERE tour_id = t.id 
+            AND status NOT IN ('hoan_tat', 'da_huy')
+        )
+        GROUP BY t.id
+        ORDER BY nearest_booking_date ASC";
 
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();

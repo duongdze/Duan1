@@ -174,6 +174,10 @@ class BookingController
         $driverModel = new Driver();
         $drivers = $driverModel->getAvailableDrivers();
 
+        // Get guides list
+        $guideModel = new Guide();
+        $guides = $guideModel->getAll();
+
         require_once PATH_VIEW_ADMIN . 'pages/bookings/edit.php';
     }
 

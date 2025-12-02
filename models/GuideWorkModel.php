@@ -72,4 +72,21 @@ class GuideWorkModel
         $stmt->execute([$tourId, $guideId]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
+
+    public static function getAssignmentById($assignmentId)
+    {
+        $pdo = self::ensurePdo();
+        $sql = "SELECT * FROM tour_assignments WHERE id = ? LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$assignmentId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public static function deleteAssignment($assignmentId)
+    {
+        $pdo = self::ensurePdo();
+        $sql = "DELETE FROM tour_assignments WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([$assignmentId]);
+    }
 }

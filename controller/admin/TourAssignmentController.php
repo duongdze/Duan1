@@ -245,4 +245,120 @@ class TourAssignmentController
         }
         exit;
     }
+
+    /**
+     * Hiển thị danh sách booking của tour
+     */
+    public function tourBookings()
+    {
+        $tourId = $_GET['tour_id'] ?? null;
+
+        if (!$tourId) {
+            $_SESSION['error'] = 'Không tìm thấy tour';
+            header('Location: ' . BASE_URL_ADMIN . '&action=guides/available-tours');
+            exit;
+        }
+
+        // Lấy thông tin tour
+        $tourModel = new Tour();
+        $tour = $tourModel->findById($tourId);
+
+        if (!$tour) {
+            $_SESSION['error'] = 'Tour không tồn tại';
+            header('Location: ' . BASE_URL_ADMIN . '&action=guides/available-tours');
+            exit;
+        }
+
+        // Lấy danh sách booking chưa có HDV
+        $bookingModel = new Booking();
+        $sql = "SELECT b.*, 
+                    u.full_name as customer_name,
+                    COUNT(bc.id) as total_customers
+                FROM bookings b
+                LEFT JOIN users u ON b.customer_id = u.user_id
+                LEFT JOIN booking_customers bc ON b.id = bc.booking_id
+                WHERE b.tour_id = :tour_id
+                AND b.status NOT IN ('hoan_tat', 'da_huy')
+                AND b.id NOT IN (
+                    SELECT DISTINCT booking_id 
+                    FROM tour_assignments 
+                    WHERE status = 'active' 
+                    AND booking_id IS NOT NULL
+                )
+                GROUP BY b.id
+                ORDER BY b.booking_date ASC";
+
+        $pdo = $bookingModel->getPDO();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
+        $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        require_once PATH_VIEW_ADMIN . 'pages/guides/tour-bookings.php';
+    }
+
+    /**
+     * HDV nhận booking cụ thể (AJAX)
+     */
+    public function acceptBooking()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+            exit;
+        }
+
+        $bookingId = $_POST['booking_id'] ?? null;
+        $tourId = $_POST['tour_id'] ?? null;
+
+        if (!$bookingId || !$tourId) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin']);
+            exit;
+        }
+
+        // Kiểm tra user là HDV
+        $userRole = $_SESSION['user']['role'] ?? '';
+        if ($userRole !== 'guide') {
+            echo json_encode(['success' => false, 'message' => 'Chỉ HDV mới có thể nhận booking']);
+            exit;
+        }
+
+        // Lấy guide_id
+        $guideModel = new Guide();
+        $guide = $guideModel->getByUserId($_SESSION['user']['user_id']);
+
+        if (!$guide) {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy thông tin HDV']);
+            exit;
+        }
+
+        try {
+            // Lấy thông tin booking
+            $bookingModel = new Booking();
+            $booking = $bookingModel->getById($bookingId);
+
+            if (!$booking) {
+                echo json_encode(['success' => false, 'message' => 'Booking không tồn tại']);
+                exit;
+            }
+
+            // Phân công tour cho HDV với booking_id
+            $result = $this->model->insert([
+                'guide_id' => $guide['id'],
+                'tour_id' => $tourId,
+                'booking_id' => $bookingId,
+                'start_date' => $booking['booking_date'],
+                'status' => 'active'
+            ]);
+
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Nhận booking thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể nhận booking']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
 }

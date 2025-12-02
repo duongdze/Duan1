@@ -162,7 +162,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="col-md-6">
                                         <div class="form-floating">
                                             <input type="date" class="form-control" id="booking_date" name="booking_date" 
-                                                value="<?= $booking['booking_date'] ?>" required placeholder=" ">
+                                                value="<?= date('Y-m-d', strtotime($booking['booking_date'])) ?>">
                                             <label for="booking_date">Ngày đặt tour <span class="text-danger">*</span></label>
                                         </div>
                                     </div>

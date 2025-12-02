@@ -191,7 +191,7 @@ $statusColors = [
                       <td>
                         <input type="checkbox" class="form-check-input customer-checkbox" value="<?= $customer['id'] ?>">
                       </td>
-                      <td><?= $index + 1 ?></td>
+                      <td><?= $index + 1 ?></td> 
                       <td>
                         <strong><?= htmlspecialchars($customer['full_name']) ?></strong>
                         <?php if ($customer['is_foc']): ?>
