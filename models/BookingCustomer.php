@@ -98,4 +98,43 @@ class BookingCustomer extends BaseModel
         $stmt->execute(['booking_id' => $bookingId]);
         return $stmt->fetch();
     }
+
+    /**
+     * Lấy danh sách khách có yêu cầu đặc biệt theo tour
+     * 
+     * @param int $tourId
+     * @return array
+     */
+    public function getSpecialRequestsByTour($tourId)
+    {
+        $sql = "SELECT bc.*, 
+                b.departure_date,
+                b.id as booking_id
+                FROM {$this->table} bc
+                INNER JOIN bookings b ON bc.booking_id = b.id
+                WHERE b.tour_id = :tour_id
+                AND bc.special_request IS NOT NULL
+                AND bc.special_request != ''
+                ORDER BY b.departure_date ASC, bc.full_name ASC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Đánh dấu yêu cầu đặc biệt đã được xử lý
+     * 
+     * @param int $customerId
+     * @param int $handled (0 = chưa xử lý, 1 = đã xử lý)
+     * @return bool
+     */
+    public function markRequestHandled($customerId, $handled = 1)
+    {
+        return $this->update(
+            ['request_handled' => $handled],
+            'id = :id',
+            ['id' => $customerId]
+        );
+    }
 }

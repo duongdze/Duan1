@@ -42,6 +42,107 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             </div>
         </header>
 
+        <!-- Special Requests Alert Panel -->
+        <?php if (!empty($specialRequests)): ?>
+            <div class="card border-warning shadow-sm mb-4">
+                <div class="card-header bg-warning bg-opacity-10 border-warning">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h5 class="mb-0 text-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Yêu cầu đặc biệt của khách (<?= count($specialRequests) ?> yêu cầu)
+                        </h5>
+                        <span class="badge bg-warning"><?= count($specialRequests) ?></span>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="px-4">Khách hàng</th>
+                                    <th>Ngày khởi hành</th>
+                                    <th>Loại khách</th>
+                                    <th>Yêu cầu đặc biệt</th>
+                                    <th class="text-center">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($specialRequests as $customer): ?>
+                                    <tr id="request-row-<?= $customer['id'] ?>" class="<?= $customer['request_handled'] ? 'table-success' : '' ?>">
+                                        <td class="px-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle bg-primary bg-opacity-10 text-primary me-3">
+                                                    <?= strtoupper(substr($customer['full_name'], 0, 1)) ?>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold"><?= htmlspecialchars($customer['full_name']) ?></div>
+                                                    <?php if (!empty($customer['phone'])): ?>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-phone me-1"></i><?= htmlspecialchars($customer['phone']) ?>
+                                                        </small>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                <?= date('d/m/Y', strtotime($customer['departure_date'])) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            $typeLabels = [
+                                                'adult' => ['label' => 'Người lớn', 'color' => 'primary'],
+                                                'child' => ['label' => 'Trẻ em', 'color' => 'success'],
+                                                'infant' => ['label' => 'Em bé', 'color' => 'info']
+                                            ];
+                                            $type = $typeLabels[$customer['passenger_type']] ?? ['label' => 'N/A', 'color' => 'secondary'];
+                                            ?>
+                                            <span class="badge bg-<?= $type['color'] ?> bg-opacity-10 text-<?= $type['color'] ?> border border-<?= $type['color'] ?>">
+                                                <?= $type['label'] ?>
+                                            </span>
+                                            <?php if ($customer['is_foc']): ?>
+                                                <span class="badge bg-warning ms-1">FOC</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <div class="special-request-content">
+                                                <i class="fas fa-info-circle text-warning me-2"></i>
+                                                <span class="text-dark"><?= nl2br(htmlspecialchars($customer['special_request'])) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="form-check form-switch d-inline-block">
+                                                <input
+                                                    class="form-check-input request-handled-checkbox"
+                                                    type="checkbox"
+                                                    id="handled-<?= $customer['id'] ?>"
+                                                    data-customer-id="<?= $customer['id'] ?>"
+                                                    <?= $customer['request_handled'] ? 'checked' : '' ?>>
+                                                <label class="form-check-label" for="handled-<?= $customer['id'] ?>">
+                                                    <span class="status-text-<?= $customer['id'] ?>">
+                                                        <?= $customer['request_handled'] ? 'Đã xử lý' : 'Chưa xử lý' ?>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-light text-muted">
+                    <small>
+                        <i class="fas fa-lightbulb me-1"></i>
+                        <strong>Lưu ý:</strong> Hướng dẫn viên cần chú ý các yêu cầu đặc biệt này trong suốt hành trình.
+                        Ghi chú quá trình xử lý vào phần "Ghi chú xử lý" khi tạo nhật ký hàng ngày.
+                    </small>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <!-- Logs List Card -->
         <div class="card shadow-sm border-0">
             <div class="card-body p-0">
@@ -104,26 +205,26 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </td>
                                         <td class="text-center pe-4">
                                             <div class="btn-group">
-                                                <a href="<?= BASE_URL_ADMIN . '&action=tours_logs/detail&id=' . urlencode($log['id']) ?>" 
-                                                   class="btn btn-sm btn-outline-info" 
-                                                   data-bs-toggle="tooltip" 
-                                                   title="Xem chi tiết">
+                                                <a href="<?= BASE_URL_ADMIN . '&action=tours_logs/detail&id=' . urlencode($log['id']) ?>"
+                                                    class="btn btn-sm btn-outline-info"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Xem chi tiết">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="<?= BASE_URL_ADMIN . '&action=tours_logs/edit&id=' . urlencode($log['id']) ?>" 
-                                                   class="btn btn-sm btn-outline-warning" 
-                                                   data-bs-toggle="tooltip" 
-                                                   title="Chỉnh sửa">
+                                                <a href="<?= BASE_URL_ADMIN . '&action=tours_logs/edit&id=' . urlencode($log['id']) ?>"
+                                                    class="btn btn-sm btn-outline-warning"
+                                                    data-bs-toggle="tooltip"
+                                                    title="Chỉnh sửa">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <form method="post" action="<?= BASE_URL_ADMIN . '&action=tours_logs/delete' ?>" 
-                                                      onsubmit="return confirm('Bạn có chắc muốn xóa nhật ký này?')" 
-                                                      class="d-inline">
+                                                <form method="post" action="<?= BASE_URL_ADMIN . '&action=tours_logs/delete' ?>"
+                                                    onsubmit="return confirm('Bạn có chắc muốn xóa nhật ký này?')"
+                                                    class="d-inline">
                                                     <input type="hidden" name="id" value="<?= htmlspecialchars($log['id']) ?>">
                                                     <input type="hidden" name="tour_id" value="<?= htmlspecialchars($tour['id'] ?? '') ?>">
-                                                    <button class="btn btn-sm btn-outline-danger" 
-                                                            data-bs-toggle="tooltip" 
-                                                            title="Xóa">
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Xóa">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
@@ -158,6 +259,45 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Handle special request checkbox changes
+    document.querySelectorAll('.request-handled-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const customerId = this.dataset.customerId;
+            const handled = this.checked ? 1 : 0;
+            const row = document.getElementById('request-row-' + customerId);
+            const statusText = document.querySelector('.status-text-' + customerId);
+
+            fetch('<?= BASE_URL_ADMIN ?>&action=tours_logs/mark_request_handled', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'customer_id=' + customerId + '&handled=' + handled
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (handled) {
+                            row.classList.add('table-success');
+                            statusText.textContent = 'Đã xử lý';
+                        } else {
+                            row.classList.remove('table-success');
+                            statusText.textContent = 'Chưa xử lý';
+                        }
+                        alert(data.message);
+                    } else {
+                        this.checked = !this.checked;
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.checked = !this.checked;
+                    alert('Có lỗi xảy ra');
+                });
+        });
     });
 </script>
 

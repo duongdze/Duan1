@@ -152,6 +152,10 @@ class TourLogController
 
         $logs = $this->model->getLogsByTourId($tourId);
 
+        // Lấy danh sách khách có yêu cầu đặc biệt
+        $bookingCustomerModel = new BookingCustomer();
+        $specialRequests = $bookingCustomerModel->getSpecialRequestsByTour($tourId);
+
         require_once PATH_VIEW_ADMIN . 'pages/tours_logs/tour_detail.php';
     }
 
@@ -173,6 +177,32 @@ class TourLogController
             header('Location:' . BASE_URL_ADMIN . '&action=tours_logs/tour_detail&id=' . $tourId);
         } else {
             header('Location:' . BASE_URL_ADMIN . '&action=tours_logs');
+        }
+        exit;
+    }
+
+    /**
+     * AJAX endpoint: Đánh dấu yêu cầu đặc biệt đã xử lý
+     */
+    public function markRequestHandled()
+    {
+        header('Content-Type: application/json');
+
+        $customerId = $_POST['customer_id'] ?? null;
+        $handled = $_POST['handled'] ?? 1;
+
+        if (!$customerId) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu customer ID']);
+            exit;
+        }
+
+        $bookingCustomerModel = new BookingCustomer();
+        $result = $bookingCustomerModel->markRequestHandled($customerId, $handled);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Đã cập nhật trạng thái']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Cập nhật thất bại']);
         }
         exit;
     }
