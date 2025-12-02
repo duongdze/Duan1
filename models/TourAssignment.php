@@ -197,17 +197,23 @@ class TourAssignment extends BaseModel
     public function getAvailableTours()
     {
         $sql = "SELECT t.*, 
-            COUNT(DISTINCT b.id) as booking_count,
-            MIN(b.booking_date) as nearest_booking_date
-            FROM tours t
-            LEFT JOIN bookings b ON t.id = b.tour_id
-            WHERE t.id NOT IN (
-                SELECT DISTINCT tour_id 
-                FROM tour_assignments 
-                WHERE status = 'active'
-            )
-            GROUP BY t.id
-            ORDER BY nearest_booking_date ASC";
+        COUNT(DISTINCT b.id) as booking_count,
+        MIN(b.booking_date) as nearest_booking_date
+        FROM tours t
+        LEFT JOIN bookings b ON t.id = b.tour_id 
+            AND b.status NOT IN ('hoan_tat', 'da_huy')
+        WHERE t.id NOT IN (
+            SELECT DISTINCT tour_id 
+            FROM tour_assignments 
+            WHERE status = 'active'
+        )
+        AND EXISTS (
+            SELECT 1 FROM bookings 
+            WHERE tour_id = t.id 
+            AND status NOT IN ('hoan_tat', 'da_huy')
+        )
+        GROUP BY t.id
+        ORDER BY nearest_booking_date ASC";
 
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
@@ -229,5 +235,30 @@ class TourAssignment extends BaseModel
         $stmt->execute(['tour_id' => $tourId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['count'] > 0;
+    }
+
+    /**
+     * Lấy danh sách assignment nào chưa có start_date
+     * @return array
+     */
+    public function getAssignmentsMissingDates()
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE start_date IS NULL OR start_date = ''";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Cập nhật start_date/end_date cho assignment
+     * @param int $id
+     * @param string|null $startDate
+     * @param string|null $endDate
+     * @return bool|int
+     */
+    public function updateAssignmentDates($id, $startDate = null, $endDate = null)
+    {
+        $data = ['start_date' => $startDate, 'end_date' => $endDate];
+        return $this->update($data, 'id = :id', ['id' => $id]);
     }
 }

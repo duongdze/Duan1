@@ -1,9 +1,9 @@
 <?php
 // Include controllers
-require_once 'controller/admin/AuthorController.php';
-require_once 'controller/admin/DashboardController.php';
-require_once 'controller/admin/TourController.php';
-require_once 'controller/admin/TourVersionController.php';
+// require_once 'controller/admin/AuthorController.php';
+// require_once 'controller/admin/DashboardController.php';
+// require_once 'controller/admin/TourController.php';
+// require_once 'controller/admin/TourVersionController.php';
 // require_once 'controller/admin/BookingController.php';
 // require_once 'controller/admin/GuideController.php';
 // require_once 'controller/admin/SupplierController.php';
@@ -68,6 +68,9 @@ match ($action) {
     'tours_logs/edit'   => (new TourLogController)->edit(),
     'tours_logs/update' => (new TourLogController)->update(),
     'tours_logs/delete' => (new TourLogController)->delete(),
+    'tours_logs/detail' => (new TourLogController)->detail(),
+    'tours_logs/tour_detail' => (new TourLogController)->tourDetail(),
+    'tours_logs/mark_request_handled' => (new TourLogController)->markRequestHandled(), // AJAX
 
     // Bookings
     'bookings'                  => (new BookingController)->index(),
@@ -105,14 +108,35 @@ match ($action) {
     // Guides Work
     'guide/schedule'   => (new GuideWorkController)->schedule(),
     'guide/tourDetail' => (new GuideWorkController)->tourDetail(),
+    'guide/cancelAssignment' => (new GuideWorkController)->cancelAssignment(), // AJAX
     'guides/available-tours' => (new TourAssignmentController)->availableTours(),
+    'guides/tour-bookings' => (new TourAssignmentController)->tourBookings(),
     'guides/claim-tour'      => (new TourAssignmentController)->claimTour(), // AJAX
+    'guides/accept-booking'  => (new TourAssignmentController)->acceptBooking(), // AJAX
+
+    // Drivers
+    'drivers'            => (new DriverController)->index(),
+    'drivers/create'     => (new DriverController)->create(),
+    'drivers/store'      => (new DriverController)->store(),
+    'drivers/edit'       => (new DriverController)->edit(),
+    'drivers/update'     => (new DriverController)->update(),
+    'drivers/delete'     => (new DriverController)->delete(),
+    'drivers/detail'     => (new DriverController)->detail(),
+
+    // Users
+    'users'              => (new UserController)->index(),
+    'users/create'       => (new UserController)->create(),
+    'users/store'        => (new UserController)->store(),
+    'users/edit'         => (new UserController)->edit(),
+    'users/update'       => (new UserController)->update(),
+    'users/delete'       => (new UserController)->delete(),
+    'users/detail'       => (new UserController)->detail(),
 
     // Suppliers
     'suppliers'            => (new SupplierController)->index(),
     'suppliers/create'     => (new SupplierController)->create(),
     'suppliers/store'      => (new SupplierController)->store(),
-    
+
     // Reports
     'reports'              => (new ReportController)->index(),
     'reports/financial'    => (new ReportController)->financial(),

@@ -34,10 +34,10 @@ class GuideWorkModel
     public static function getAssignmentsByGuideId($guideId)
     {
         $pdo = self::ensurePdo();
-        $sql = "SELECT TA.*, T.name as tour_name, T.description, T.id as tour_id
-                FROM tour_assignments TA
-                JOIN tours T ON TA.tour_id = T.id
-                WHERE TA.guide_id = ?";
+        $sql = "SELECT TA.guide_id, TA.*, T.name as tour_name, T.description, T.id as tour_id
+            FROM tour_assignments TA
+            JOIN tours T ON TA.tour_id = T.id
+            WHERE TA.guide_id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$guideId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -71,5 +71,22 @@ class GuideWorkModel
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$tourId, $guideId]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public static function getAssignmentById($assignmentId)
+    {
+        $pdo = self::ensurePdo();
+        $sql = "SELECT * FROM tour_assignments WHERE id = ? LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$assignmentId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public static function deleteAssignment($assignmentId)
+    {
+        $pdo = self::ensurePdo();
+        $sql = "DELETE FROM tour_assignments WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([$assignmentId]);
     }
 }

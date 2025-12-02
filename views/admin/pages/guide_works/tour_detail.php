@@ -176,9 +176,10 @@ $statusColors = [
                     </th>
                     <th width="50">STT</th>
                     <th>Họ tên</th>
+                    <th>Liên hệ</th>
                     <th>Booking</th>
                     <th>Loại khách</th>
-                    <th>Giới tính</th>
+                    <th>Ghi chú đặc biệt</th>
                     <th>Trạng thái</th>
                     <th>Thời gian</th>
                     <th width="150">Thao tác</th>
@@ -190,11 +191,18 @@ $statusColors = [
                       <td>
                         <input type="checkbox" class="form-check-input customer-checkbox" value="<?= $customer['id'] ?>">
                       </td>
-                      <td><?= $index + 1 ?></td>
+                      <td><?= $index + 1 ?></td> 
                       <td>
                         <strong><?= htmlspecialchars($customer['full_name']) ?></strong>
                         <?php if ($customer['is_foc']): ?>
                           <span class="badge bg-info ms-1">FOC</span>
+                        <?php endif; ?>
+                      </td>
+                      <td>
+                        <?php if (!empty($customer['phone'])): ?>
+                          <small><i class="fas fa-phone me-1"></i><?= htmlspecialchars($customer['phone']) ?></small>
+                        <?php else: ?>
+                          <small class="text-muted">-</small>
                         <?php endif; ?>
                       </td>
                       <td><small>#<?= $customer['booking_code'] ?></small></td>
@@ -203,7 +211,16 @@ $statusColors = [
                           <?= $passengerTypeLabels[$customer['passenger_type']] ?? $customer['passenger_type'] ?>
                         </span>
                       </td>
-                      <td><?= $customer['gender'] === 'male' ? 'Nam' : ($customer['gender'] === 'female' ? 'Nữ' : 'Khác') ?></td>
+                      <td>
+                        <?php if (!empty($customer['special_request'])): ?>
+                          <small class="text-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <?= htmlspecialchars($customer['special_request']) ?>
+                          </small>
+                        <?php else: ?>
+                          <small class="text-muted">-</small>
+                        <?php endif; ?>
+                      </td>
                       <td>
                         <span class="badge bg-<?= $statusColors[$customer['checkin_status'] ?? 'not_arrived'] ?> status-badge">
                           <?= $statusLabels[$customer['checkin_status'] ?? 'not_arrived'] ?>

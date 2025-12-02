@@ -73,11 +73,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <?php endif; ?>
                                 </div>
 
-                                <button class="btn btn-primary w-100 claim-tour-btn"
-                                    data-tour-id="<?= $tour['id'] ?>"
-                                    data-tour-name="<?= htmlspecialchars($tour['name']) ?>">
-                                    <i class="fas fa-hand-paper"></i> Nhận Tour Này
-                                </button>
+                                <a href="<?= BASE_URL_ADMIN ?>&action=guides/tour-bookings&tour_id=<?= $tour['id'] ?>"
+                                    class="btn btn-primary w-100">
+                                    <i class="fas fa-eye me-2"></i>
+                                    Xem Booking (<?= $tour['booking_count'] ?>)
+                                </a>
                             </div>
                         </div>
                     </div>

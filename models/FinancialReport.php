@@ -16,7 +16,7 @@ class FinancialReport extends BaseModel
     }
 
     /**
-     * Lấy báo cáo tài chính tổng quan theo khoảng thời gian
+     * Lấy báo cáo tài chính tổng quan theo khoảng thời gian 
      */
     public function getFinancialSummary($dateFrom = null, $dateTo = null, $filters = [], $skipGrowth = false)
     {

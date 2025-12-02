@@ -3,7 +3,7 @@ include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 ?>
 
-<main class="dashboard guide-edit-page">
+<main class="dashboard driver-edit-page">
     <div class="dashboard-container">
         <!-- Modern Page Header -->
         <header class="dashboard-header">
@@ -17,33 +17,33 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         <span class="breadcrumb-separator">
                             <i class="fas fa-chevron-right"></i>
                         </span>
-                        <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="breadcrumb-link">
-                            <i class="fas fa-user-tie"></i>
-                            <span>Quản lý HDV</span>
+                        <a href="<?= BASE_URL_ADMIN ?>&action=drivers" class="breadcrumb-link">
+                            <i class="fas fa-car"></i>
+                            <span>Quản lý Tài xế</span>
                         </a>
                         <span class="breadcrumb-separator">
                             <i class="fas fa-chevron-right"></i>
                         </span>
-                        <span class="breadcrumb-current">Chỉnh sửa HDV</span>
+                        <span class="breadcrumb-current">Chỉnh sửa Tài xế</span>
                     </div>
                     <div class="page-title-section">
                         <h1 class="page-title">
                             <i class="fas fa-edit title-icon"></i>
-                            Chỉnh sửa Hướng Dẫn Viên
+                            Chỉnh sửa Tài Xế
                         </h1>
-                        <p class="page-subtitle">Cập nhật thông tin hướng dẫn viên</p>
+                        <p class="page-subtitle">Cập nhật thông tin tài xế</p>
                     </div>
                 </div>
                 <div class="header-right">
-                    <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="btn btn-modern btn-secondary">
+                    <a href="<?= BASE_URL_ADMIN ?>&action=drivers" class="btn btn-modern btn-secondary">
                         <i class="fas fa-times me-2"></i>
                         Hủy bỏ
                     </a>
-                    <a href="<?= BASE_URL_ADMIN ?>&action=guides/detail&id=<?= $guide['id'] ?>" class="btn btn-modern btn-info">
+                    <a href="<?= BASE_URL_ADMIN ?>&action=drivers/detail&id=<?= $driver['id'] ?>" class="btn btn-modern btn-info">
                         <i class="fas fa-eye me-2"></i>
                         Xem chi tiết
                     </a>
-                    <button type="submit" form="guide-edit-form" class="btn btn-modern btn-primary">
+                    <button type="submit" form="driver-edit-form" class="btn btn-modern btn-primary">
                         <i class="fas fa-save me-2"></i>
                         Lưu thay đổi
                     </button>
@@ -79,29 +79,29 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <div class="progress-steps">
                 <div class="step active" data-step="1">
                     <div class="step-number">1</div>
-                    <div class="step-label">Thông tin cơ bản</div>
+                    <div class="step-label">Thông tin cá nhân</div>
                 </div>
                 <div class="step" data-step="2">
                     <div class="step-number">2</div>
-                    <div class="step-label">Chuyên môn</div>
+                    <div class="step-label">Xe & Bằng lái</div>
                 </div>
             </div>
         </div>
 
-        <!-- Guide Form -->
-        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=guides/update" enctype="multipart/form-data" id="guide-edit-form">
-            <input type="hidden" name="id" value="<?= $guide['id'] ?>">
+        <!-- Driver Form -->
+        <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=drivers/update" id="driver-edit-form">
+            <input type="hidden" name="id" value="<?= $driver['id'] ?>">
 
             <div class="row">
                 <!-- Main Content -->
                 <div class="col-lg-8">
-                    <!-- Step 1: Basic Information -->
+                    <!-- Step 1: Personal Information -->
                     <div class="form-step active" id="step-1">
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
                                     <i class="fas fa-user text-primary me-2"></i>
-                                    Thông tin cơ bản
+                                    Thông tin cá nhân
                                 </h5>
                             </div>
                             <div class="card-body">
@@ -109,7 +109,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="col-md-6">
                                         <div class="form-floating">
                                             <input type="text" class="form-control" id="full_name" name="full_name"
-                                                value="<?= htmlspecialchars($guide['full_name'] ?? '') ?>" required placeholder=" ">
+                                                value="<?= htmlspecialchars($driver['full_name'] ?? '') ?>" required placeholder=" ">
                                             <label for="full_name">Họ và tên <span class="text-danger">*</span></label>
                                         </div>
                                     </div>
@@ -117,7 +117,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="col-md-6">
                                         <div class="form-floating">
                                             <input type="email" class="form-control" id="email" name="email"
-                                                value="<?= htmlspecialchars($guide['email'] ?? '') ?>" required placeholder=" ">
+                                                value="<?= htmlspecialchars($driver['email'] ?? '') ?>" required placeholder=" ">
                                             <label for="email">Email <span class="text-danger">*</span></label>
                                         </div>
                                     </div>
@@ -125,118 +125,119 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <div class="col-md-6">
                                         <div class="form-floating">
                                             <input type="tel" class="form-control" id="phone" name="phone"
-                                                value="<?= htmlspecialchars($guide['phone'] ?? '') ?>" required placeholder=" ">
+                                                value="<?= htmlspecialchars($driver['phone'] ?? '') ?>" required placeholder=" ">
                                             <label for="phone">Số điện thoại <span class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="address" name="address"
+                                                value="<?= htmlspecialchars($driver['address'] ?? '') ?>" placeholder=" ">
+                                            <label for="address">Địa chỉ</label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Avatar Upload -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-image text-success me-2"></i>
-                                    Ảnh đại diện
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="main-image-upload">
-                                    <?php if (!empty($guide['avatar'])): ?>
-                                        <div class="main-image-preview" id="avatarPreview">
-                                            <img src="<?= htmlspecialchars($guide['avatar']) ?>" alt="Avatar" class="img-fluid rounded">
-                                            <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeAvatar()">
-                                                <i class="fas fa-trash"></i> Xóa và tải ảnh mới
-                                            </button>
-                                        </div>
-                                        <div class="upload-area" id="avatarDropZone" onclick="document.getElementById('avatar').click()" style="display: none;">
-                                            <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
-                                            <p class="mb-1">Kéo thả hoặc click để chọn ảnh mới</p>
-                                            <span class="text-muted small">JPG, PNG, GIF. Tối đa 5MB</span>
-                                            <input type="file" name="avatar" id="avatar" accept="image/*" style="display: none;">
-                                        </div>
-                                    <?php else: ?>
-                                        <div class="upload-area" id="avatarDropZone" onclick="document.getElementById('avatar').click()">
-                                            <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
-                                            <p class="mb-1">Kéo thả hoặc click để chọn ảnh</p>
-                                            <span class="text-muted small">JPG, PNG, GIF. Tối đa 5MB</span>
-                                            <input type="file" name="avatar" id="avatar" accept="image/*" style="display: none;">
-                                        </div>
-                                        <div class="main-image-preview" id="avatarPreview" style="display: none;">
-                                            <img src="" alt="Avatar Preview" class="img-fluid rounded">
-                                            <button type="button" class="btn btn-sm btn-danger mt-2" onclick="removeAvatar()">
-                                                <i class="fas fa-trash"></i> Xóa
-                                            </button>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Step 2: Professional Information -->
+                    <!-- Step 2: Vehicle & License -->
                     <div class="form-step" id="step-2">
+                        <!-- License Information -->
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-briefcase text-warning me-2"></i>
-                                    Thông tin chuyên môn
+                                    <i class="fas fa-id-card text-warning me-2"></i>
+                                    Thông tin bằng lái
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <select class="form-select" id="guide_type" name="guide_type">
-                                                <option value="domestic" <?= ($guide['guide_type'] ?? '') == 'domestic' ? 'selected' : '' ?>>Nội địa</option>
-                                                <option value="international" <?= ($guide['guide_type'] ?? '') == 'international' ? 'selected' : '' ?>>Quốc tế</option>
-                                                <option value="specialized" <?= ($guide['guide_type'] ?? '') == 'specialized' ? 'selected' : '' ?>>Chuyên môn</option>
+                                            <input type="text" class="form-control" id="license_number" name="license_number"
+                                                value="<?= htmlspecialchars($driver['license_number'] ?? '') ?>" placeholder=" ">
+                                            <label for="license_number">Số bằng lái</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="license_type" name="license_type">
+                                                <option value="">-- Chọn loại --</option>
+                                                <option value="B1" <?= ($driver['license_type'] ?? '') == 'B1' ? 'selected' : '' ?>>B1 - Xe dưới 9 chỗ</option>
+                                                <option value="B2" <?= ($driver['license_type'] ?? '') == 'B2' ? 'selected' : '' ?>>B2 - Xe từ 9 chỗ trở lên</option>
+                                                <option value="C" <?= ($driver['license_type'] ?? '') == 'C' ? 'selected' : '' ?>>C - Xe tải</option>
+                                                <option value="D" <?= ($driver['license_type'] ?? '') == 'D' ? 'selected' : '' ?>>D - Xe khách</option>
+                                                <option value="E" <?= ($driver['license_type'] ?? '') == 'E' ? 'selected' : '' ?>>E - Xe container</option>
                                             </select>
-                                            <label for="guide_type">Loại hướng dẫn viên</label>
+                                            <label for="license_type">Loại bằng lái</label>
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="specialization" name="specialization"
-                                                value="<?= htmlspecialchars($guide['specialization'] ?? '') ?>" placeholder=" ">
-                                            <label for="specialization">Chuyên môn</label>
+                                            <input type="date" class="form-control" id="license_expiry" name="license_expiry"
+                                                value="<?= $driver['license_expiry'] ?? '' ?>" placeholder=" ">
+                                            <label for="license_expiry">Ngày hết hạn</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vehicle Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-car text-success me-2"></i>
+                                    Thông tin phương tiện
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="vehicle_plate" name="vehicle_plate"
+                                                value="<?= htmlspecialchars($driver['vehicle_plate'] ?? '') ?>" placeholder=" ">
+                                            <label for="vehicle_plate">Biển số xe</label>
                                         </div>
                                     </div>
 
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="languages" name="languages"
-                                                value="<?= htmlspecialchars($guide['languages'] ?? '') ?>" placeholder=" ">
-                                            <label for="languages">Ngôn ngữ sử dụng</label>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <input type="number" class="form-control" id="experience_years" name="experience_years"
-                                                value="<?= $guide['experience_years'] ?? 0 ?>" min="0" placeholder=" ">
-                                            <label for="experience_years">Số năm kinh nghiệm</label>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <select class="form-select" id="health_status" name="health_status">
-                                                <option value="">-- Chọn --</option>
-                                                <option value="Tốt" <?= ($guide['health_status'] ?? '') == 'Tốt' ? 'selected' : '' ?>>Tốt</option>
-                                                <option value="Khá" <?= ($guide['health_status'] ?? '') == 'Khá' ? 'selected' : '' ?>>Khá</option>
-                                                <option value="Trung bình" <?= ($guide['health_status'] ?? '') == 'Trung bình' ? 'selected' : '' ?>>Trung bình</option>
-                                                <option value="Cần theo dõi" <?= ($guide['health_status'] ?? '') == 'Cần theo dõi' ? 'selected' : '' ?>>Cần theo dõi</option>
+                                            <select class="form-select" id="vehicle_type" name="vehicle_type">
+                                                <option value="">-- Chọn loại xe --</option>
+                                                <option value="4-seat" <?= ($driver['vehicle_type'] ?? '') == '4-seat' ? 'selected' : '' ?>>Xe 4 chỗ</option>
+                                                <option value="7-seat" <?= ($driver['vehicle_type'] ?? '') == '7-seat' ? 'selected' : '' ?>>Xe 7 chỗ</option>
+                                                <option value="16-seat" <?= ($driver['vehicle_type'] ?? '') == '16-seat' ? 'selected' : '' ?>>Xe 16 chỗ</option>
+                                                <option value="29-seat" <?= ($driver['vehicle_type'] ?? '') == '29-seat' ? 'selected' : '' ?>>Xe 29 chỗ</option>
+                                                <option value="45-seat" <?= ($driver['vehicle_type'] ?? '') == '45-seat' ? 'selected' : '' ?>>Xe 45 chỗ</option>
                                             </select>
-                                            <label for="health_status">Tình trạng sức khỏe</label>
+                                            <label for="vehicle_type">Loại xe</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="vehicle_model" name="vehicle_model"
+                                                value="<?= htmlspecialchars($driver['vehicle_model'] ?? '') ?>" placeholder=" ">
+                                            <label for="vehicle_model">Hiệu xe</label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" id="vehicle_year" name="vehicle_year"
+                                                value="<?= $driver['vehicle_year'] ?? '' ?>" min="1990" max="2030" placeholder=" ">
+                                            <label for="vehicle_year">Năm sản xuất</label>
                                         </div>
                                     </div>
 
                                     <div class="col-12">
                                         <div class="form-floating">
-                                            <textarea class="form-control" id="notes" name="notes" style="height: 120px" placeholder=" "><?= htmlspecialchars($guide['notes'] ?? '') ?></textarea>
+                                            <textarea class="form-control" id="notes" name="notes" style="height: 100px" placeholder=" "><?= htmlspecialchars($driver['notes'] ?? '') ?></textarea>
                                             <label for="notes">Ghi chú</label>
                                         </div>
                                     </div>
@@ -255,15 +256,15 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
                         <div class="card-body">
                             <div class="d-grid gap-2">
-                                <button type="submit" form="guide-edit-form" class="btn btn-primary">
+                                <button type="submit" form="driver-edit-form" class="btn btn-primary">
                                     <i class="fas fa-save me-2"></i>
                                     Lưu thay đổi
                                 </button>
-                                <a href="<?= BASE_URL_ADMIN ?>&action=guides/detail&id=<?= $guide['id'] ?>" class="btn btn-info">
+                                <a href="<?= BASE_URL_ADMIN ?>&action=drivers/detail&id=<?= $driver['id'] ?>" class="btn btn-info">
                                     <i class="fas fa-eye me-2"></i>
                                     Xem chi tiết
                                 </a>
-                                <a href="<?= BASE_URL_ADMIN ?>&action=guides" class="btn btn-secondary">
+                                <a href="<?= BASE_URL_ADMIN ?>&action=drivers" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left me-2"></i>
                                     Hủy
                                 </a>
@@ -295,34 +296,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeForm();
-        setupAvatarUpload();
     });
 
     function initializeForm() {
         updateStepDisplay();
         updateNavigationButtons();
-    }
-
-    function setupAvatarUpload() {
-        document.getElementById('avatar').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('avatarDropZone').style.display = 'none';
-                    const preview = document.getElementById('avatarPreview');
-                    preview.querySelector('img').src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    }
-
-    function removeAvatar() {
-        document.getElementById('avatar').value = '';
-        document.getElementById('avatarDropZone').style.display = 'flex';
-        document.getElementById('avatarPreview').style.display = 'none';
     }
 
     function nextStep() {
