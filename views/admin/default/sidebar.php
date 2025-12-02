@@ -133,11 +133,6 @@ $currentAction = $_GET['action'] ?? '';
             <div class="collapse <?= isParentActive('reports') ?>" id="reportsMenu">
                 <ul class="nav flex-column ms-3">
                     <li class="nav-item">
-                        <a class="nav-link <?= isActive('reports') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports">
-                            <i class="fas fa-tachometer-alt fa-fw me-2"></i> Tổng quan
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link <?= isActive('reports/financial') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports/financial">
                             <i class="fas fa-dollar-sign fa-fw me-2"></i> Báo cáo tài chính
                         </a>

@@ -49,6 +49,50 @@ class Guide extends BaseModel
     }
 
     /**
+     * Lấy tổng số HDV đang hoạt động
+     * @return int
+     */
+    public function getTotalActiveGuides()
+    {
+        $sql = "SELECT COUNT(*) as total 
+                FROM {$this->table} g
+                JOIN users u ON g.user_id = u.user_id
+                WHERE u.is_active = 1";
+
+        $stmt = self::$pdo->query($sql);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($result['total'] ?? 0);
+    }
+
+    /**
+     * Lấy danh sách HDV sẵn sàng (chưa được phân công tour trong khoảng thời gian cụ thể)
+     * @param int $limit Giới hạn số lượng kết quả
+     * @return array
+     */
+    public function getAvailableGuides($limit = 5)
+    {
+        $sql = "SELECT 
+                    g.id,
+                    u.full_name,
+                    u.phone,
+                    g.languages,
+                    g.rating,
+                    g.experience_years,
+                    (SELECT COUNT(*) FROM tour_assignments ta WHERE ta.guide_id = g.id) as total_tours
+                FROM {$this->table} g
+                JOIN users u ON g.user_id = u.user_id
+                WHERE u.is_active = 1
+                ORDER BY g.rating DESC, total_tours ASC
+                LIMIT :limit";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Lấy thông tin HDV theo ID
      * @param int $id
      * @return array|false

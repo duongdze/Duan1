@@ -129,6 +129,7 @@ Table bookings as B {
   departure_id int [ref: > TD.id, null]        // nếu là tour ghép đoàn
   version_id int [ref: > TV.id, null]          // phiên bản tour (mùa, khuyến mãi…)
   customer_id int [ref: > U.user_id, null]
+  driver_id int [ref: > DR.id, null]
   // Số lượng khách – BẮT BUỘC giữ lại
   adults      int [default: 0]
   children    int [default: 0]
@@ -234,6 +235,15 @@ Table booking_customers as BC {
   created_at datetime
   updated_at datetime
 
+  payment_status enum('unpaid', 'partial', 'paid') [default: 'unpaid']
+  payment_amount decimal(15,2) [default: 0]
+  payment_date datetime [null]
+  
+  checkin_status enum('not_arrived', 'checked_in', 'absent') [default: 'not_arrived']
+  checkin_time date [null]
+  checkin_location VARCHAR(255) [null]
+  checkin_notes TEXT [null]
+  checked_by INT [null] // 'User ID của HDV check-in';
   // Index bắt buộc để load danh sách khách của 1 booking siêu nhanh
   Indexes {
     booking_id
@@ -343,4 +353,27 @@ Table notifications as N {
   link varchar
   is_read tinyint [default: 0]
   created_at datetime
+}
+
+Table drivers as DR {
+  id int [pk, increment]
+  full_name varchar
+  phone varchar
+  email varchar
+  license_number varchar
+  license_type varchar        // B1, B2, C, D, E...
+  vehicle_type varchar        // 4 chỗ, 7 chỗ, 16 chỗ...
+  vehicle_plate varchar
+  vehicle_brand varchar
+  status enum('active','inactive','busy') [default: 'active']
+  rating decimal
+  notes text
+  created_at datetime
+  updated_at datetime
+
+  Indexes {
+    phone [unique]
+    license_number [unique]
+    status
+  }
 }

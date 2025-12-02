@@ -28,6 +28,89 @@ class Tour extends BaseModel
     }
 
     /**
+     * Lấy danh sách tour có doanh thu cao nhất
+     * @param int $limit Số lượng tour cần lấy
+     * @return array
+     */
+    public function getTopToursByRevenue($limit = 5)
+    {
+        $sql = "SELECT 
+                    t.id,
+                    t.name,
+                    t.base_price,
+                    COUNT(b.id) as total_bookings,
+                    COALESCE(SUM(b.final_price), 0) as total_revenue
+                FROM {$this->table} t
+                LEFT JOIN bookings b ON t.id = b.tour_id
+                WHERE (b.status = 'paid' OR b.status = 'completed' OR b.status IS NULL)
+                GROUP BY t.id, t.name, t.base_price
+                HAVING total_revenue > 0
+                ORDER BY total_revenue DESC
+                LIMIT :limit";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy thống kê số lượng tour theo danh mục
+     * @return array
+     */
+    public function getTourCategoriesStats()
+    {
+        $sql = "SELECT 
+                    tc.id,
+                    tc.name as category_name,
+                    COUNT(t.id) as tour_count
+                FROM tour_categories tc
+                LEFT JOIN {$this->table} t ON tc.id = t.category_id
+                GROUP BY tc.id, tc.name
+                ORDER BY tour_count DESC";
+
+        $stmt = self::$pdo->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy danh sách tour sắp khởi hành
+     * @param int $days Số ngày tới để xác định tour sắp khởi hành
+     * @param int $limit Số lượng tour cần lấy
+     * @return array
+     */
+    public function getUpcomingTours($days = 30, $limit = 5)
+    {
+        $startDate = date('Y-m-d');
+        $endDate = date('Y-m-d', strtotime("+{$days} days"));
+
+        $sql = "SELECT 
+                    t.id,
+                    t.name,
+                    td.departure_date,
+                    td.max_seats,
+                    td.booked_seats,
+                    (td.max_seats - td.booked_seats) as available_seats,
+                    td.price_adult as price
+                FROM {$this->table} t
+                JOIN tour_departures td ON t.id = td.tour_id
+                WHERE td.departure_date BETWEEN :start_date AND :end_date
+                AND td.status = 'open'
+                AND td.max_seats > td.booked_seats
+                ORDER BY td.departure_date ASC
+                LIMIT :limit";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->bindValue(':start_date', $startDate);
+        $stmt->bindValue(':end_date', $endDate);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Return all tours with pagination, filtering and advanced data
      * @param int $page
      * @param int $perPage
