@@ -142,4 +142,12 @@ match ($action) {
     'reports/financial'    => (new ReportController)->financial(),
     'reports/bookings'     => (new ReportController)->bookings(),
     'reports/feedback'     => (new ReportController)->feedback(),
+
+    // Chính sách 
+    'policies'             => (new PolicyController)->index(),
+    'policies/create'             => (new PolicyController)->create(),
+    'policies/store'             => (new PolicyController)->store(),
+    'policies/edit'             => (new PolicyController)->edit(),
+    'policies/update'             => (new PolicyController)->update(),
+    'policies/delete'             => (new PolicyController)->delete(),
 };
