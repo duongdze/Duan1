@@ -174,7 +174,7 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
                 <!-- Sidebar -->
                 <div class="col-lg-4">
                     <!-- Form Actions -->
-                    <div class="card mb-4 sticky-top" style="top: 20px;">
+                    <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="card-title mb-0">Thao tác</h5>
                         </div>

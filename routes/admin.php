@@ -150,4 +150,13 @@ match ($action) {
     'policies/edit'             => (new PolicyController)->edit(),
     'policies/update'             => (new PolicyController)->update(),
     'policies/delete'             => (new PolicyController)->delete(),
+
+    // Nhà cung cấp
+    'suppliers'             => (new SupplierController)->index(),
+    'suppliers/create'             => (new SupplierController)->create(),
+    'suppliers/store'             => (new SupplierController)->store(),
+    'suppliers/edit'             => (new SupplierController)->edit(),
+    'suppliers/update'             => (new SupplierController)->update(),
+    'suppliers/delete'             => (new SupplierController)->delete(),
+    'suppliers/detail'             => (new SupplierController)->detail(),
 };

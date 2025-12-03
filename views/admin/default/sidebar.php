@@ -62,6 +62,11 @@ $currentAction = $_GET['action'] ?? '';
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link <?= isActive('suppliers') ?>" href="<?= BASE_URL_ADMIN ?>&action=suppliers">
+                            <i class=""></i> Nhà cung cấp
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link <?= isActive('tours_logs') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_logs">
                             <i class="fas fa-book fa-fw me-2"></i> Nhật ký Tour
                         </a>
