@@ -36,9 +36,11 @@ class BookingController
         // Load customers and tours data for dropdown
         $customerModel = new UserModel();
         $tourModel = new Tour();
+        $versionModel = new TourVersion();
 
         $customers = $customerModel->select('*', "role = :role", ['role' => 'customer']);
         $tours = $tourModel->select('*', null, [], 'name ASC');
+        $versions = $versionModel->getActiveVersionsWithPrices();
 
         require_once PATH_VIEW_ADMIN . 'pages/bookings/create.php';
     }
@@ -54,6 +56,7 @@ class BookingController
             // Validate inputs
             $customer_id = $_POST['customer_id'] ?? null;
             $tour_id = $_POST['tour_id'] ?? null;
+            $version_id = $_POST['version_id'] ?? null; // Phiên bản tour (tùy chọn)
             $booking_date = $_POST['booking_date'] ?? null;
             $total_price = $_POST['total_price'] ?? null;
             $status = $_POST['status'] ?? 'cho_xac_nhan';
@@ -70,6 +73,7 @@ class BookingController
             $booking_id = $this->model->insert([
                 'customer_id' => $customer_id,
                 'tour_id' => $tour_id,
+                'version_id' => !empty($version_id) ? $version_id : null,
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
                 'status' => $status,

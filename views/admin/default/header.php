@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/design-system.css">
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/components.css">
     <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/tour-form-modern.css">
+    <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/tour-version-form.css">
     <!-- <link rel="stylesheet" href="<?= BASE_ASSETS_ADMIN ?>css/style.css"> -->
 
     <style>

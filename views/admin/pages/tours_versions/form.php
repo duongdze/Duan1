@@ -194,6 +194,98 @@ unset($_SESSION['old_input'], $_SESSION['form_errors']);
                             </div>
                         </div>
 
+                        <!-- Pricing Section -->
+                        <div class="form-section-group">
+                            <div class="section-subtitle">
+                                <h3 class="section-subtitle-text">
+                                    <i class="fas fa-dollar-sign me-2"></i>
+                                    Giá Mặc Định
+                                </h3>
+                                <div class="section-subtitle-description">
+                                    Thiết lập giá cho từng loại khách hàng
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <!-- Giá Người Lớn -->
+                                <div class="form-group">
+                                    <label for="price_adult" class="form-label">
+                                        <i class="fas fa-user me-1"></i>
+                                        Giá Người Lớn (VNĐ) <span class="required">*</span>
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input type="number"
+                                            class="form-control form-control-modern"
+                                            id="price_adult"
+                                            name="price_adult"
+                                            value="<?= htmlspecialchars($prices['price_adult'] ?? 0) ?>"
+                                            min="0"
+                                            step="10000"
+                                            required>
+                                        <div class="form-input-icon">
+                                            <i class="fas fa-dollar-sign"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-help">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Giá cơ bản cho người lớn
+                                    </div>
+                                </div>
+                                <!-- Giá Trẻ Em -->
+                                <div class="form-group">
+                                    <label for="price_child" class="form-label">
+                                        <i class="fas fa-child me-1"></i>
+                                        Giá Trẻ Em (VNĐ)
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input type="number"
+                                            class="form-control form-control-modern"
+                                            id="price_child"
+                                            name="price_child"
+                                            value="<?= htmlspecialchars($prices['price_child'] ?? 0) ?>"
+                                            min="0"
+                                            step="10000">
+                                        <div class="form-input-icon">
+                                            <i class="fas fa-dollar-sign"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-help">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Giá cho trẻ em (5-11 tuổi)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <!-- Giá Trẻ Sơ Sinh -->
+                                <div class="form-group">
+                                    <label for="price_infant" class="form-label">
+                                        <i class="fas fa-baby me-1"></i>
+                                        Giá Trẻ Sơ Sinh (VNĐ)
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input type="number"
+                                            class="form-control form-control-modern"
+                                            id="price_infant"
+                                            name="price_infant"
+                                            value="<?= htmlspecialchars($prices['price_infant'] ?? 0) ?>"
+                                            min="0"
+                                            step="10000">
+                                        <div class="form-input-icon">
+                                            <i class="fas fa-dollar-sign"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-help">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Giá cho trẻ sơ sinh (dưới 2 tuổi)
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="alert alert-info" style="margin-top: 28px;">
+                                        <i class="fas fa-lightbulb me-2"></i>
+                                        <strong>Lưu ý:</strong> Giá này sẽ được áp dụng khi tạo booking với phiên bản này
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <!-- Preview Section -->
                         <div class="form-section-group">
                             <div class="section-subtitle">

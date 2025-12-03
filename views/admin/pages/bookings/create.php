@@ -151,6 +151,32 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </div>
                                     </div>
 
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="version_id" name="version_id">
+                                                <option value="">-- Chọn phiên bản --</option>
+                                                <?php if (!empty($versions)): ?>
+                                                    <?php foreach ($versions as $v): ?>
+                                                        <option value="<?= htmlspecialchars($v['id']) ?>"
+                                                            data-price-adult="<?= htmlspecialchars($v['price_adult'] ?? 0) ?>"
+                                                            data-price-child="<?= htmlspecialchars($v['price_child'] ?? 0) ?>"
+                                                            data-price-infant="<?= htmlspecialchars($v['price_infant'] ?? 0) ?>">
+                                                            <?= htmlspecialchars($v['name']) ?>
+                                                            <?php if (!empty($v['description'])): ?>
+                                                                - <?= htmlspecialchars($v['description']) ?>
+                                                            <?php endif; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </select>
+                                            <label for="version_id">Phiên bản Tour</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Chọn phiên bản để áp dụng giá theo mùa/sự kiện (tùy chọn)
+                                        </small>
+                                    </div>
+
                                     <div class="col-md-6">
                                         <div class="form-floating">
                                             <input type="date" class="form-control" id="booking_date" name="booking_date" required placeholder=" ">
@@ -326,24 +352,49 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     }
 
     function setupEventListeners() {
-        // Auto-update price when tour is selected
-        document.getElementById('tour_id').addEventListener('change', function() {
+    // Auto-update price when tour is selected
+    document.getElementById('tour_id').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const price = selectedOption.getAttribute('data-price');
+        if (price) {
+            // Reset version selection when tour changes
+            const versionSelect = document.getElementById('version_id');
+            if (versionSelect) {
+                versionSelect.value = '';
+            }
+            document.getElementById('total_price').value = price;
+            updateSummary();
+        }
+    });
+    // Auto-update price when version is selected
+    const versionSelect = document.getElementById('version_id');
+    if (versionSelect) {
+        versionSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            const price = selectedOption.getAttribute('data-price');
-            if (price) {
-                document.getElementById('total_price').value = price;
-                updateSummary();
+            const priceAdult = selectedOption.getAttribute('data-price-adult');
+            
+            if (priceAdult && priceAdult > 0) {
+                // Nếu có chọn version → dùng giá của version
+                document.getElementById('total_price').value = priceAdult;
+            } else {
+                // Nếu không chọn version → quay về giá gốc của tour
+                const tourSelect = document.getElementById('tour_id');
+                const tourPrice = tourSelect.options[tourSelect.selectedIndex].getAttribute('data-price');
+                if (tourPrice) {
+                    document.getElementById('total_price').value = tourPrice;
+                }
             }
-        });
-
-        // Update summary on field changes
-        ['customer_id', 'tour_id', 'booking_date', 'status', 'total_price'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) {
-                element.addEventListener('change', updateSummary);
-            }
+            updateSummary();
         });
     }
+    // Update summary on field changes
+    ['customer_id', 'tour_id', 'version_id', 'booking_date', 'status', 'total_price'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', updateSummary);
+        }
+    });
+}
 
     // Step Navigation
     function nextStep() {
