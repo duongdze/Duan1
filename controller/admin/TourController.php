@@ -180,7 +180,7 @@ class TourController
 
             // Parse JSON data from form
             $pricingOptions = json_decode($_POST['tour_pricing_options'] ?? '[]', true);
-            $dynamicPricing = json_decode($_POST['tour_dynamic_pricing'] ?? '[]', true);
+            $dynamicPricing = json_decode($_POST['version_dynamic_pricing'] ?? '[]', true);
             $itineraries = json_decode($_POST['tour_itinerary'] ?? '[]', true);
             $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
             $policyIds = $_POST['policies'] ?? [];
@@ -234,8 +234,9 @@ class TourController
         $pricingModel = new TourPricing();
         $pricingOptions = $pricingModel->getByTourId($id);
 
-        $dynamicPricingModel = new TourDynamicPricing();
-        $dynamicPricing = $dynamicPricingModel->getByTourId($id);
+        // TODO: Dynamic pricing now uses version_id/departure_id instead of tour_id
+        // $dynamicPricingModel = new TourDynamicPricing();
+        $dynamicPricing = []; // Temporarily empty until we update the logic
 
         $itineraryModel = new TourItinerary();
         $itinerarySchedule = $itineraryModel->select('*', 'tour_id = :tid', ['tid' => $id], 'day_number ASC');
@@ -489,7 +490,7 @@ class TourController
 
             // Parse JSON arrays for pricing/itineraries/partners and update related tables
             $pricingOptions = json_decode($_POST['tour_pricing_options'] ?? '[]', true);
-            $dynamicPricing = json_decode($_POST['tour_dynamic_pricing'] ?? '[]', true);
+            $dynamicPricing = json_decode($_POST['version_dynamic_pricing'] ?? '[]', true);
             $itineraries = json_decode($_POST['tour_itinerary'] ?? '[]', true);
             $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
 
@@ -661,8 +662,9 @@ class TourController
         $pricingModel = new TourPricing();
         $pricingOptions = $pricingModel->getByTourId($id);
 
-        $dynamicPricingModel = new TourDynamicPricing();
-        $dynamicPricing = $dynamicPricingModel->getByTourId($id);
+        // TODO: Dynamic pricing now uses version_id/departure_id instead of tour_id
+        // $dynamicPricingModel = new TourDynamicPricing();
+        $dynamicPricing = []; // Temporarily empty until we update the logic
 
         $itineraryModel = new TourItinerary();
         $itinerarySchedule = $itineraryModel->select('*', 'tour_id = :tid', ['tid' => $id], 'day_number ASC');

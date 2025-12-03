@@ -198,10 +198,16 @@ class TourAssignment extends BaseModel
     {
         $sql = "SELECT t.*, 
         COUNT(DISTINCT b.id) as booking_count,
+        COALESCE(SUM(bc_count.total), COUNT(DISTINCT b.id)) as total_customers,
         MIN(b.booking_date) as nearest_booking_date
         FROM tours t
         LEFT JOIN bookings b ON t.id = b.tour_id 
             AND b.status NOT IN ('hoan_tat', 'da_huy')
+        LEFT JOIN (
+            SELECT booking_id, COUNT(*) as total 
+            FROM booking_customers 
+            GROUP BY booking_id
+        ) bc_count ON b.id = bc_count.booking_id
         WHERE t.id NOT IN (
             SELECT DISTINCT tour_id 
             FROM tour_assignments 

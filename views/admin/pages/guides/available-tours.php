@@ -31,6 +31,19 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         <?php if (!empty($availableTours)): ?>
             <div class="row g-3">
                 <?php foreach ($availableTours as $tour): ?>
+                    <?php
+                    $totalCustomers = $tour['total_customers'] ?? 0;
+                    $isEligible = ($totalCustomers >= 15 && $totalCustomers <= 30);
+
+                    // Xác định badge trạng thái
+                    if ($totalCustomers < 15) {
+                        $statusBadge = '<span class="badge bg-warning"><i class="fas fa-exclamation-triangle me-1"></i>Chưa đủ người</span>';
+                    } elseif ($totalCustomers > 30) {
+                        $statusBadge = '<span class="badge bg-danger"><i class="fas fa-users-slash me-1"></i>Quá đông</span>';
+                    } else {
+                        $statusBadge = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Đủ điều kiện</span>';
+                    }
+                    ?>
                     <div class="col-md-6 col-lg-4">
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
@@ -56,9 +69,17 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     </small>
                                 </div>
 
+                                <div class="mb-3">
+                                    <?= $statusBadge ?>
+                                </div>
+
                                 <div class="mb-3 d-flex gap-2 flex-wrap">
-                                    <span class="badge bg-info">
+                                    <span class="badge bg-primary">
                                         <i class="fas fa-users"></i>
+                                        <?= $totalCustomers ?> người
+                                    </span>
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-calendar-check"></i>
                                         <?= $tour['booking_count'] ?> booking
                                     </span>
                                     <span class="badge bg-success">
@@ -73,11 +94,21 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <?php endif; ?>
                                 </div>
 
-                                <a href="<?= BASE_URL_ADMIN ?>&action=guides/tour-bookings&tour_id=<?= $tour['id'] ?>"
-                                    class="btn btn-primary w-100">
-                                    <i class="fas fa-eye me-2"></i>
-                                    Xem Booking (<?= $tour['booking_count'] ?>)
-                                </a>
+                                <?php if ($isEligible): ?>
+                                    <button
+                                        class="btn btn-primary w-100 claim-tour-btn"
+                                        data-tour-id="<?= $tour['id'] ?>"
+                                        data-tour-name="<?= htmlspecialchars($tour['name']) ?>"
+                                        data-total-customers="<?= $totalCustomers ?>">
+                                        <i class="fas fa-hand-paper me-2"></i>
+                                        Nhận Tour
+                                    </button>
+                                <?php else: ?>
+                                    <button class="btn btn-secondary w-100" disabled>
+                                        <i class="fas fa-ban me-2"></i>
+                                        Không đủ điều kiện
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -95,6 +126,51 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     </div>
 </main>
 
-<script src="<?= BASE_URL ?>assets/admin/js/tour-claim.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle claim tour buttons
+        document.querySelectorAll('.claim-tour-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tourId = this.dataset.tourId;
+                const tourName = this.dataset.tourName;
+                const totalCustomers = this.dataset.totalCustomers;
+
+                if (confirm(`Bạn có chắc muốn nhận tour "${tourName}"?\nTổng số khách: ${totalCustomers} người`)) {
+                    // Disable button và hiển thị loading
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+
+                    // Send AJAX request
+                    fetch('<?= BASE_URL_ADMIN ?>&action=guides/claim-tour', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: `tour_id=${tourId}`
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('✅ ' + data.message);
+                                window.location.reload();
+                            } else {
+                                alert('❌ ' + data.message);
+                                // Re-enable button
+                                this.disabled = false;
+                                this.innerHTML = '<i class="fas fa-hand-paper me-2"></i>Nhận Tour';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Có lỗi xảy ra! Vui lòng thử lại.');
+                            // Re-enable button
+                            this.disabled = false;
+                            this.innerHTML = '<i class="fas fa-hand-paper me-2"></i>Nhận Tour';
+                        });
+                }
+            });
+        });
+    });
+</script>
 
 <?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>

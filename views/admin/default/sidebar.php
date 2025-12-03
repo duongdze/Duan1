@@ -57,11 +57,6 @@ $currentAction = $_GET['action'] ?? '';
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= isActive('tours_logs') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_logs">
-                            <i class="fas fa-book fa-fw me-2"></i> Nhật ký Tour
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link <?= isActive('tours_history') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_history">
                             <i class="fas fa-history fa-fw me-2"></i> Lịch sử Tour
                         </a>
@@ -132,11 +127,31 @@ $currentAction = $_GET['action'] ?? '';
             </a>
         </li>
 
-        <!-- Lịch làm việc HDV -->
+        <!-- Quản lý công việc -->
         <li class="nav-item">
-            <a class="nav-link <?= isActive('guide/schedule') ?>" href="<?= BASE_URL_ADMIN ?>&action=guide/schedule">
-                <i class="fas fa-calendar-day fa-fw me-2"></i> Lịch làm việc HDV
+            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= (isActive('tours_logs') || isActive('guide/schedule')) ? 'active' : '' ?>"
+                href="#" role="button"
+                aria-expanded="<?= (isActive('tours_logs') || isActive('guide/schedule')) ? 'true' : 'false' ?>"
+                aria-controls="workManagementMenu"
+                data-menu-key="work-management"
+                data-collapse-id="workManagementMenu">
+                <span><i class="fas fa-briefcase fa-fw me-2"></i>Quản lý công việc</span>
+                <i class="fas fa-chevron-down fa-xs"></i>
             </a>
+            <div class="collapse <?= (isActive('tours_logs') || isActive('guide/schedule')) ? 'show' : '' ?>" id="workManagementMenu">
+                <ul class="nav flex-column ms-3">
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('tours_logs') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_logs">
+                            <i class="fas fa-book fa-fw me-2"></i> Nhật ký Tour
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('guide/schedule') ?>" href="<?= BASE_URL_ADMIN ?>&action=guide/schedule">
+                            <i class="fas fa-calendar-day fa-fw me-2"></i> Lịch làm việc HDV
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </li>
 
         <!-- Lịch khởi hành -->

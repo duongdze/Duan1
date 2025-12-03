@@ -14,18 +14,52 @@ class TourLogController
 
     public function index()
     {
-        $tours = $this->model->getToursWithLogStats();
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+
+        if ($userRole === 'guide') {
+            // HDV chỉ xem tours của mình
+            $guideModel = new Guide();
+            $guide = $guideModel->getByUserId($_SESSION['user']['user_id']);
+            if ($guide) {
+                $tours = $this->model->getToursWithLogStatsByGuide($guide['id']);
+            } else {
+                $tours = [];
+            }
+        } else {
+            // Admin xem tất cả
+            $tours = $this->model->getToursWithLogStats();
+        }
+
         require_once PATH_VIEW_ADMIN . 'pages/tours_logs/index.php';
     }
 
     public function create()
     {
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
         $tourModel = new Tour();
-        // use generic select() to fetch all tours (getAll() not defined in Tour model)
-        $tours = $tourModel->select();
-
         $guideModel = new Guide();
-        $guides = $guideModel->getAllWithName();
+
+        if ($userRole === 'guide') {
+            // HDV chỉ chọn tours của mình
+            $guide = $guideModel->getByUserId($_SESSION['user']['user_id']);
+            if ($guide) {
+                // Lấy tours được phân công cho HDV này
+                $sql = "SELECT DISTINCT t.* FROM tours t
+                        INNER JOIN tour_assignments ta ON t.id = ta.tour_id
+                        WHERE ta.guide_id = :guide_id AND ta.status = 'active'";
+                $pdo = $tourModel->getPDO();
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute(['guide_id' => $guide['id']]);
+                $tours = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } else {
+                $tours = [];
+            }
+            $guides = [$guide]; // Chỉ hiển thị chính mình
+        } else {
+            // Admin chọn tất cả tours và guides
+            $tours = $tourModel->select();
+            $guides = $guideModel->getAllWithName();
+        }
 
         require_once PATH_VIEW_ADMIN . 'pages/tours_logs/create.php';
     }
@@ -74,6 +108,16 @@ class TourLogController
             die('Không tìm thấy nhật ký');
         }
 
+        // Kiểm tra quyền truy cập
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if ($userRole === 'guide') {
+            $guideModel = new Guide();
+            $guide = $guideModel->getByUserId($_SESSION['user']['user_id']);
+            if (!$guide || !$this->model->canGuideAccessLog($id, $guide['id'])) {
+                die('Bạn không có quyền chỉnh sửa nhật ký này');
+            }
+        }
+
         $tourModel = new Tour();
         $tours = $tourModel->select();
 
@@ -88,6 +132,16 @@ class TourLogController
         $id = $_POST['id'] ?? null;
         if (!$id) {
             die('Thiếu ID');
+        }
+
+        // Kiểm tra quyền truy cập
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if ($userRole === 'guide') {
+            $guideModel = new Guide();
+            $guide = $guideModel->getByUserId($_SESSION['user']['user_id']);
+            if (!$guide || !$this->model->canGuideAccessLog($id, $guide['id'])) {
+                die('Bạn không có quyền chỉnh sửa nhật ký này');
+            }
         }
 
         $data = [
@@ -143,6 +197,16 @@ class TourLogController
             die('Thiếu Tour ID');
         }
 
+        // Kiểm tra quyền truy cập tour
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if ($userRole === 'guide') {
+            $guideModel = new Guide();
+            $guide = $guideModel->getByUserId($_SESSION['user']['user_id']);
+            if (!$guide || !$this->model->canGuideAccessTour($tourId, $guide['id'])) {
+                die('Bạn không có quyền xem tour này');
+            }
+        }
+
         $tourModel = new Tour();
         $tour = $tourModel->findById($tourId);
 
@@ -165,6 +229,16 @@ class TourLogController
         $tourId = $_POST['tour_id'] ?? null; // Pass tour_id to redirect back correctly
 
         if ($id) {
+            // Kiểm tra quyền xóa
+            $userRole = $_SESSION['user']['role'] ?? 'customer';
+            if ($userRole === 'guide') {
+                $guideModel = new Guide();
+                $guide = $guideModel->getByUserId($_SESSION['user']['user_id']);
+                if (!$guide || !$this->model->canGuideAccessLog($id, $guide['id'])) {
+                    die('Bạn không có quyền xóa nhật ký này');
+                }
+            }
+
             // Get log to find tour_id if not passed
             if (!$tourId) {
                 $log = $this->model->findById($id);

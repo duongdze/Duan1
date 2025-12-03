@@ -20,6 +20,8 @@ match ($action) {
     'loginProcess'          => (new AuthorController)->loginProcess(),
     'logout'                => (new AuthorController)->logout(),
     'account'               => (new AuthorController)->accountInfo(),
+    'account/update-profile' => (new AuthorController)->updateProfile(), // AJAX
+    'account/change-password' => (new AuthorController)->changePassword(), // AJAX
 
     // Tours Management 
     'tours'                 => (new TourController)->index(),
@@ -113,6 +115,7 @@ match ($action) {
     'guides/tour-bookings' => (new TourAssignmentController)->tourBookings(),
     'guides/claim-tour'      => (new TourAssignmentController)->claimTour(), // AJAX
     'guides/accept-booking'  => (new TourAssignmentController)->acceptBooking(), // AJAX
+    'guides/remove-assignment' => (new TourAssignmentController)->removeAssignmentByAdmin(), // AJAX
 
     // Drivers
     'drivers'            => (new DriverController)->index(),

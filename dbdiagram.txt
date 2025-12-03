@@ -53,7 +53,6 @@ Table tours as T {
   id int [pk, increment]
   name varchar
   category_id int [ref: > TC.id]
-  tour_version_id int [ref: > TV.id, null]
   description text
   base_price decimal
   created_at datetime
@@ -68,13 +67,20 @@ Table tour_pricing_options as TPO {
   created_at datetime
 }
 
-Table tour_dynamic_pricing as TDP {
+Table version_dynamic_pricing {
   id int [pk, increment]
-  tour_id int [ref: > T.id]
-  pricing_option_id int [ref: > TPO.id]
+
+  version_id int [ref: > TV.id]          // giá áp dụng theo phiên bản
+  departure_id int [ref: > TD.id, null]  // nếu chỉ áp dụng cho 1 lịch duy nhất
+
+  apply_type enum('discount','surcharge') [default: 'discount']
+
+  amount decimal(15,2)                    // giảm bao nhiêu hoặc phụ thu bao nhiêu
+  amount_type enum('cash','percent')      // tiền mặt / %
+    
   start_date date
   end_date date
-  price decimal
+
   notes text
   created_at datetime
 }
@@ -108,6 +114,15 @@ Table tour_versions as TV {
   updated_at datetime
 }
 
+Table tour_version_prices {
+  id int [pk, increment]
+  version_id int [ref: > TV.id]
+  price_adult decimal
+  price_child decimal
+  price_infant decimal
+  created_at datetime
+}
+
 Table itineraries as I {
   id int [pk, increment]
   tour_id int [ref: > T.id]
@@ -138,7 +153,7 @@ Table bookings as B {
 
   // Giá – chỉ cần 2 trường là đủ
   original_price decimal [null]                // giá tính tự động ban đầu
-  final_price    decimal [default: 0]          // giá cuối cùng khách trả (sau giảm/tặng/phụ thu)
+  final_price    decimal                       // giá cuối cùng khách trả (sau giảm/tặng/phụ thu)
 
   // Trạng thái + nguồn
   status varchar [default: 'pending']          // pending, confirmed, deposited, paid, cancelled, completed
@@ -153,7 +168,7 @@ Table bookings as B {
   discount_note   text [null]                  // admin ghi: "giảm 5tr", "tặng 2 FOC", "phụ thu Tết +8tr"
 
   // Ai tạo
-  created_by int [ref: > U.user_id, null]
+  created_by int [ref: > U.user_id]
   created_at datetime
   updated_at datetime
 
@@ -210,6 +225,7 @@ Table booking_price_adjustments {
   created_by int [ref: > U.user_id]             // chỉ admin
   created_at datetime
 }
+
 Table booking_customers as BC {
   id int [pk, increment]
   booking_id int [ref: > B.id]                  // bắt buộc
@@ -228,7 +244,6 @@ Table booking_customers as BC {
   // Yêu cầu đặc biệt (rất hay dùng)
   room_type varchar [null, note: 'single/double/twin/triple']
   special_request text [null, note: 'ăn chay, dị ứng tôm, xe lăn, ghế ngồi đầu...']
-  request_handled tinyint [default: 0, note: 'HDV đã xử lý yêu cầu đặc biệt chưa']
 
   // Check-in thực tế của HDV (mục 43)
   is_present tinyint [default: 0, note: 'HDV đánh dấu khách đã có mặt']
@@ -239,12 +254,13 @@ Table booking_customers as BC {
   payment_status enum('unpaid', 'partial', 'paid') [default: 'unpaid']
   payment_amount decimal(15,2) [default: 0]
   payment_date datetime [null]
-  
+
   checkin_status enum('not_arrived', 'checked_in', 'absent') [default: 'not_arrived']
   checkin_time date [null]
   checkin_location VARCHAR(255) [null]
   checkin_notes TEXT [null]
-  checked_by int [ref: > U.user_id, null]       // User ID của HDV check-in
+  checked_by INT [null] // 'User ID của HDV check-in'
+
   // Index bắt buộc để load danh sách khách của 1 booking siêu nhanh
   Indexes {
     booking_id

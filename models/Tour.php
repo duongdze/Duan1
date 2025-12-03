@@ -221,24 +221,30 @@ class Tour extends BaseModel
                     }
                 }
 
-                // Insert dynamic prices using the map
+                // TODO: Dynamic pricing table structure changed to version_dynamic_pricing
+                // It now uses version_id/departure_id instead of tour_id/pricing_option_id
+                // Temporarily disabled until we update the logic
+                /*
                 if (!empty($dynamicPricing) && !empty($optionLabelToIdMap)) {
                     foreach ($dynamicPricing as $dp) {
                         $optionLabel = $dp['option_label'] ?? '';
                         if (isset($optionLabelToIdMap[$optionLabel])) {
                             $optionId = $optionLabelToIdMap[$optionLabel];
                             $dynamicPricingModel->insert([
-                                'tour_id' => $tourId,
-                                'pricing_option_id' => $optionId,
+                                'version_id' => ...,
+                                'departure_id' => ...,
+                                'apply_type' => 'discount',
+                                'amount' => ...,
+                                'amount_type' => 'cash',
                                 'start_date' => $dp['start_date'] ?: null,
                                 'end_date' => $dp['end_date'] ?: null,
-                                'price' => (float)($dp['price'] ?? 0),
                                 'notes' => $dp['notes'] ?? '',
                                 'created_at' => date('Y-m-d H:i:s'),
                             ]);
                         }
                     }
                 }
+                */
             }
 
 
@@ -371,7 +377,8 @@ class Tour extends BaseModel
             // 2. Delete DB records in dependent tables
             $imageModel->deleteByTourId($id);
             $pricingModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
-            $dynamicPricingModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
+            // TODO: version_dynamic_pricing table doesn't have tour_id column
+            // $dynamicPricingModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $itineraryModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             $partnerModel->delete('tour_id = :tour_id', ['tour_id' => $id]);
             // Note: tour_versions table doesn't have tour_id column, so we don't delete versions here

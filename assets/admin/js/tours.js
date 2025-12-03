@@ -362,7 +362,7 @@ document.addEventListener("DOMContentLoaded", function () {
           }
 
           upsertHidden("tour_pricing_options", JSON.stringify(pricingOptionsArr));
-          upsertHidden("tour_dynamic_pricing", JSON.stringify(dynamicPricingArr));
+          upsertHidden("version_dynamic_pricing", JSON.stringify(dynamicPricingArr));
           upsertHidden("tour_itinerary", JSON.stringify(itinArr));
           upsertHidden("tour_partners", JSON.stringify(partnerArr));
 
@@ -399,51 +399,51 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!listEl || !template || !addBtn) {
       return;
     }
-    
+
     // This is a special handler for the dynamic pricing section to populate its dropdown
     const updateDynamicPriceOptions = () => {
-        if (config.listId !== 'dynamic-pricing-list') return;
+      if (config.listId !== 'dynamic-pricing-list') return;
 
-        const pricingOptionsList = document.getElementById('pricing-options-list');
-        if (!pricingOptionsList) return;
+      const pricingOptionsList = document.getElementById('pricing-options-list');
+      if (!pricingOptionsList) return;
 
-        // Get current option values
-const availableOptions = Array.from(
-  pricingOptionsList.querySelectorAll(".dynamic-item")
-)
-  .map((item) => {
-    const label = item.querySelector('[data-field="label"]')?.value;
-    const description = item.querySelector('[data-field="description"]')?.value;
-    const price = item.querySelector('[data-field="price"]')?.value;
-    return label ? { label, description, price } : null;
-  })
-  .filter(Boolean);
+      // Get current option values
+      const availableOptions = Array.from(
+        pricingOptionsList.querySelectorAll(".dynamic-item")
+      )
+        .map((item) => {
+          const label = item.querySelector('[data-field="label"]')?.value;
+          const description = item.querySelector('[data-field="description"]')?.value;
+          const price = item.querySelector('[data-field="price"]')?.value;
+          return label ? { label, description, price } : null;
+        })
+        .filter(Boolean);
 
-        // Update all select dropdowns in the dynamic pricing list
-        const allDynamicSelects = listEl.querySelectorAll('[data-field="option_label"]');
-        allDynamicSelects.forEach(select => {
-            const currentVal = select.value;
-         select.innerHTML = '<option value="">-- Chọn gói dịch vụ --</option>';
-availableOptions.forEach((opt) => {
-  const option = document.createElement("option");
-  option.value = opt.label;
-  option.textContent = opt.label;
-  option.setAttribute('data-description', opt.description || '');
-  option.setAttribute('data-price', opt.price || '');
-  select.appendChild(option);
-});
-            select.value = currentVal; // try to restore previous value
+      // Update all select dropdowns in the dynamic pricing list
+      const allDynamicSelects = listEl.querySelectorAll('[data-field="option_label"]');
+      allDynamicSelects.forEach(select => {
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">-- Chọn gói dịch vụ --</option>';
+        availableOptions.forEach((opt) => {
+          const option = document.createElement("option");
+          option.value = opt.label;
+          option.textContent = opt.label;
+          option.setAttribute('data-description', opt.description || '');
+          option.setAttribute('data-price', opt.price || '');
+          select.appendChild(option);
         });
+        select.value = currentVal; // try to restore previous value
+      });
     };
-    
+
     // Listen for changes in the main pricing options to update the dynamic ones
     pricingOptionsList.addEventListener("input", (e) => {
-  if (e.target && (e.target.matches('[data-field="label"]') || 
-                   e.target.matches('[data-field="price"]') || 
-                   e.target.matches('[data-field="description"]'))) {
-    updateDynamicPriceOptions();
-  }
-});
+      if (e.target && (e.target.matches('[data-field="label"]') ||
+        e.target.matches('[data-field="price"]') ||
+        e.target.matches('[data-field="description"]'))) {
+        updateDynamicPriceOptions();
+      }
+    });
 
 
     function resetItem(item) {
@@ -463,7 +463,7 @@ availableOptions.forEach((opt) => {
       removeBtn.addEventListener("click", function () {
         const parentList = this.closest('div[id]');
         const items = parentList.querySelectorAll("." + config.itemClass);
-        
+
         if (items.length > 1) {
           item.remove();
         } else {
@@ -472,7 +472,7 @@ availableOptions.forEach((opt) => {
 
         // After removing an item from pricing-options, update dynamic pricing dropdowns
         if (config.listId === 'pricing-options-list') {
-            updateDynamicPriceOptions();
+          updateDynamicPriceOptions();
         }
       });
     }
@@ -492,19 +492,19 @@ availableOptions.forEach((opt) => {
       var clone = template.content.cloneNode(true);
       var item =
         clone.querySelector("." + config.itemClass) || clone.children[0];
-      
+
       listEl.appendChild(item); // Append first to make it part of the DOM
       hydrateItem(item, values);
       bindRemove(item);
 
       // If we are adding to the dynamic pricing list, populate the dropdown
       if (config.listId === 'dynamic-pricing-list') {
-          updateDynamicPriceOptions();
-          // If there's initial data, set the value after populating
-          if(values && values.option_label) {
-              const select = item.querySelector('[data-field="option_label"]');
-              if(select) select.value = values.option_label;
-          }
+        updateDynamicPriceOptions();
+        // If there's initial data, set the value after populating
+        if (values && values.option_label) {
+          const select = item.querySelector('[data-field="option_label"]');
+          if (select) select.value = values.option_label;
+        }
       }
 
       // If we add a new pricing option, we must update the dynamic list
@@ -512,20 +512,20 @@ availableOptions.forEach((opt) => {
         updateDynamicPriceOptions();
       }
     }
-    
+
     // --- Initialization ---
     const initialData = listEl.dataset.initial ? JSON.parse(listEl.dataset.initial || '[]') : [];
 
     if (initialData.length > 0) {
-        initialData.forEach(data => appendNewItem(data));
+      initialData.forEach(data => appendNewItem(data));
     } else {
-        appendNewItem(); // Add one empty item by default
+      appendNewItem(); // Add one empty item by default
     }
-    
+
     // Initial population for dynamic pricing in case of pre-filled data (e.g., edit page)
     if (config.listId === 'dynamic-pricing-list' || config.listId === 'pricing-options-list') {
-        // Use a timeout to ensure all sections are loaded before linking them
-        setTimeout(updateDynamicPriceOptions, 50); 
+      // Use a timeout to ensure all sections are loaded before linking them
+      setTimeout(updateDynamicPriceOptions, 50);
     }
 
     addBtn.addEventListener("click", function () {
@@ -619,18 +619,18 @@ availableOptions.forEach((opt) => {
       });
     });
   }
-   document.addEventListener('change', function(e) {
+  document.addEventListener('change', function (e) {
     if (e.target.classList.contains('dynamic-pricing-select')) {
       const selectedOption = e.target.selectedOptions[0];
       const dynamicItem = e.target.closest('.dynamic-item');
-      
+
       if (dynamicItem && selectedOption) {
         const description = selectedOption.getAttribute('data-description') || '';
         const price = selectedOption.getAttribute('data-price') || '';
-        
+
         const descDisplay = dynamicItem.querySelector('.package-description-display');
         const priceDisplay = dynamicItem.querySelector('.package-price-display');
-        
+
         if (descDisplay) descDisplay.value = description;
         if (priceDisplay) {
           // Format price with thousand separators
