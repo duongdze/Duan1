@@ -92,8 +92,129 @@ class AuthorController
             exit;
         }
 
-        $title = 'Thông tin tài khoản';
-        $view = 'pages/account/index';
-        require_once PATH_VIEW_ADMIN_MAIN;
+        require_once PATH_VIEW_ADMIN . 'pages/account/index.php';
+    }
+
+    /**
+     * Cập nhật thông tin profile
+     */
+    public function updateProfile()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+            exit;
+        }
+
+        $userId = $_SESSION['user']['user_id'] ?? null;
+        if (!$userId) {
+            echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập']);
+            exit;
+        }
+
+        $fullName = trim($_POST['full_name'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        $address = trim($_POST['address'] ?? '');
+
+        // Validation
+        if (empty($fullName)) {
+            echo json_encode(['success' => false, 'message' => 'Tên không được để trống']);
+            exit;
+        }
+
+        try {
+            $result = $this->user->update([
+                'full_name' => $fullName,
+                'phone' => $phone,
+                'address' => $address
+            ], 'user_id = :id', ['id' => $userId]);
+
+            if ($result) {
+                // Cập nhật session
+                $_SESSION['user']['full_name'] = $fullName;
+                $_SESSION['user']['phone'] = $phone;
+                $_SESSION['user']['address'] = $address;
+
+                echo json_encode(['success' => true, 'message' => 'Cập nhật thông tin thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể cập nhật thông tin']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Đổi mật khẩu
+     */
+    public function changePassword()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+            exit;
+        }
+
+        $userId = $_SESSION['user']['user_id'] ?? null;
+        if (!$userId) {
+            echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập']);
+            exit;
+        }
+
+        $currentPassword = $_POST['current_password'] ?? '';
+        $newPassword = $_POST['new_password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        // Validation
+        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin']);
+            exit;
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            echo json_encode(['success' => false, 'message' => 'Mật khẩu mới không khớp']);
+            exit;
+        }
+
+        if (strlen($newPassword) < 6) {
+            echo json_encode(['success' => false, 'message' => 'Mật khẩu mới phải có ít nhất 6 ký tự']);
+            exit;
+        }
+
+        try {
+            // Lấy thông tin user
+            $user = $this->user->find('*', 'user_id = :id', ['id' => $userId]);
+            
+            if (!$user) {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy user']);
+                exit;
+            }
+
+            // Verify mật khẩu hiện tại
+            if (!password_verify($currentPassword, $user['password_hash'])) {
+                echo json_encode(['success' => false, 'message' => 'Mật khẩu hiện tại không đúng']);
+                exit;
+            }
+
+            // Hash mật khẩu mới
+            $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+
+            // Cập nhật
+            $result = $this->user->update([
+                'password_hash' => $newHash
+            ], 'user_id = :id', ['id' => $userId]);
+
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Đổi mật khẩu thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể đổi mật khẩu']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
     }
 }

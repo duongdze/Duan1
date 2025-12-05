@@ -8,6 +8,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             <div>
                 <h1 class="h3 mb-0">Lịch làm việc của tôi</h1>
                 <p class="text-muted small">Danh sách tour được phân công cho bạn</p>
+                <!-- DEBUG INFO -->
+                <div class="alert alert-warning">
+                    <strong>DEBUG:</strong> Current Role = <code><?= $_SESSION['user']['role'] ?? 'NOT SET' ?></code>
+                    | User ID = <code><?= $_SESSION['user']['user_id'] ?? 'NOT SET' ?></code>
+                </div>
             </div>
             <div>
                 <a href="<?= BASE_URL_ADMIN ?>&action=guide/schedule_all" class="btn btn-outline-secondary">Xem tất cả HDV</a>
@@ -73,6 +78,16 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <td><?= htmlspecialchars($a['driver_name'] ?? '') ?></td>
                                         <td>
                                             <a href="<?= BASE_URL_ADMIN ?>&action=guide/tourDetail&id=<?= $a['tour_id'] ?>&guide_id=<?= $_SESSION['guide_id'] ?? $a['guide_id'] ?>" class="btn btn-sm btn-info"><i class="fas fa-eye"></i> Chi tiết</a>
+                                            <!-- DEBUG: Current role = <?= $_SESSION['user']['role'] ?? 'N/A' ?> -->
+                                            <?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
+                                                <button class="btn btn-sm btn-danger remove-assignment-btn"
+                                                    data-assignment-id="<?= $a['id'] ?>"
+                                                    data-tour-name="<?= htmlspecialchars($a['tour_name'] ?? '') ?>">
+                                                    <i class="fas fa-trash"></i> Xóa
+                                                </button>
+                                            <?php else: ?>
+                                                <!-- DEBUG: Not showing delete button, role is '<?= $_SESSION['user']['role'] ?? 'empty' ?>' -->
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -84,5 +99,51 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         </div>
     </div>
 </main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle remove assignment buttons
+        document.querySelectorAll('.remove-assignment-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const assignmentId = this.dataset.assignmentId;
+                const tourName = this.dataset.tourName;
+
+                if (confirm(`Bạn có chắc muốn xóa phân công tour "${tourName}"?`)) {
+                    // Disable button và hiển thị loading
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xóa...';
+
+                    // Send AJAX request
+                    fetch('<?= BASE_URL_ADMIN ?>&action=guides/remove-assignment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: `assignment_id=${assignmentId}`
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('✅ ' + data.message);
+                                window.location.reload();
+                            } else {
+                                alert('❌ ' + data.message);
+                                // Re-enable button
+                                this.disabled = false;
+                                this.innerHTML = '<i class="fas fa-trash"></i> Xóa';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Có lỗi xảy ra! Vui lòng thử lại.');
+                            // Re-enable button
+                            this.disabled = false;
+                            this.innerHTML = '<i class="fas fa-trash"></i> Xóa';
+                        });
+                }
+            });
+        });
+    });
+</script>
 
 <?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>

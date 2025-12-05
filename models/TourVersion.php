@@ -89,4 +89,21 @@ class TourVersion extends BaseModel
         $result = $this->select('COUNT(*) as total', 'status = :status', ['status' => $status]);
         return $result[0]['total'] ?? 0;
     }
+
+    /**
+     * Get active versions with prices
+     * @return array
+     */
+    public function getActiveVersionsWithPrices()
+    {
+        $sql = "SELECT tv.*, tvp.price_adult, tvp.price_child, tvp.price_infant
+                FROM {$this->table} tv
+                LEFT JOIN tour_version_prices tvp ON tv.id = tvp.version_id
+                WHERE tv.status = 'active'
+                ORDER BY tv.created_at DESC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

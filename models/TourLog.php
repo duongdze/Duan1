@@ -92,4 +92,74 @@ class TourLog extends BaseModel
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Lấy tours với log stats cho HDV cụ thể
+     */
+    public function getToursWithLogStatsByGuide($guideId)
+    {
+        $sql = "SELECT t.id, t.name, 
+                       COUNT(tl.id) as log_count, 
+                       MAX(tl.date) as last_log_date
+                FROM tours t
+                INNER JOIN tour_assignments ta ON t.id = ta.tour_id
+                LEFT JOIN tour_logs tl ON t.id = tl.tour_id
+                WHERE ta.guide_id = :guide_id 
+                AND ta.status = 'active'
+                GROUP BY t.id, t.name
+                ORDER BY last_log_date DESC";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['guide_id' => $guideId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy logs của HDV cụ thể
+     */
+    public function getLogsByGuideId($guideId)
+    {
+        $sql = "SELECT tl.*, t.name AS tour_name, u.full_name AS guide_name
+                FROM tour_logs tl
+                JOIN tours t ON t.id = tl.tour_id
+                JOIN guides g ON g.id = tl.guide_id
+                JOIN users u ON u.user_id = g.user_id
+                WHERE tl.guide_id = :guide_id
+                ORDER BY tl.date DESC";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['guide_id' => $guideId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Kiểm tra HDV có quyền truy cập log không
+     */
+    public function canGuideAccessLog($logId, $guideId)
+    {
+        $sql = "SELECT COUNT(*) as count
+                FROM tour_logs tl
+                INNER JOIN tour_assignments ta ON tl.tour_id = ta.tour_id
+                WHERE tl.id = :log_id 
+                AND ta.guide_id = :guide_id
+                AND ta.status = 'active'";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['log_id' => $logId, 'guide_id' => $guideId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['count'] > 0;
+    }
+
+    /**
+     * Kiểm tra HDV có quyền truy cập tour không
+     */
+    public function canGuideAccessTour($tourId, $guideId)
+    {
+        $sql = "SELECT COUNT(*) as count
+                FROM tour_assignments
+                WHERE tour_id = :tour_id 
+                AND guide_id = :guide_id
+                AND status = 'active'";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId, 'guide_id' => $guideId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result['count'] > 0;
+    }
 }

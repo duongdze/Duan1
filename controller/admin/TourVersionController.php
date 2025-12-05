@@ -1,16 +1,19 @@
 <?php
 require_once 'models/TourVersion.php';
+require_once 'models/TourVersionPrice.php';
 
 class TourVersionController
 {
     protected $model;
     protected $tourModel;
+    protected $priceModel;
 
     public function __construct()
     {
         $this->model = new TourVersion();
         require_once 'models/Tour.php';
         $this->tourModel = new Tour();
+        $this->priceModel = new TourVersionPrice();
     }
 
     /**
@@ -57,6 +60,13 @@ class TourVersionController
      */
     public function create()
     {
+        // Default prices
+        $prices = [
+            'price_adult' => 0,
+            'price_child' => 0,
+            'price_infant' => 0
+        ];
+
         $title = 'Thêm phiên bản mới';
         require_once PATH_VIEW_ADMIN . 'pages/tours_versions/form.php';
     }
@@ -91,7 +101,16 @@ class TourVersionController
         }
 
         try {
-            $this->model->insert($data);
+            $versionId = $this->model->insert($data);
+
+            // Save prices
+            $priceData = [
+                'price_adult' => floatval($_POST['price_adult'] ?? 0),
+                'price_child' => floatval($_POST['price_child'] ?? 0),
+                'price_infant' => floatval($_POST['price_infant'] ?? 0)
+            ];
+            $this->priceModel->upsertPrice($versionId, $priceData);
+
             $_SESSION['success'] = 'Thêm phiên bản thành công';
             header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
@@ -120,6 +139,16 @@ class TourVersionController
             $_SESSION['error'] = 'Không tìm thấy phiên bản';
             header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
             return;
+        }
+
+        // Load prices
+        $prices = $this->priceModel->getByVersionId($id);
+        if (!$prices) {
+            $prices = [
+                'price_adult' => 0,
+                'price_child' => 0,
+                'price_infant' => 0
+            ];
         }
 
         $title = 'Chỉnh sửa phiên bản';
@@ -176,7 +205,15 @@ class TourVersionController
             unset($data['current_name']);
             unset($data['id']);
 
-            $this->model->updateById($id, $data);
+            $this->model->update($data, 'id = :id', ['id' => $id]);
+
+            // Update prices
+            $priceData = [
+                'price_adult' => floatval($_POST['price_adult'] ?? 0),
+                'price_child' => floatval($_POST['price_child'] ?? 0),
+                'price_infant' => floatval($_POST['price_infant'] ?? 0)
+            ];
+            $this->priceModel->upsertPrice($id, $priceData);
 
             $_SESSION['success'] = 'Cập nhật phiên bản thành công';
             header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
@@ -209,6 +246,10 @@ class TourVersionController
         }
 
         try {
+            // Delete prices first (cascade)
+            $this->priceModel->deleteByVersionId($id);
+
+            // Then delete version
             $this->model->delete('id = :id', ['id' => $id]);
             $_SESSION['success'] = 'Xóa phiên bản thành công';
         } catch (Exception $e) {

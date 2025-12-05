@@ -3,20 +3,27 @@ require_once 'BaseModel.php';
 
 class TourDynamicPricing extends BaseModel
 {
-    protected $table = 'tour_dynamic_pricing';
+    protected $table = 'version_dynamic_pricing';
     protected $columns = [
         'id',
-        'tour_id',
-        'pricing_option_id',
+        'version_id',
+        'departure_id',
+        'apply_type',
+        'amount',
+        'amount_type',
         'start_date',
         'end_date',
-        'price',
         'notes',
         'created_at',
     ];
 
-    public function getByTourId($tourId)
+    public function getByVersionId($versionId)
     {
-        return $this->select('*', 'tour_id = :tour_id', ['tour_id' => $tourId], 'id ASC');
+        return $this->select('*', 'version_id = :version_id', ['version_id' => $versionId], 'id ASC');
+    }
+
+    public function getByDepartureId($departureId)
+    {
+        return $this->select('*', 'departure_id = :departure_id', ['departure_id' => $departureId], 'id ASC');
     }
 }

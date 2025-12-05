@@ -118,6 +118,41 @@ class TourAssignmentController
     }
 
     /**
+     * Admin xóa assignment (AJAX endpoint)
+     */
+    public function removeAssignmentByAdmin()
+    {
+        header('Content-Type: application/json');
+
+        // Chỉ admin mới được xóa
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if ($userRole !== 'admin') {
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền thực hiện thao tác này']);
+            exit;
+        }
+
+        $id = $_POST['assignment_id'] ?? null;
+
+        if (!$id) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin assignment']);
+            exit;
+        }
+
+        try {
+            $result = $this->model->removeAssignment($id);
+
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Xóa phân công thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể xóa phân công']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
      * AJAX: Lấy danh sách tour của một HDV
      */
     public function getGuideTours()
@@ -188,17 +223,17 @@ class TourAssignmentController
             exit;
         }
 
-        // Get the actual guide ID from the guides table
-        require_once 'models/GuideWorkModel.php';
-        $guide = GuideWorkModel::getGuideByUserId($userId);
+        // Get guide ID
+        require_once 'models/Guide.php';
+        $guideModel = new Guide();
+        $guide = $guideModel->getByUserId($userId);
 
         if (!$guide) {
-            echo json_encode(['success' => false, 'message' => 'Không tìm thấy thông tin hướng dẫn viên']);
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy hồ sơ HDV tương ứng. Vui lòng liên hệ quản trị.']);
             exit;
         }
 
         $guideId = $guide['id'];
-
         $tourId = $_POST['tour_id'] ?? null;
 
         if (!$tourId) {
@@ -208,34 +243,92 @@ class TourAssignmentController
 
         try {
             $tourAssignmentModel = new TourAssignment();
-            // Convert logged-in user -> guide id
-            require_once 'models/Guide.php';
-            $guideModel = new Guide();
-            $guide = $guideModel->getByUserId($userId);
-            if (!$guide) {
-                echo json_encode(['success' => false, 'message' => 'Không tìm thấy hồ sơ HDV tương ứng. Vui lòng liên hệ quản trị.']);
-                exit;
-            }
-            $guideId = $guide['id'];
 
-            // Kiểm tra tour đã có HDV chưa (race condition protection)
+            // Kiểm tra tour đã có HDV chưa
             if ($tourAssignmentModel->tourHasGuide($tourId)) {
                 echo json_encode(['success' => false, 'message' => 'Tour này đã có HDV khác nhận rồi']);
                 exit;
             }
+
             // Kiểm tra HDV đã nhận tour này chưa
             if ($tourAssignmentModel->isGuideAssignedToTour($guideId, $tourId)) {
                 echo json_encode(['success' => false, 'message' => 'Bạn đã nhận tour này rồi']);
                 exit;
             }
 
-            // Assign tour cho HDV
-            $result = $tourAssignmentModel->assignTourToGuide($guideId, $tourId);
+            // Tính tổng số khách của tour
+            $bookingModel = new Booking();
+            $sql = "SELECT 
+                    COUNT(DISTINCT b.id) as booking_count,
+                    COALESCE(SUM(bc_count.total), COUNT(DISTINCT b.id)) as total_customers
+                FROM bookings b
+                LEFT JOIN (
+                    SELECT booking_id, COUNT(*) as total 
+                    FROM booking_customers 
+                    GROUP BY booking_id
+                ) bc_count ON b.id = bc_count.booking_id
+                WHERE b.tour_id = :tour_id
+                AND b.status NOT IN ('hoan_tat', 'da_huy')";
 
-            if ($result) {
+            $pdo = $bookingModel->getPDO();
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(['tour_id' => $tourId]);
+            $tourStats = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $totalCustomers = $tourStats['total_customers'] ?? 0;
+
+            // Validate 15-30 người
+            if ($totalCustomers < 15) {
+                echo json_encode(['success' => false, 'message' => 'Tour chưa đủ 15 người. Hiện tại: ' . $totalCustomers . ' người']);
+                exit;
+            }
+
+            if ($totalCustomers > 30) {
+                echo json_encode(['success' => false, 'message' => 'Tour quá đông (>30 người). Cần chia nhóm. Hiện tại: ' . $totalCustomers . ' người']);
+                exit;
+            }
+
+            // Lấy tất cả booking chưa có HDV của tour
+            $sql = "SELECT b.* 
+                FROM bookings b
+                WHERE b.tour_id = :tour_id
+                AND b.status NOT IN ('hoan_tat', 'da_huy')
+                AND b.id NOT IN (
+                    SELECT DISTINCT booking_id 
+                    FROM tour_assignments 
+                    WHERE status = 'active' 
+                    AND booking_id IS NOT NULL
+                )";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(['tour_id' => $tourId]);
+            $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($bookings)) {
+                echo json_encode(['success' => false, 'message' => 'Không có booking nào để gán']);
+                exit;
+            }
+
+            // Gán tất cả booking cho HDV
+            $assignedCount = 0;
+            foreach ($bookings as $booking) {
+                $result = $tourAssignmentModel->insert([
+                    'guide_id' => $guideId,
+                    'tour_id' => $tourId,
+                    'booking_id' => $booking['id'],
+                    'start_date' => $booking['booking_date'],
+                    'status' => 'active'
+                ]);
+
+                if ($result) {
+                    $assignedCount++;
+                }
+            }
+
+            if ($assignedCount > 0) {
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Nhận tour thành công! Tour đã được thêm vào danh sách của bạn.'
+                    'message' => "Nhận tour thành công! Đã gán {$assignedCount} booking cho bạn. Tổng {$totalCustomers} khách."
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không thể nhận tour']);
