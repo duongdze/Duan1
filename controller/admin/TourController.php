@@ -88,10 +88,6 @@ class TourController
         $categoryModel = new TourCategory();
         $categories = $categoryModel->select();
 
-        // Load tour versions for version dropdown
-        $versionModel = new TourVersion();
-        $versions = $versionModel->getAllVersions();
-
         require_once PATH_VIEW_ADMIN . 'pages/tours/create.php';
     }
 
@@ -127,7 +123,6 @@ class TourController
                 'category_id' => (int)$_POST['category_id'],
                 'description' => trim($_POST['description'] ?? ''),
                 'base_price' => (float)$_POST['base_price'],
-                'tour_version_id' => !empty($_POST['tour_version_id']) ? (int)$_POST['tour_version_id'] : null,
             ];
 
             // Handle image uploads with security checks
@@ -185,11 +180,8 @@ class TourController
             $partners = json_decode($_POST['tour_partners'] ?? '[]', true);
             $policyIds = $_POST['policies'] ?? [];
 
-            // Handle versions - Passed to createTour now
-            $versions = json_decode($_POST['tour_versions'] ?? '[]', true);
-
             // Create tour with all related data including versions
-            $tourId = $this->model->createTour($tourData, $pricingOptions, $dynamicPricing, $itineraries, $partners, $uploadedImages, $policyIds, $versions);
+            $tourId = $this->model->createTour($tourData, $pricingOptions, $dynamicPricing, $itineraries, $partners, $uploadedImages, $policyIds);
 
             $_SESSION['success'] = 'Tour đã được tạo thành công!';
             header('Location: ' . BASE_URL_ADMIN . '&action=tours');
@@ -234,8 +226,6 @@ class TourController
         $pricingModel = new TourPricing();
         $pricingOptions = $pricingModel->getByTourId($id);
 
-        // TODO: Dynamic pricing now uses version_id/departure_id instead of tour_id
-        // $dynamicPricingModel = new TourDynamicPricing();
         $dynamicPricing = []; // Temporarily empty until we update the logic
 
         $itineraryModel = new TourItinerary();
@@ -261,10 +251,6 @@ class TourController
                 'main' => !empty($img['main_img']) ? 1 : 0,
             ];
         }, $images ?: []);
-
-        // Load versions (tour_versions is a standalone table, not related to specific tour)
-        $versionModel = new TourVersion();
-        $versions = $versionModel->getAllVersions(); // Load all versions for dropdown
 
         require_once PATH_VIEW_ADMIN . 'pages/tours/edit.php';
     }
@@ -299,7 +285,6 @@ class TourController
                 'category_id' => (int)$_POST['category_id'],
                 'description' => $_POST['description'] ?? '',
                 'base_price' => (float)$_POST['base_price'],
-                'tour_version_id' => !empty($_POST['tour_version_id']) ? (int)$_POST['tour_version_id'] : null,
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
 
@@ -569,28 +554,6 @@ class TourController
                 ]);
             }
 
-            // Handle versions (tour_versions is a standalone table, not related to specific tour)
-            // Tour versions are managed separately through their own CRUD interface
-            // $versionModel = new TourVersion();
-            // $versionModel->delete('tour_id = :tid', ['tid' => $id]);
-
-            // $versions = json_decode($_POST['tour_versions'] ?? '[]', true);
-            // if (!empty($versions) && is_array($versions)) {
-            //     foreach ($versions as $v) {
-            //         if (!empty($v['name'])) {
-            //             $versionModel->insert([
-            //                 'tour_id' => $id,
-            //                 'name' => $v['name'],
-            //                 'start_date' => !empty($v['start_date']) ? $v['start_date'] : null,
-            //                 'end_date' => !empty($v['end_date']) ? $v['end_date'] : null,
-            //                 'price' => (float)($v['price'] ?? 0),
-            //                 'notes' => $v['notes'] ?? '',
-            //                 'created_at' => date('Y-m-d H:i:s')
-            //             ]);
-            //         }
-            //     }
-            // }
-
             $this->model->commit();
 
             $_SESSION['success'] = 'Cập nhật tour thành công.';
@@ -643,10 +606,9 @@ class TourController
         // Load main tour with category name and version info using custom query
         $pdo = BaseModel::getPdo();
         $stmt = $pdo->prepare("
-            SELECT t.*, tc.name as category_name, tv.name as version_name, tv.description as version_description
+            SELECT t.*, tc.name as category_name
             FROM tours t 
             LEFT JOIN tour_categories tc ON t.category_id = tc.id 
-            LEFT JOIN tour_versions tv ON t.tour_version_id = tv.id
             WHERE t.id = :id
         ");
         $stmt->execute(['id' => $id]);
@@ -702,30 +664,6 @@ class TourController
         }
         if (!isset($tour['booking_count'])) {
             $stmt = BaseModel::getPdo()->prepare("SELECT COUNT(*) as bc FROM bookings WHERE tour_id = :tid");
-            $stmt->execute(['tid' => $id]);
-            $tour['booking_count'] = $stmt->fetch()['bc'] ?? 0;
-        }
-
-
-        // Load versions/departures
-        $departureModel = new class extends BaseModel {
-            protected $table = 'tour_departures';
-        };
-        $versions = $departureModel->select('*', 'tour_id = :tour_id ORDER BY departure_date DESC', ['tour_id' => $id]);
-
-        // Normalize commonly expected fields for the detail view
-        $tour['subtitle'] = $tour['subtitle'] ?? ($tour['short_description'] ?? '');
-        $tour['duration'] = $tour['duration'] ?? ($tour['days'] ?? '');
-        $tour['capacity'] = $tour['capacity'] ?? ($tour['seats'] ?? '');
-        $tour['start_date'] = $tour['start_date'] ?? ($tour['next_start_date'] ?? '');
-
-        require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
-    }
-
-    /**
-     * Toggle tour status (AJAX endpoint)
-     */
-    public function toggleStatus()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['_method']) || $_POST['_method'] !== 'PATCH') {
             http_response_code(405);
