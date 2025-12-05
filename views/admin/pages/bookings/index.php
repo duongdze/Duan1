@@ -430,8 +430,99 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     });
 
     function resetFilters() {
-        window.location.href = '<?= BASE_URL_ADMIN ?>&action=bookings';
+        document.getElementById('booking-filters').reset();
+        filterBookings();
     }
+
+    function filterBookings() {
+        const keyword = document.querySelector('[name="keyword"]').value.toLowerCase();
+        const status = document.querySelector('[name="status"]').value;
+        const dateFrom = document.querySelector('[name="date_from"]').value;
+        const dateTo = document.querySelector('[name="date_to"]').value;
+        const sortBy = document.querySelector('[name="sort_by"]').value;
+        const sortDir = document.querySelector('[name="sort_dir"]').value;
+
+        const tbody = document.querySelector('.table-modern tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        // Filter rows
+        let filteredRows = rows.filter(row => {
+            const customerName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const tourName = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            const rowStatus = row.querySelector('.badge-modern').textContent.trim();
+            const bookingDate = row.querySelector('td:nth-child(4)').textContent.trim();
+
+            // Filter by keyword
+            if (keyword && !customerName.includes(keyword) && !tourName.includes(keyword)) {
+                return false;
+            }
+
+            // Filter by status
+            if (status) {
+                const statusMap = {
+                    'cho_xac_nhan': 'Chờ Xác Nhận',
+                    'da_coc': 'Đã Cọc',
+                    'hoan_tat': 'Hoàn Tất',
+                    'da_huy': 'Đã Hủy'
+                };
+                if (rowStatus !== statusMap[status]) {
+                    return false;
+                }
+            }
+
+            // Filter by date range
+            if (dateFrom || dateTo) {
+                const dateParts = bookingDate.split('/');
+                if (dateParts.length === 3) {
+                    const rowDate = dateParts[2] + '-' + dateParts[1] + '-' + dateParts[0];
+                    if (dateFrom && rowDate < dateFrom) return false;
+                    if (dateTo && rowDate > dateTo) return false;
+                }
+            }
+
+            return true;
+        });
+
+        // Sort rows
+        if (sortBy) {
+            filteredRows.sort((a, b) => {
+                let aVal, bVal;
+                if (sortBy === 'booking_date') {
+                    const aDate = a.querySelector('td:nth-child(4)').textContent.trim();
+                    const bDate = b.querySelector('td:nth-child(4)').textContent.trim();
+                    aVal = aDate.split('/').reverse().join('');
+                    bVal = bDate.split('/').reverse().join('');
+                } else if (sortBy === 'total_price') {
+                    aVal = parseInt(a.querySelector('td:nth-child(5)').textContent.replace(/[^\d]/g, ''));
+                    bVal = parseInt(b.querySelector('td:nth-child(5)').textContent.replace(/[^\d]/g, ''));
+                } else if (sortBy === 'customer_name') {
+                    aVal = a.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    bVal = b.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                }
+                return sortDir === 'ASC' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+            });
+        }
+
+        // Hide all rows
+        rows.forEach(row => row.style.display = 'none');
+
+        // Show filtered rows
+        filteredRows.forEach(row => row.style.display = '');
+
+        // Update count
+        const countElement = document.querySelector('.count-info');
+        if (countElement) {
+            countElement.textContent = filteredRows.length + ' booking';
+        }
+    }
+
+    // Add event listener to form submit
+    document.getElementById('booking-filters').addEventListener('submit', function(e) {
+        e.preventDefault();
+        filterBookings();
+    });
 </script>
 
 <?php
