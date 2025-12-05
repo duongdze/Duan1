@@ -141,8 +141,25 @@ match ($action) {
     'suppliers/store'                       => (new SupplierController)->store(),
 
     // Reports
-    'reports'                               => (new ReportController)->index(),
-    'reports/financial'                     => (new ReportController)->financial(),
-    'reports/bookings'                      => (new ReportController)->bookings(),
-    'reports/feedback'                      => (new ReportController)->feedback(),
+    'reports'              => (new ReportController)->index(),
+    'reports/financial'    => (new ReportController)->financial(),
+    'reports/bookings'     => (new ReportController)->bookings(),
+    'reports/feedback'     => (new ReportController)->feedback(),
+
+    // Chính sách 
+    'policies'             => (new PolicyController)->index(),
+    'policies/create'             => (new PolicyController)->create(),
+    'policies/store'             => (new PolicyController)->store(),
+    'policies/edit'             => (new PolicyController)->edit(),
+    'policies/update'             => (new PolicyController)->update(),
+    'policies/delete'             => (new PolicyController)->delete(),
+
+    // Nhà cung cấp
+    'suppliers'             => (new SupplierController)->index(),
+    'suppliers/create'             => (new SupplierController)->create(),
+    'suppliers/store'             => (new SupplierController)->store(),
+    'suppliers/edit'             => (new SupplierController)->edit(),
+    'suppliers/update'             => (new SupplierController)->update(),
+    'suppliers/delete'             => (new SupplierController)->delete(),
+    'suppliers/detail'             => (new SupplierController)->detail(),
 };

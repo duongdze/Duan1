@@ -19,11 +19,11 @@ $currentAction = $_GET['action'] ?? '';
 
 <aside class="sidebar vh-100 border-end bg-light">
     <div class="p-3">
-        <h4 class="fw-bold text-center">Tour Admin</h4>
+        <h4 class="fw-bold text-center">Trang Quản Trị</h4>
     </div>
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a class="nav-link <?= empty($currentAction) ? 'active' : '' ?>" href="<?= BASE_URL_ADMIN ?>">
+            <a class="nav-link <?= $currentAction === 'dashboard' || empty($currentAction) ? 'active' : '' ?>" href="<?= BASE_URL_ADMIN ?>&action=/">
                 <i class="fas fa-tachometer-alt fa-fw me-2"></i> Tổng quan
             </a>
         </li>
@@ -48,12 +48,22 @@ $currentAction = $_GET['action'] ?? '';
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('tours_categories') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_categories">
-                            <i class="fas fa-list fa-fw me-2"></i> Danh mục Tour
+                            <i class=""></i> Danh mục Tour
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('tours_versions') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_versions">
-                            <i class="fas fa-list fa-fw me-2"></i> Phiên bản Tour
+                            <i class=""></i> Phiên bản Tour
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('policies') ?>" href="<?= BASE_URL_ADMIN ?>&action=policies">
+                            <i class=""></i> Chính sách
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= isActive('suppliers') ?>" href="<?= BASE_URL_ADMIN ?>&action=suppliers">
+                            <i class=""></i> Nhà cung cấp
                         </a>
                     </li>
                     <li class="nav-item">
@@ -174,11 +184,6 @@ $currentAction = $_GET['action'] ?? '';
             </a>
             <div class="collapse <?= isParentActive('reports') ?>" id="reportsMenu">
                 <ul class="nav flex-column ms-3">
-                    <li class="nav-item">
-                        <a class="nav-link <?= isActive('reports') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports">
-                            <i class="fas fa-tachometer-alt fa-fw me-2"></i> Tổng quan
-                        </a>
-                    </li>
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('reports/financial') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports/financial">
                             <i class="fas fa-dollar-sign fa-fw me-2"></i> Báo cáo tài chính
