@@ -390,7 +390,7 @@ class BookingController
         // Lấy dữ liệu từ form
         $data = [
             'booking_id' => $bookingId,
-            'name' => $_POST['name'] ?? '',
+            'full_name' => $_POST['name'] ?? '',
             'gender' => $_POST['gender'] ?? null,
             'birth_date' => $_POST['birth_date'] ?? null,
             'phone' => $_POST['phone'] ?? null,
@@ -399,7 +399,7 @@ class BookingController
             'special_request' => $_POST['special_request'] ?? null
         ];
         // Validate
-        if (empty($data['name'])) {
+        if (empty($data['full_name'])) {
             echo json_encode(['success' => false, 'message' => 'Vui lòng nhập họ tên khách']);
             exit;
         }
@@ -441,7 +441,7 @@ class BookingController
         }
         // Lấy dữ liệu từ form
         $data = [
-            'name' => $_POST['name'] ?? '',
+            'full_name' => $_POST['name'] ?? '',
             'gender' => $_POST['gender'] ?? null,
             'birth_date' => $_POST['birth_date'] ?? null,
             'phone' => $_POST['phone'] ?? null,
@@ -451,7 +451,7 @@ class BookingController
         ];
 
         // Validate
-        if (empty($data['name'])) {
+        if (empty($data['full_name'])) {
             echo json_encode(['success' => false, 'message' => 'Vui lòng nhập họ tên khách']);
             exit;
         }
@@ -498,6 +498,49 @@ class BookingController
             echo json_encode([
                 'success' => true,
                 'message' => 'Xóa khách đi kèm thành công'
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Cập nhật yêu cầu đặc biệt (dành cho HDV)
+     * AJAX endpoint
+     */
+    public function updateSpecialRequest()
+    {
+        header('Content-Type: application/json');
+
+        $companionId = $_POST['companion_id'] ?? null;
+        $bookingId = $_POST['booking_id'] ?? null;
+        $specialRequest = $_POST['special_request'] ?? '';
+
+        if (!$companionId || !$bookingId) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin']);
+            exit;
+        }
+
+        // Kiểm tra quyền - HDV chỉ được sửa booking được phân công
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $userId = $_SESSION['user']['user_id'] ?? null;
+
+        if (!$this->model->canUserEditBooking($bookingId, $userId, $userRole)) {
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền cập nhật yêu cầu này']);
+            exit;
+        }
+
+        // Cập nhật special_request
+        try {
+            $companionModel = new BookingCustomer();
+            $companionModel->update([
+                'special_request' => $specialRequest
+            ], 'id = :id', ['id' => $companionId]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Cập nhật yêu cầu đặc biệt thành công'
             ]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);

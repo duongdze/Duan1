@@ -692,6 +692,12 @@ class TourController
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Internal server error']);
         }
+        $stmt->execute(['tid' => $id]);
+        $tour['booking_count'] = $stmt->fetch()['bc'] ?? 0;
+    }
+
+    require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
+}
     }
 
     /**

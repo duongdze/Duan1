@@ -295,10 +295,23 @@ $canEdit = $bookingModel->canUserEditBooking($booking['id'], $userId, $userRole)
                                                         <div><?= htmlspecialchars($companion['room_type']) ?></div>
                                                     </div>
                                                 <?php endif; ?>
-                                                <?php if (!empty($companion['special_request'])): ?>
+                                                <?php if (!empty($companion['special_request']) || $canEdit): ?>
                                                     <div class="col-12">
                                                         <small class="text-muted">Yêu cầu đặc biệt:</small>
-                                                        <div><?= htmlspecialchars($companion['special_request']) ?></div>
+                                                        <div class="d-flex align-items-start">
+                                                            <div class="flex-grow-1" id="special-request-<?= $companion['id'] ?>">
+                                                                <?= !empty($companion['special_request']) ? htmlspecialchars($companion['special_request']) : '<span class="text-muted">Chưa có</span>' ?>
+                                                            </div>
+                                                            <?php if ($canEdit): ?>
+                                                                <button class="btn btn-sm btn-outline-primary ms-2 edit-special-request-btn"
+                                                                    data-companion-id="<?= $companion['id'] ?>"
+                                                                    data-booking-id="<?= $booking['id'] ?>"
+                                                                    data-current-request="<?= htmlspecialchars($companion['special_request'] ?? '') ?>"
+                                                                    title="Sửa yêu cầu đặc biệt">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </button>
+                                                            <?php endif; ?>
+                                                        </div>
                                                     </div>
                                                 <?php endif; ?>
                                             </div>
@@ -476,7 +489,106 @@ $canEdit = $bookingModel->canUserEditBooking($booking['id'], $userId, $userRole)
             </div>
         </div>
     </div>
+    <div class="modal fade" id="specialRequestModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cập Nhật Yêu Cầu Đặc Biệt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="specialRequestForm">
+                        <input type="hidden" id="sr-companion-id">
+                        <input type="hidden" id="sr-booking-id">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Yêu cầu đặc biệt</label>
+                            <textarea class="form-control" id="sr-special-request" rows="4"
+                                placeholder="Ví dụ: Ăn chay, dị ứng hải sản, cần xe lăn..."></textarea>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Ghi chú các yêu cầu đặc biệt của khách để phục vụ tốt hơn
+                            </small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="saveSpecialRequestBtn">
+                        <i class="fas fa-save me-1"></i>Lưu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
+
+<script>
+    // Special Request Update
+    document.addEventListener('DOMContentLoaded', function() {
+        const specialRequestModal = new bootstrap.Modal(document.getElementById('specialRequestModal'));
+
+        // Open modal
+        document.querySelectorAll('.edit-special-request-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const companionId = this.dataset.companionId;
+                const bookingId = this.dataset.bookingId;
+                const currentRequest = this.dataset.currentRequest;
+
+                document.getElementById('sr-companion-id').value = companionId;
+                document.getElementById('sr-booking-id').value = bookingId;
+                document.getElementById('sr-special-request').value = currentRequest;
+
+                specialRequestModal.show();
+            });
+        });
+
+        // Save special request
+        document.getElementById('saveSpecialRequestBtn').addEventListener('click', function() {
+            const companionId = document.getElementById('sr-companion-id').value;
+            const bookingId = document.getElementById('sr-booking-id').value;
+            const specialRequest = document.getElementById('sr-special-request').value;
+
+            // AJAX call
+            fetch('<?= BASE_URL_ADMIN ?>&action=bookings/updateSpecialRequest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        companion_id: companionId,
+                        booking_id: bookingId,
+                        special_request: specialRequest
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update UI
+                        const displayElement = document.getElementById('special-request-' + companionId);
+                        if (displayElement) {
+                            displayElement.innerHTML = specialRequest || '<span class="text-muted">Chưa có</span>';
+                        }
+
+                        // Update button data
+                        const btn = document.querySelector(`[data-companion-id="${companionId}"]`);
+                        if (btn) {
+                            btn.dataset.currentRequest = specialRequest;
+                        }
+
+                        // Show success message
+                        alert(data.message);
+                        specialRequestModal.hide();
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi cập nhật');
+                });
+        });
+    });
+</script>
 
 <style>
     .info-item {
