@@ -23,4 +23,17 @@ class TourPolicyAssignment extends BaseModel
         $stmt->execute(['tour_id' => $tourId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getByPolicyId($policyId)
+    {
+        $sql = "SELECT tpa.*, t.name as tour_name
+                FROM {$this->table} tpa
+                JOIN tours t ON tpa.tour_id = t.id
+                WHERE tpa.policy_id = :policy_id
+                ORDER BY tpa.id ASC";
+        
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['policy_id' => $policyId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

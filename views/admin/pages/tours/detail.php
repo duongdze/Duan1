@@ -392,34 +392,6 @@ if (empty($galleryUrls)) {
                         </div>
                     </div>
                 </div>
-                <!-- Tour Version Info Card -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-tags text-warning me-2"></i>
-                            Phiên bản Tour
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <?php if (!empty($tour['version_name'])): ?>
-                            <div class="alert alert-info d-flex align-items-center">
-                                <i class="fas fa-info-circle me-3"></i>
-                                <div>
-                                    <h6 class="mb-1"><?= htmlspecialchars($tour['version_name']) ?></h6>
-                                    <?php if (!empty($tour['version_description'])): ?>
-                                        <p class="mb-0 small text-muted"><?= htmlspecialchars($tour['version_description']) ?></p>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <div class="text-center text-muted py-3">
-                                <i class="fas fa-exclamation-circle fa-2x mb-2"></i>
-                                <h6>Chưa gán phiên bản</h6>
-                                <p class="mb-0 small">Tour này chưa được gán phiên bản cụ thể.</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
                 <script>
                     function openLightbox(index) {
                         // Create lightbox overlay

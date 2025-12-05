@@ -1,762 +1,481 @@
 <?php
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
-include_once PATH_VIEW_ADMIN . 'components/advanced_filters.php';
+
+// Get data from controller
+$dashboardData = $data['dashboardData'] ?? [];
+$period = $data['period'] ?? '30';
+$dateRange = $data['dateRange'] ?? [];
+
+$financial = $dashboardData['financial'] ?? [];
+$bookings = $dashboardData['bookings'] ?? [];
+$conversion = $dashboardData['conversion'] ?? [];
+$feedback = $dashboardData['feedback'] ?? [];
 ?>
 
-<main class="wrapper">
-    <div class="main-content">
-        <div class="page-header">
-            <h1 class="h2">Dashboard Tổng quan</h1>
-            <p class="text-muted">Tổng quan tất cả các chỉ số KPI và hiệu suất kinh doanh</p>
-        </div>
-
-        <!-- Quick Filters -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Khoảng thời gian</label>
-                        <select class="form-select" id="dashboard_period" onchange="updateDashboard()">
-                            <option value="7">7 ngày qua</option>
-                            <option value="30" selected>30 ngày qua</option>
-                            <option value="90">90 ngày qua</option>
-                            <option value="this_month">Tháng này</option>
-                            <option value="last_month">Tháng trước</option>
-                            <option value="this_quarter">Quý này</option>
-                            <option value="this_year">Năm nay</option>
-                        </select>
+<main class="dashboard">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="breadcrumb-modern">
+                        <a href="<?= BASE_URL_ADMIN ?>&action=/" class="breadcrumb-link">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <a href="<?= BASE_URL_ADMIN ?>&action=reports" class="breadcrumb-link">
+                            <span>Báo Cáo</span>
+                        </a>
+                        <span class="breadcrumb-separator">
+                            <i class="fas fa-chevron-right"></i>
+                        </span>
+                        <span class="breadcrumb-current">Tổng Quan</span>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Refresh</label>
-                        <button type="button" class="btn btn-primary w-100" onclick="updateDashboard()">
-                            <i class="fas fa-sync-alt me-2"></i>Làm mới dữ liệu
+                    <div class="page-title-section">
+                        <h1 class="page-title">
+                            <i class="fas fa-chart-pie title-icon"></i>
+                            Dashboard Tổng Quan
+                        </h1>
+                        <p class="page-subtitle">Theo dõi các chỉ số kinh doanh quan trọng</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>
+                        In Báo Cáo
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Period Filter -->
+        <section class="period-filter-section">
+            <div class="filter-card">
+                <form method="GET" action="<?= BASE_URL_ADMIN . '&action=reports/dashboard' ?>" class="period-filter-form">
+                    <input type="hidden" name="action" value="reports/dashboard">
+                    <div class="period-buttons">
+                        <button type="submit" name="period" value="7" class="period-btn <?= $period == '7' ? 'active' : '' ?>">
+                            7 Ngày
+                        </button>
+                        <button type="submit" name="period" value="30" class="period-btn <?= $period == '30' ? 'active' : '' ?>">
+                            30 Ngày
+                        </button>
+                        <button type="submit" name="period" value="90" class="period-btn <?= $period == '90' ? 'active' : '' ?>">
+                            90 Ngày
+                        </button>
+                        <button type="submit" name="period" value="this_month" class="period-btn <?= $period == 'this_month' ? 'active' : '' ?>">
+                            Tháng Này
+                        </button>
+                        <button type="submit" name="period" value="this_quarter" class="period-btn <?= $period == 'this_quarter' ? 'active' : '' ?>">
+                            Quý Này
+                        </button>
+                        <button type="submit" name="period" value="this_year" class="period-btn <?= $period == 'this_year' ? 'active' : '' ?>">
+                            Năm Này
                         </button>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Export</label>
-                        <div class="btn-group w-100">
-                            <button type="button" class="btn btn-outline-success" onclick="exportDashboard('excel')">
-                                <i class="fas fa-file-excel me-2"></i>Excel
-                            </button>
-                            <button type="button" class="btn btn-outline-danger" onclick="exportDashboard('pdf')">
-                                <i class="fas fa-file-pdf me-2"></i>PDF
-                            </button>
-                            <button type="button" class="btn btn-outline-info" onclick="printDashboard()">
-                                <i class="fas fa-print me-2"></i>In
-                            </button>
+                    <?php if (!empty($dateRange)): ?>
+                        <div class="date-range-display">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span><?= date('d/m/Y', strtotime($dateRange['from'])) ?> - <?= date('d/m/Y', strtotime($dateRange['to'])) ?></span>
                         </div>
-                    </div>
-                </div>
+                    <?php endif; ?>
+                </form>
             </div>
-        </div>
+        </section>
 
-        <!-- Main KPI Cards -->
-        <div class="row mb-4">
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card kpi-card border-start border-primary border-4">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="kpi-label text-primary">Doanh thu</div>
-                                <div class="kpi-value h3"><?= number_format($dashboardData['financial']['total_revenue'] ?? 0, 0, ',', '.') ?> VNĐ</div>
-                                <small class="<?= ($dashboardData['financial']['revenue_growth'] ?? 0) >= 0 ? 'text-success' : 'text-danger' ?>">
-                                    <i class="fas fa-arrow-<?= ($dashboardData['financial']['revenue_growth'] ?? 0) >= 0 ? 'up' : 'down' ?>"></i>
-                                    <?= number_format($dashboardData['financial']['revenue_growth'] ?? 0, 1) ?>%
-                                </small>
+        <!-- KPI Cards -->
+        <section class="kpi-section">
+            <div class="kpi-grid">
+                <!-- Revenue Card -->
+                <div class="kpi-card kpi-success">
+                    <div class="kpi-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Tổng Doanh Thu</div>
+                        <div class="kpi-value"><?= number_format($financial['total_revenue'] ?? 0, 0, ',', '.') ?> ₫</div>
+                        <?php if (isset($financial['revenue_growth'])): ?>
+                            <div class="kpi-trend <?= $financial['revenue_growth'] >= 0 ? 'trend-up' : 'trend-down' ?>">
+                                <i class="fas fa-arrow-<?= $financial['revenue_growth'] >= 0 ? 'up' : 'down' ?>"></i>
+                                <span><?= number_format(abs($financial['revenue_growth']), 1) ?>%</span>
+                                <small>so với kỳ trước</small>
                             </div>
-                            <div class="kpi-icon bg-primary bg-opacity-10">
-                                <i class="fas fa-dollar-sign text-primary"></i>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card kpi-card border-start border-success border-4">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="kpi-label text-success">Bookings</div>
-                                <div class="kpi-value h3"><?= number_format($dashboardData['bookings']['total_bookings'] ?? 0) ?></div>
-                                <small class="<?= ($dashboardData['bookings']['booking_growth'] ?? 0) >= 0 ? 'text-success' : 'text-danger' ?>">
-                                    <i class="fas fa-arrow-<?= ($dashboardData['bookings']['booking_growth'] ?? 0) >= 0 ? 'up' : 'down' ?>"></i>
-                                    <?= number_format($dashboardData['bookings']['booking_growth'] ?? 0, 1) ?>%
-                                </small>
+                <!-- Expense Card -->
+                <div class="kpi-card kpi-danger">
+                    <div class="kpi-icon">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Tổng Chi Phí</div>
+                        <div class="kpi-value"><?= number_format($financial['total_expense'] ?? 0, 0, ',', '.') ?> ₫</div>
+                        <?php if (isset($financial['expense_growth'])): ?>
+                            <div class="kpi-trend <?= $financial['expense_growth'] <= 0 ? 'trend-up' : 'trend-down' ?>">
+                                <i class="fas fa-arrow-<?= $financial['expense_growth'] >= 0 ? 'up' : 'down' ?>"></i>
+                                <span><?= number_format(abs($financial['expense_growth']), 1) ?>%</span>
+                                <small>so với kỳ trước</small>
                             </div>
-                            <div class="kpi-icon bg-success bg-opacity-10">
-                                <i class="fas fa-calendar-check text-success"></i>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card kpi-card border-start border-warning border-4">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="kpi-label text-warning">Tỷ lệ Chuyển đổi</div>
-                                <div class="kpi-value h3"><?= number_format($dashboardData['conversion']['booking_to_payment'] ?? 0, 1) ?>%</div>
-                                <small class="<?= ($dashboardData['conversion']['conversion_growth'] ?? 0) >= 0 ? 'text-success' : 'text-danger' ?>">
-                                    <i class="fas fa-arrow-<?= ($dashboardData['conversion']['conversion_growth'] ?? 0) >= 0 ? 'up' : 'down' ?>"></i>
-                                    <?= number_format($dashboardData['conversion']['conversion_growth'] ?? 0, 1) ?>%
-                                </small>
+                <!-- Profit Card -->
+                <div class="kpi-card kpi-primary">
+                    <div class="kpi-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Lợi Nhuận</div>
+                        <div class="kpi-value"><?= number_format($financial['profit'] ?? 0, 0, ',', '.') ?> ₫</div>
+                        <?php if (isset($financial['profit_growth'])): ?>
+                            <div class="kpi-trend <?= $financial['profit_growth'] >= 0 ? 'trend-up' : 'trend-down' ?>">
+                                <i class="fas fa-arrow-<?= $financial['profit_growth'] >= 0 ? 'up' : 'down' ?>"></i>
+                                <span><?= number_format(abs($financial['profit_growth']), 1) ?>%</span>
+                                <small>so với kỳ trước</small>
                             </div>
-                            <div class="kpi-icon bg-warning bg-opacity-10">
-                                <i class="fas fa-percentage text-warning"></i>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card kpi-card border-start border-info border-4">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="kpi-label text-info">Đánh giá TB</div>
-                                <div class="kpi-value h3"><?= number_format($dashboardData['feedback']['avg_rating'] ?? 0, 1) ?></div>
-                                <small class="<?= ($dashboardData['feedback']['rating_growth'] ?? 0) >= 0 ? 'text-success' : 'text-danger' ?>">
-                                    <i class="fas fa-arrow-<?= ($dashboardData['feedback']['rating_growth'] ?? 0) >= 0 ? 'up' : 'down' ?>"></i>
-                                    <?= number_format($dashboardData['feedback']['rating_growth'] ?? 0, 1) ?>%
-                                </small>
+                <!-- Bookings Card -->
+                <div class="kpi-card kpi-info">
+                    <div class="kpi-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <div class="kpi-label">Tổng Booking</div>
+                        <div class="kpi-value"><?= number_format($bookings['total_bookings'] ?? 0) ?></div>
+                        <?php if (isset($bookings['booking_growth'])): ?>
+                            <div class="kpi-trend <?= $bookings['booking_growth'] >= 0 ? 'trend-up' : 'trend-down' ?>">
+                                <i class="fas fa-arrow-<?= $bookings['booking_growth'] >= 0 ? 'up' : 'down' ?>"></i>
+                                <span><?= number_format(abs($bookings['booking_growth']), 1) ?>%</span>
+                                <small>so với kỳ trước</small>
                             </div>
-                            <div class="kpi-icon bg-info bg-opacity-10">
-                                <i class="fas fa-star text-info"></i>
-                            </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Secondary KPI Row -->
-        <div class="row mb-4">
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card kpi-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="kpi-label text-muted">Lợi nhuận</div>
-                                <div class="kpi-value h4 <?= ($dashboardData['financial']['profit'] ?? 0) >= 0 ? 'text-success' : 'text-danger' ?>">
-                                    <?= number_format($dashboardData['financial']['profit'] ?? 0, 0, ',', '.') ?>
-                                </div>
-                                <small class="text-muted">
-                                    <?= number_format($dashboardData['financial']['profit_margin'] ?? 0, 1) ?>% margin
-                                </small>
-                            </div>
-                            <div class="kpi-icon bg-light">
-                                <i class="fas fa-chart-line text-muted"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card kpi-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="kpi-label text-muted">Khách hàng</div>
-                                <div class="kpi-value h4"><?= number_format($dashboardData['bookings']['total_customers'] ?? 0) ?></div>
-                                <small class="text-muted">
-                                    <?= number_format($dashboardData['bookings']['avg_customers_per_booking'] ?? 0, 1) ?>/booking
-                                </small>
-                            </div>
-                            <div class="kpi-icon bg-light">
-                                <i class="fas fa-users text-muted"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card kpi-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="kpi-label text-muted">Tours hoạt động</div>
-                                <div class="kpi-value h4"><?= number_format($dashboardData['tours']['active_tours'] ?? 0) ?></div>
-                                <small class="text-muted">
-                                    <?= number_format($dashboardData['tours']['total_tours'] ?? 0) ?> tổng
-                                </small>
-                            </div>
-                            <div class="kpi-icon bg-light">
-                                <i class="fas fa-map-marked-alt text-muted"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6 mb-3">
-                <div class="card kpi-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="kpi-label text-muted">Phản hồi</div>
-                                <div class="kpi-value h4"><?= number_format($dashboardData['feedback']['total_feedbacks'] ?? 0) ?></div>
-                                <small class="text-muted">
-                                    <?= number_format($dashboardData['feedback']['feedback_rate'] ?? 0, 1) ?>% rate
-                                </small>
-                            </div>
-                            <div class="kpi-icon bg-light">
-                                <i class="fas fa-comments text-muted"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </section>
 
         <!-- Charts Row 1 -->
-        <div class="row mb-4">
-            <div class="col-lg-8 mb-4">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Xu hướng Doanh thu & Bookings</h5>
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-primary active" onclick="updateTrendChart('revenue')">Doanh thu</button>
-                            <button type="button" class="btn btn-outline-primary" onclick="updateTrendChart('bookings')">Bookings</button>
-                            <button type="button" class="btn btn-outline-primary" onclick="updateTrendChart('profit')">Lợi nhuận</button>
-                        </div>
+        <section class="charts-section">
+            <div class="charts-row">
+                <!-- Trend Chart -->
+                <div class="chart-card chart-card-large">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-area"></i>
+                            Xu Hướng Doanh Thu & Lợi Nhuận
+                        </h3>
                     </div>
-                    <div class="card-body">
-                        <canvas id="trendChart" height="100"></canvas>
+                    <div class="chart-body">
+                        <canvas id="trendChart"></canvas>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-4 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Phân bố Doanh thu</h5>
+                <!-- Revenue Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Doanh Thu Theo Danh Mục
+                        </h3>
                     </div>
-                    <div class="card-body">
-                        <canvas id="revenueDistributionChart" height="150"></canvas>
+                    <div class="chart-body">
+                        <canvas id="revenueDistributionChart"></canvas>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Charts Row 2 -->
-        <div class="row mb-4">
-            <div class="col-lg-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Tỷ lệ Chuyển đổi theo Nguồn</h5>
+        <section class="charts-section">
+            <div class="charts-row">
+                <!-- Conversion by Source -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-funnel-dollar"></i>
+                            Chuyển Đổi Theo Nguồn
+                        </h3>
                     </div>
-                    <div class="card-body">
-                        <canvas id="conversionBySourceChart" height="120"></canvas>
+                    <div class="chart-body">
+                        <canvas id="conversionSourceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Rating Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-star"></i>
+                            Phân Bổ Đánh Giá
+                        </h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="ratingChart"></canvas>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <div class="col-lg-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Phân phối Đánh giá</h5>
+        <!-- Top Tours & Activities Row -->
+        <section class="data-section">
+            <div class="data-row">
+                <!-- Top Tours Table -->
+                <div class="data-card">
+                    <div class="data-header">
+                        <h3 class="data-title">
+                            <i class="fas fa-trophy"></i>
+                            Top Tours Theo Doanh Thu
+                        </h3>
                     </div>
-                    <div class="card-body">
-                        <canvas id="ratingDistributionChart" height="120"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top Performers Tables -->
-        <div class="row mb-4">
-            <div class="col-lg-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Top Tours theo Doanh thu</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Tour</th>
-                                        <th class="text-right">Bookings</th>
-                                        <th class="text-right">Doanh thu</th>
-                                        <th class="text-right">Lợi nhuận</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (isset($dashboardData['top_revenue_tours'])): ?>
-                                        <?php foreach (array_slice($dashboardData['top_revenue_tours'], 0, 5) as $tour): ?>
+                    <div class="data-body">
+                        <?php if (!empty($dashboardData['top_revenue_tours'])): ?>
+                            <div class="table-responsive">
+                                <table class="table table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Tên Tour</th>
+                                            <th>Doanh Thu</th>
+                                            <th>Lợi Nhuận</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach (array_slice($dashboardData['top_revenue_tours'], 0, 5) as $index => $tour): ?>
                                             <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="avatar-sm bg-light rounded-circle me-2">
-                                                            <i class="fas fa-map-marked-alt text-primary"></i>
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-medium"><?= htmlspecialchars($tour['tour_name']) ?></div>
-                                                            <small class="text-muted"><?= htmlspecialchars($tour['category_name'] ?? '') ?></small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-right">
-                                                    <span class="badge bg-info"><?= $tour['booking_count'] ?></span>
-                                                </td>
-                                                <td class="text-right">
-                                                    <span class="text-success fw-medium">
-                                                        <?= number_format($tour['revenue'], 0, ',', '.') ?>
-                                                    </span>
-                                                </td>
-                                                <td class="text-right">
-                                                    <span class="<?= ($tour['profit'] ?? 0) >= 0 ? 'text-success' : 'text-danger' ?> fw-medium">
-                                                        <?= number_format($tour['profit'] ?? 0, 0, ',', '.') ?>
-                                                    </span>
+                                                <td><strong><?= $index + 1 ?></strong></td>
+                                                <td><?= htmlspecialchars($tour['tour_name']) ?></td>
+                                                <td class="text-success"><strong><?= number_format($tour['revenue'] ?? 0, 0, ',', '.') ?> ₫</strong></td>
+                                                <td class="<?= ($tour['profit'] ?? 0) >= 0 ? 'text-primary' : 'text-danger' ?>">
+                                                    <?= number_format($tour['profit'] ?? 0, 0, ',', '.') ?> ₫
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="empty-state-mini">
+                                <i class="fas fa-inbox"></i>
+                                <p>Chưa có dữ liệu</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Top Tours theo Đánh giá</h5>
+                <!-- Recent Activities -->
+                <div class="data-card">
+                    <div class="data-header">
+                        <h3 class="data-title">
+                            <i class="fas fa-history"></i>
+                            Hoạt Động Gần Đây
+                        </h3>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Tour</th>
-                                        <th class="text-right">Đánh giá</th>
-                                        <th class="text-right">Phản hồi</th>
-                                        <th class="text-right">Tỷ lệ chuyển đổi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (isset($dashboardData['top_rated_tours'])): ?>
-                                        <?php foreach (array_slice($dashboardData['top_rated_tours'], 0, 5) as $tour): ?>
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="avatar-sm bg-light rounded-circle me-2">
-                                                            <i class="fas fa-star text-warning"></i>
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-medium"><?= htmlspecialchars($tour['tour_name']) ?></div>
-                                                            <small class="text-muted"><?= htmlspecialchars($tour['category_name'] ?? '') ?></small>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-right">
-                                                    <div class="d-flex align-items-center justify-content-end">
-                                                        <span class="me-1"><?= number_format($tour['avg_rating'], 1) ?></span>
-                                                        <div class="star-rating">
-                                                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                                <i class="fas fa-star <?= $i <= round($tour['avg_rating']) ? 'text-warning' : 'text-muted' ?>"></i>
-                                                            <?php endfor; ?>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-right">
-                                                    <span class="badge bg-info"><?= $tour['feedback_count'] ?></span>
-                                                </td>
-                                                <td class="text-right">
-                                                    <span class="badge bg-success"><?= number_format($tour['conversion_rate'] ?? 0, 1) ?>%</span>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Activities & Alerts -->
-        <div class="row">
-            <div class="col-lg-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Hoạt động Gần đây</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="activity-feed">
-                            <?php if (isset($dashboardData['recent_activities'])): ?>
-                                <?php foreach (array_slice($dashboardData['recent_activities'], 0, 5) as $activity): ?>
+                    <div class="data-body">
+                        <?php if (!empty($dashboardData['recent_activities'])): ?>
+                            <div class="activities-list">
+                                <?php foreach ($dashboardData['recent_activities'] as $activity): ?>
                                     <div class="activity-item">
-                                        <div class="activity-icon bg-<?= $activity['color'] ?? 'primary' ?> bg-opacity-10">
-                                            <i class="fas fa-<?= $activity['icon'] ?? 'circle' ?> text-<?= $activity['color'] ?? 'primary' ?>"></i>
+                                        <div class="activity-icon activity-<?= $activity['color'] ?? 'info' ?>">
+                                            <i class="fas <?= $activity['icon'] ?? 'fa-circle' ?>"></i>
                                         </div>
                                         <div class="activity-content">
-                                            <div class="activity-title"><?= $activity['title'] ?></div>
-                                            <div class="activity-description"><?= $activity['description'] ?></div>
-                                            <small class="text-muted"><?= $activity['time'] ?></small>
+                                            <div class="activity-title"><?= htmlspecialchars($activity['title'] ?? '') ?></div>
+                                            <div class="activity-description"><?= htmlspecialchars($activity['description'] ?? '') ?></div>
+                                            <div class="activity-time"><?= htmlspecialchars($activity['time'] ?? '') ?></div>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
-                            <?php endif; ?>
-                        </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="empty-state-mini">
+                                <i class="fas fa-clock"></i>
+                                <p>Chưa có hoạt động</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <div class="col-lg-6 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Cảnh báo & Thông báo</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="alerts-feed">
-                            <?php if (isset($dashboardData['alerts'])): ?>
-                                <?php foreach ($dashboardData['alerts'] as $alert): ?>
-                                    <div class="alert alert-<?= $alert['type'] ?? 'info' ?> alert-sm d-flex align-items-center">
-                                        <i class="fas fa-<?= $alert['icon'] ?? 'info-circle' ?> me-2"></i>
-                                        <div class="flex-grow-1">
-                                            <strong><?= $alert['title'] ?></strong>
-                                            <div class="small"><?= $alert['message'] ?></div>
-                                        </div>
-                                        <small class="text-muted"><?= $alert['time'] ?></small>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+        <!-- Alerts Section -->
+        <?php if (!empty($dashboardData['alerts'])): ?>
+            <section class="alerts-section">
+                <h3 class="section-title">
+                    <i class="fas fa-bell"></i>
+                    Cảnh Báo & Thông Báo
+                </h3>
+                <div class="alerts-grid">
+                    <?php foreach ($dashboardData['alerts'] as $alert): ?>
+                        <div class="alert-card alert-<?= $alert['type'] ?? 'info' ?>">
+                            <div class="alert-icon">
+                                <i class="fas fa-<?= $alert['icon'] ?? 'info-circle' ?>"></i>
+                            </div>
+                            <div class="alert-content">
+                                <div class="alert-title"><?= htmlspecialchars($alert['title'] ?? '') ?></div>
+                                <div class="alert-message"><?= htmlspecialchars($alert['message'] ?? '') ?></div>
+                                <div class="alert-time"><?= htmlspecialchars($alert['time'] ?? '') ?></div>
+                            </div>
                         </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
-            </div>
-        </div>
+            </section>
+        <?php endif; ?>
     </div>
 </main>
 
-<style>
-    .kpi-card {
-        transition: transform 0.2s ease-in-out;
-    }
-
-    .kpi-card:hover {
-        transform: translateY(-2px);
-    }
-
-    .kpi-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-    }
-
-    .kpi-label {
-        font-size: 0.875rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    .kpi-value {
-        font-weight: 700;
-        line-height: 1.2;
-    }
-
-    .activity-item {
-        display: flex;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #e5e7eb;
-    }
-
-    .activity-item:last-child {
-        margin-bottom: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-    }
-
-    .activity-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 1rem;
-        flex-shrink: 0;
-    }
-
-    .activity-content {
-        flex-grow: 1;
-    }
-
-    .activity-title {
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-
-    .activity-description {
-        color: #6b7280;
-        font-size: 0.875rem;
-        margin-bottom: 0.25rem;
-    }
-
-    .alert-sm {
-        padding: 0.75rem;
-        margin-bottom: 0.5rem;
-    }
-
-    .star-rating {
-        font-size: 0.75rem;
-    }
-</style>
-
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    // Initialize dashboard charts
-    let trendChart, revenueDistributionChart, conversionBySourceChart, ratingDistributionChart;
-
-    document.addEventListener('DOMContentLoaded', function() {
-        initializeCharts();
-        updateDashboard();
-    });
-
-    function initializeCharts() {
-        // Trend Chart
-        const trendCtx = document.getElementById('trendChart').getContext('2d');
-        trendChart = new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Doanh thu',
-                    data: [],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+document.addEventListener('DOMContentLoaded', function() {
+    // Trend Chart
+    <?php if (isset($dashboardData['trend_data'])): ?>
+        const trendCtx = document.getElementById('trendChart');
+        if (trendCtx) {
+            new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: <?= json_encode($dashboardData['trend_data']['labels'] ?? []) ?>,
+                    datasets: [{
+                        label: 'Doanh Thu',
+                        data: <?= json_encode($dashboardData['trend_data']['revenue'] ?? []) ?>,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Lợi Nhuận',
+                        data: <?= json_encode($dashboardData['trend_data']['profit'] ?? []) ?>,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString('vi-VN') + ' VNĐ';
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + new Intl.NumberFormat('vi-VN').format(context.parsed.y) + ' ₫';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(value);
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
+    <?php endif; ?>
 
-        // Revenue Distribution Chart
-        const revenueDistCtx = document.getElementById('revenueDistributionChart').getContext('2d');
-        revenueDistributionChart = new Chart(revenueDistCtx, {
-            type: 'doughnut',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: [
-                        '#3b82f6',
-                        '#10b981',
-                        '#f59e0b',
-                        '#ef4444',
-                        '#8b5cf6'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+    // Revenue Distribution Chart
+    <?php if (isset($dashboardData['revenue_distribution'])): ?>
+        const revenueDistCtx = document.getElementById('revenueDistributionChart');
+        if (revenueDistCtx) {
+            new Chart(revenueDistCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: <?= json_encode($dashboardData['revenue_distribution']['labels'] ?? []) ?>,
+                    datasets: [{
+                        data: <?= json_encode($dashboardData['revenue_distribution']['data'] ?? []) ?>,
+                        backgroundColor: ['#667eea', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
                     }
                 }
-            }
-        });
+            });
+        }
+    <?php endif; ?>
 
-        // Conversion by Source Chart
-        const conversionCtx = document.getElementById('conversionBySourceChart').getContext('2d');
-        conversionBySourceChart = new Chart(conversionCtx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Tỷ lệ chuyển đổi (%)',
-                    data: [],
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+    // Conversion by Source Chart
+    <?php if (isset($dashboardData['conversion_by_source'])): ?>
+        const conversionCtx = document.getElementById('conversionSourceChart');
+        if (conversionCtx) {
+            new Chart(conversionCtx, {
+                type: 'bar',
+                data: {
+                    labels: <?= json_encode(array_column($dashboardData['conversion_by_source'], 'source') ?? []) ?>,
+                    datasets: [{
+                        label: 'Tỷ lệ chuyển đổi (%)',
+                        data: <?= json_encode(array_column($dashboardData['conversion_by_source'], 'conversion_rate') ?? []) ?>,
+                        backgroundColor: '#3b82f6'
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Tỷ lệ chuyển đổi (%)'
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
                         }
                     }
                 }
-            }
-        });
+            });
+        }
+    <?php endif; ?>
 
-        // Rating Distribution Chart
-        const ratingCtx = document.getElementById('ratingDistributionChart').getContext('2d');
-        ratingDistributionChart = new Chart(ratingCtx, {
-            type: 'bar',
-            data: {
-                labels: ['5 sao', '4 sao', '3 sao', '2 sao', '1 sao'],
-                datasets: [{
-                    label: 'Số lượng',
-                    data: [],
-                    backgroundColor: [
-                        '#10b981',
-                        '#3b82f6',
-                        '#f59e0b',
-                        '#ef4444',
-                        '#6b7280'
-                    ],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
+    // Rating Distribution Chart
+    <?php if (isset($dashboardData['rating_distribution'])): ?>
+        const ratingCtx = document.getElementById('ratingChart');
+        if (ratingCtx) {
+            new Chart(ratingCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['5 Sao', '4 Sao', '3 Sao', '2 Sao', '1 Sao'],
+                    datasets: [{
+                        label: 'Số lượng',
+                        data: <?= json_encode($dashboardData['rating_distribution'] ?? [0,0,0,0,0]) ?>,
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#991b1b']
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
                     }
                 }
-            }
-        });
-    }
-
-    function updateDashboard() {
-        const period = document.getElementById('dashboard_period').value;
-
-        // Fetch dashboard data via AJAX
-        fetch(`<?= BASE_URL_ADMIN ?>&action=reports/dashboard_data&period=${period}`)
-            .then(response => response.json())
-            .then(data => {
-                updateCharts(data);
-                updateKPICards(data);
-            })
-            .catch(error => {
-                console.error('Error updating dashboard:', error);
             });
-    }
-
-    function updateCharts(data) {
-        // Update trend chart
-        if (data.trend_data) {
-            trendChart.data.labels = data.trend_data.labels;
-            trendChart.data.datasets[0].data = data.trend_data.revenue;
-            trendChart.update();
         }
-
-        // Update revenue distribution
-        if (data.revenue_distribution) {
-            revenueDistributionChart.data.labels = data.revenue_distribution.labels;
-            revenueDistributionChart.data.datasets[0].data = data.revenue_distribution.data;
-            revenueDistributionChart.update();
-        }
-
-        // Update conversion by source
-        if (data.conversion_by_source) {
-            conversionBySourceChart.data.labels = data.conversion_by_source.labels;
-            conversionBySourceChart.data.datasets[0].data = data.conversion_by_source.data;
-            conversionBySourceChart.update();
-        }
-
-        // Update rating distribution
-        if (data.rating_distribution) {
-            ratingDistributionChart.data.datasets[0].data = data.rating_distribution;
-            ratingDistributionChart.update();
-        }
-    }
-
-    function updateTrendChart(type) {
-        // Update button states
-        document.querySelectorAll('.btn-group button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        event.target.classList.add('active');
-
-        // Update chart data based on type
-        const period = document.getElementById('dashboard_period').value;
-
-        fetch(`<?= BASE_URL_ADMIN ?>&action=reports/dashboard_data&period=${period}&trend_type=${type}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.trend_data) {
-                    const labels = {
-                        'revenue': 'Doanh thu',
-                        'bookings': 'Bookings',
-                        'profit': 'Lợi nhuận'
-                    };
-
-                    const datasets = {
-                        'revenue': data.trend_data.revenue,
-                        'bookings': data.trend_data.bookings,
-                        'profit': data.trend_data.profit
-                    };
-
-                    trendChart.data.datasets[0].label = labels[type];
-                    trendChart.data.datasets[0].data = datasets[type];
-                    trendChart.update();
-                }
-            })
-            .catch(error => {
-                console.error('Error updating trend chart:', error);
-            });
-    }
-
-    function updateKPICards(data) {
-        // Update KPI cards with new data
-        // This would update the DOM elements with new values
-        console.log('Updating KPI cards with data:', data);
-    }
-
-    function exportDashboard(format) {
-        const period = document.getElementById('dashboard_period').value;
-        window.open(`<?= BASE_URL_ADMIN ?>&action=reports/export_dashboard&format=${format}&period=${period}`, '_blank');
-    }
-
-    function printDashboard() {
-        window.print();
-    }
+    <?php endif; ?>
+});
 </script>
 
-<?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>
+<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin/reports.css">
+
+<?php
+include_once PATH_VIEW_ADMIN . 'default/footer.php';
+?>

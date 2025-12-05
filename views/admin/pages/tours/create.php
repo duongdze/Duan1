@@ -135,19 +135,6 @@ $policies = $policies ?? [];
                                             <label for="base_price">Giá cơ bản (VNĐ) <span class="text-danger">*</span></label>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <select name="tour_version_id" id="tour_version_id" class="form-select">
-                                                <option value="">-- Chọn phiên bản --</option>
-                                                <?php if (!empty($versions)): ?>
-                                                    <?php foreach ($versions as $version): ?>
-                                                        <option value="<?= $version['id'] ?>"><?= htmlspecialchars($version['name']) ?></option>
-                                                    <?php endforeach; ?>
-                                                <?php endif; ?>
-                                            </select>
-                                            <label for="tour_version_id">Phiên bản Tour</label>
-                                        </div>
-                                    </div>
                                     <div class="col-12">
                                         <div class="form-floating">
                                             <textarea name="description" id="description" class="form-control" style="height: 150px" placeholder=" "></textarea>

@@ -53,8 +53,55 @@ class Booking extends BaseModel
         $sql = "SELECT SUM(final_price) as revenue FROM {$this->table} WHERE MONTH(booking_date) = :month AND YEAR(booking_date) = :year AND status = 'completed'";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['month' => $month, 'year' => $year]);
-        $data = $stmt->fetch();
-        return $data['revenue'] ?? 0;
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (float)($data['revenue'] ?? 0);
+    }
+
+    /**
+     * Lấy thống kê trạng thái booking
+     * @return array
+     */
+    public function getBookingStatusStats()
+    {
+        $sql = "SELECT 
+                    status,
+                    COUNT(*) as count,
+                    ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM {$this->table} WHERE 1), 1) as percentage,
+                    SUM(CASE WHEN status = 'completed' THEN final_price ELSE 0 END) as total_revenue
+                FROM {$this->table}
+                WHERE 1
+                GROUP BY status
+                ORDER BY count DESC";
+
+        $stmt = self::$pdo->query($sql);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Format status names
+        $statusNames = [
+            'pending' => 'Chờ xác nhận',
+            'confirmed' => 'Đã xác nhận',
+            'deposited' => 'Đã đặt cọc',
+            'paid' => 'Đã thanh toán',
+            'completed' => 'Hoàn thành',
+            'cancelled' => 'Đã hủy'
+        ];
+
+        $totalBookings = array_sum(array_column($results, 'count'));
+        $totalRevenue = array_sum(array_column($results, 'total_revenue'));
+
+        return [
+            'stats' => array_map(function ($item) use ($statusNames) {
+                return [
+                    'status' => $statusNames[$item['status']] ?? ucfirst($item['status']),
+                    'count' => (int)$item['count'],
+                    'percentage' => (float)$item['percentage'],
+                    'revenue' => (float)$item['total_revenue']
+                ];
+            }, $results),
+            'total_bookings' => $totalBookings,
+            'total_revenue' => $totalRevenue
+        ];
     }
 
     public function getNewBookingsThisMonth($month, $year)
