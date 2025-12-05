@@ -76,8 +76,10 @@ class BookingController
                 'version_id' => !empty($version_id) ? $version_id : null,
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
+                'final_price' => $total_price,  // Database yêu cầu final_price
                 'status' => $status,
-                'notes' => $notes
+                'notes' => $notes,
+                'created_by' => $_SESSION['user']['user_id'] ?? null  // User đang tạo booking
             ]);
 
             // Insert booking customers (companions)
@@ -170,9 +172,11 @@ class BookingController
         // Load customers and tours data for dropdown
         $customerModel = new UserModel();
         $tourModel = new Tour();
+        $versionModel = new TourVersion();
 
         $customers = $customerModel->select('*', "role = :role", ['role' => 'customer']);
         $tours = $tourModel->select('*', null, [], 'name ASC');
+        $versions = $versionModel->getActiveVersionsWithPrices();
 
         // Get drivers list
         $driverModel = new Driver();
@@ -218,6 +222,7 @@ class BookingController
             $total_price = $_POST['total_price'] ?? null;
             $status = $_POST['status'] ?? 'cho_xac_nhan';
             $notes = $_POST['notes'] ?? '';
+            $version_id = $_POST['version_id'] ?? null;
 
             // Basic validation
             if (!$customer_id || !$tour_id || !$booking_date || !$total_price || !$status) {
@@ -230,10 +235,12 @@ class BookingController
             $this->model->update([
                 'customer_id' => $customer_id,
                 'tour_id' => $tour_id,
+                'version_id' => !empty($version_id) ? $version_id : null,
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
+                'final_price' => $total_price,  // ← THÊM DÒNG NÀY (cần thiết cho database)
                 'status' => $status,
-                'driver_id' => $_POST['driver_id'] ?? null,
+                'driver_id' => !empty($_POST['driver_id']) ? $_POST['driver_id'] : null,  // ← SỬA DÒNG NÀY
                 'notes' => $notes
             ], 'id = :id', ['id' => $id]);
 
