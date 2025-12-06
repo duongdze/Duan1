@@ -265,7 +265,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 $stt = 1;
                                 foreach ($bookings as $booking) : ?>
                                     <tr>
-                                        <td><strong>#<?= $booking['id'] ?></strong></td>
+                                        <td><strong><?= $stt++ ?></strong></td>
                                         <td>
                                             <div class="customer-info">
                                                 <i class="fas fa-user-circle me-2 text-primary"></i>

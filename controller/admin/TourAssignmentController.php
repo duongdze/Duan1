@@ -205,6 +205,11 @@ class TourAssignmentController
         $tourAssignmentModel = new TourAssignment();
         $availableTours = $tourAssignmentModel->getAvailableTours();
 
+        // Thêm chi tiết version breakdown cho mỗi tour
+        foreach ($availableTours as &$tour) {
+            $tour['version_breakdown'] = $tourAssignmentModel->getTourVersionBreakdown($tour['id']);
+        }
+
         include_once PATH_VIEW_ADMIN . 'pages/guides/available-tours.php';
     }
     /**

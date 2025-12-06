@@ -94,36 +94,77 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     <?php endif; ?>
                                 </div>
 
-                                <?php if ($isEligible): ?>
-                                    <button
-                                        class="btn btn-primary w-100 claim-tour-btn"
-                                        data-tour-id="<?= $tour['id'] ?>"
-                                        data-tour-name="<?= htmlspecialchars($tour['name']) ?>"
-                                        data-total-customers="<?= $totalCustomers ?>">
-                                        <i class="fas fa-hand-paper me-2"></i>
-                                        Nhận Tour
-                                    </button>
-                                <?php else: ?>
-                                    <button class="btn btn-secondary w-100" disabled>
-                                        <i class="fas fa-ban me-2"></i>
-                                        Không đủ điều kiện
-                                    </button>
+                                <!-- Version Breakdown -->
+                                <?php if (!empty($tour['version_breakdown']) && count($tour['version_breakdown']) > 0): ?>
+                                    <div class="version-breakdown mt-3">
+                                        <button class="btn btn-sm btn-outline-info w-100"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#version-detail-<?= $tour['id'] ?>"
+                                            aria-expanded="false">
+                                            <i class="fas fa-chevron-down me-1"></i>
+                                            Chi tiết theo version
+                                        </button>
+
+                                        <div class="collapse mt-2" id="version-detail-<?= $tour['id'] ?>">
+                                            <div class="card card-body bg-light p-2">
+                                                <?php foreach ($tour['version_breakdown'] as $index => $version): ?>
+                                                    <div class="d-flex justify-content-between align-items-center <?= $index > 0 ? 'mt-2 pt-2 border-top' : '' ?>">
+                                                        <div class="d-flex align-items-center">
+                                                            <?php if ($version['version_id']): ?>
+                                                                <i class="fas fa-tag text-info me-2"></i>
+                                                                <small><strong><?= htmlspecialchars($version['version_name']) ?></strong></small>
+                                                            <?php else: ?>
+                                                                <i class="fas fa-box text-primary me-2"></i>
+                                                                <small><strong>Mặc định</strong></small>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <div>
+                                                            <span class="badge bg-info me-1">
+                                                                <i class="fas fa-users"></i> <?= $version['customer_count'] ?>
+                                                            </span>
+                                                            <span class="badge bg-secondary">
+                                                                <i class="fas fa-calendar-check"></i> <?= $version['booking_count'] ?>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                    </div>
                                 <?php endif; ?>
+
+                                <div class="mt-3">
+                                    <?php if ($isEligible): ?>
+                                        <button
+                                            class="btn btn-primary w-100 claim-tour-btn"
+                                            data-tour-id="<?= $tour['id'] ?>"
+                                            data-tour-name="<?= htmlspecialchars($tour['name']) ?>"
+                                            data-total-customers="<?= $totalCustomers ?>">
+                                            <i class="fas fa-hand-paper me-2"></i>
+                                            Nhận Tour
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn btn-secondary w-100" disabled>
+                                            <i class="fas fa-ban me-2"></i>
+                                            Không đủ điều kiện
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
+                    <?php endforeach; ?>
                     </div>
-                <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="alert alert-info d-flex align-items-center">
+                        <i class="fas fa-info-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="mb-1">Không có tour khả dụng</h5>
+                            <p class="mb-0">Hiện tại tất cả tour đã có HDV phụ trách. Vui lòng quay lại sau.</p>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
-        <?php else: ?>
-            <div class="alert alert-info d-flex align-items-center">
-                <i class="fas fa-info-circle fa-2x me-3"></i>
-                <div>
-                    <h5 class="mb-1">Không có tour khả dụng</h5>
-                    <p class="mb-0">Hiện tại tất cả tour đã có HDV phụ trách. Vui lòng quay lại sau.</p>
-                </div>
-            </div>
-        <?php endif; ?>
-    </div>
 </main>
 
 <script>

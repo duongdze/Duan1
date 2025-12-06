@@ -664,6 +664,18 @@ class TourController
         }
         if (!isset($tour['booking_count'])) {
             $stmt = BaseModel::getPdo()->prepare("SELECT COUNT(*) as bc FROM bookings WHERE tour_id = :tid");
+            $stmt->execute(['tid' => $id]);
+            $tour['booking_count'] = $stmt->fetch()['bc'] ?? 0;
+        }
+
+
+        require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
+    }
+
+    /**
+     * Toggle tour status (AJAX endpoint)
+     */
+    public function toggleStatus()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['_method']) || $_POST['_method'] !== 'PATCH') {
             http_response_code(405);
@@ -692,12 +704,6 @@ class TourController
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Internal server error']);
         }
-        $stmt->execute(['tid' => $id]);
-        $tour['booking_count'] = $stmt->fetch()['bc'] ?? 0;
-    }
-
-    require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
-}
     }
 
     /**

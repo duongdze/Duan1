@@ -119,7 +119,7 @@
                         <?php
                         // safe user vars
                         $user = $_SESSION['user'] ?? null;
-                        $avatarUrl = !empty($user['avatar']) ? BASE_ASSETS_UPLOADS . 'users/admin/' . $user['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['name'] ?? 'User') . '&background=0D6EFD&color=fff&size=40';
+                        $avatarUrl = !empty($user['avatar']) ? BASE_ASSETS_UPLOADS . $user['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['full_name'] ?? 'User') . '&background=0D6EFD&color=fff&size=40';
                         $userName = $user['full_name'] ?? 'Guest';
                         $userRole = $user['role'] ?? 'user';
                         $roleLabel = match ((string)$userRole) {

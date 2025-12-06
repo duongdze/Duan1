@@ -112,7 +112,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             <div class="card-body">
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        <div class="form-floating">
+                                        <label for="customer_id" class="form-label">Khách hàng <span class="text-danger">*</span></label>
+                                        <div class="input-group">
                                             <select class="form-select" id="customer_id" name="customer_id" required>
                                                 <option value="">-- Chọn khách hàng --</option>
                                                 <?php if (!empty($customers)): ?>
@@ -124,8 +125,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                     <?php endforeach; ?>
                                                 <?php endif; ?>
                                             </select>
-                                            <label for="customer_id">Khách hàng <span class="text-danger">*</span></label>
+                                            <a href="<?= BASE_URL_ADMIN ?>&action=users/create" target="_blank" class="btn btn-outline-primary" title="Tạo khách hàng mới">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
                                         </div>
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="fas fa-info-circle me-1"></i>Chọn khách hàng từ danh sách hoặc click nút "+" để tạo mới
+                                        </small>
                                     </div>
                                 </div>
                             </div>

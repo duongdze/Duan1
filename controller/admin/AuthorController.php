@@ -115,7 +115,6 @@ class AuthorController
 
         $fullName = trim($_POST['full_name'] ?? '');
         $phone = trim($_POST['phone'] ?? '');
-        $address = trim($_POST['address'] ?? '');
 
         // Validation
         if (empty($fullName)) {
@@ -126,15 +125,13 @@ class AuthorController
         try {
             $result = $this->user->update([
                 'full_name' => $fullName,
-                'phone' => $phone,
-                'address' => $address
+                'phone' => $phone
             ], 'user_id = :id', ['id' => $userId]);
 
             if ($result) {
                 // Cập nhật session
                 $_SESSION['user']['full_name'] = $fullName;
                 $_SESSION['user']['phone'] = $phone;
-                $_SESSION['user']['address'] = $address;
 
                 echo json_encode(['success' => true, 'message' => 'Cập nhật thông tin thành công']);
             } else {
@@ -187,7 +184,7 @@ class AuthorController
         try {
             // Lấy thông tin user
             $user = $this->user->find('*', 'user_id = :id', ['id' => $userId]);
-            
+
             if (!$user) {
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy user']);
                 exit;
@@ -211,6 +208,90 @@ class AuthorController
                 echo json_encode(['success' => true, 'message' => 'Đổi mật khẩu thành công']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không thể đổi mật khẩu']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Cập nhật ảnh đại diện
+     */
+    public function updateAvatar()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+            exit;
+        }
+
+        $userId = $_SESSION['user']['user_id'] ?? null;
+        if (!$userId) {
+            echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập']);
+            exit;
+        }
+
+        // Check if file was uploaded
+        if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
+            echo json_encode(['success' => false, 'message' => 'Không có file được upload']);
+            exit;
+        }
+
+        $file = $_FILES['avatar'];
+
+        // Validate file type
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($file['type'], $allowedTypes)) {
+            echo json_encode(['success' => false, 'message' => 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)']);
+            exit;
+        }
+
+        // Validate file size (max 5MB)
+        if ($file['size'] > 5 * 1024 * 1024) {
+            echo json_encode(['success' => false, 'message' => 'Kích thước ảnh tối đa 5MB']);
+            exit;
+        }
+
+        try {
+            // Create uploads directory if not exists
+            $uploadDir = PATH_ASSETS_UPLOADS . 'avatars/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            // Generate unique filename
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = 'avatar_' . $userId . '_' . time() . '.' . $extension;
+            $filepath = $uploadDir . $filename;
+
+            // Move uploaded file
+            if (!move_uploaded_file($file['tmp_name'], $filepath)) {
+                echo json_encode(['success' => false, 'message' => 'Không thể lưu file']);
+                exit;
+            }
+
+            // Delete old avatar if exists
+            $user = $this->user->find('*', 'user_id = :id', ['id' => $userId]);
+            if ($user && !empty($user['avatar'])) {
+                $oldFile = PATH_ASSETS_UPLOADS . $user['avatar'];
+                if (file_exists($oldFile)) {
+                    unlink($oldFile);
+                }
+            }
+
+            // Update database
+            $result = $this->user->update([
+                'avatar' => 'avatars/' . $filename
+            ], 'user_id = :id', ['id' => $userId]);
+
+            if ($result) {
+                // Update session
+                $_SESSION['user']['avatar'] = 'avatars/' . $filename;
+                echo json_encode(['success' => true, 'message' => 'Cập nhật ảnh đại diện thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể cập nhật database']);
             }
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);

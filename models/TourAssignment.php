@@ -190,6 +190,7 @@ class TourAssignment extends BaseModel
         $stmt->execute(['guide_id' => $guideId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     /**
      * Lấy danh sách tour chưa có HDV
      * @return array
@@ -198,7 +199,7 @@ class TourAssignment extends BaseModel
     {
         $sql = "SELECT t.*, 
         COUNT(DISTINCT b.id) as booking_count,
-        COALESCE(SUM(bc_count.total), COUNT(DISTINCT b.id)) as total_customers,
+        SUM(COALESCE(bc_count.total, 0) + 1) as total_customers,
         MIN(b.booking_date) as nearest_booking_date
         FROM tours t
         LEFT JOIN bookings b ON t.id = b.tour_id 
@@ -225,6 +226,7 @@ class TourAssignment extends BaseModel
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
     /**
      * Kiểm tra tour đã có HDV chưa
      * @param int $tourId
@@ -266,5 +268,34 @@ class TourAssignment extends BaseModel
     {
         $data = ['start_date' => $startDate, 'end_date' => $endDate];
         return $this->update($data, 'id = :id', ['id' => $id]);
+    }
+
+    /**
+     * Lấy chi tiết phân bổ khách theo tour version
+     * @param int $tourId
+     * @return array
+     */
+    public function getTourVersionBreakdown($tourId)
+    {
+        $sql = "SELECT 
+                    COALESCE(tv.name, 'Mặc định') as version_name,
+                    b.version_id,
+                    COUNT(DISTINCT b.id) as booking_count,
+                    SUM(COALESCE(bc_count.total, 0) + 1) as customer_count
+                FROM bookings b
+                LEFT JOIN tour_versions tv ON b.version_id = tv.id
+                LEFT JOIN (
+                    SELECT booking_id, COUNT(*) as total 
+                    FROM booking_customers 
+                    GROUP BY booking_id
+                ) bc_count ON b.id = bc_count.booking_id
+                WHERE b.tour_id = :tour_id 
+                    AND b.status NOT IN ('hoan_tat', 'da_huy')
+                GROUP BY b.version_id, tv.name
+                ORDER BY customer_count DESC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

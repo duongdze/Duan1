@@ -63,15 +63,15 @@ class User extends BaseModel
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        $sql = "INSERT INTO {$this->table} (full_name, email, phone, password, role, created_at) 
-                VALUES (:full_name, :email, :phone, :password, :role, NOW())";
+        $sql = "INSERT INTO {$this->table} (full_name, email, phone, password_hash, role, created_at) 
+                VALUES (:full_name, :email, :phone, :password_hash, :role, NOW())";
 
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute([
             ':full_name' => $data['full_name'],
             ':email' => $data['email'],
             ':phone' => $data['phone'] ?? null,
-            ':password' => $data['password'],
+            ':password_hash' => $data['password'],
             ':role' => $data['role']
         ]);
 
@@ -108,8 +108,8 @@ class User extends BaseModel
 
         // Update password only if provided
         if (!empty($data['password'])) {
-            $fields[] = "password = :password";
-            $params[':password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+            $fields[] = "password_hash = :password_hash";
+            $params[':password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
         if (empty($fields)) {
