@@ -45,9 +45,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     }
                     ?>
                     <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 shadow-sm">
+                        <div class="card shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title text-primary">
+                                <h5 class="card-title text-primary" style="word-break: break-word; white-space: normal;">
                                     <i class="fas fa-route"></i>
                                     <?= htmlspecialchars($tour['name']) ?>
                                 </h5>
@@ -101,7 +101,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                             type="button"
                                             data-bs-toggle="collapse"
                                             data-bs-target="#version-detail-<?= $tour['id'] ?>"
-                                            aria-expanded="false">
+                                            aria-expanded="false"
+                                            aria-controls="version-detail-<?= $tour['id'] ?>">
                                             <i class="fas fa-chevron-down me-1"></i>
                                             Chi tiết theo version
                                         </button>
@@ -153,18 +154,19 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 </div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
                     </div>
-                <?php else: ?>
-                    <div class="alert alert-info d-flex align-items-center">
-                        <i class="fas fa-info-circle fa-2x me-3"></i>
-                        <div>
-                            <h5 class="mb-1">Không có tour khả dụng</h5>
-                            <p class="mb-0">Hiện tại tất cả tour đã có HDV phụ trách. Vui lòng quay lại sau.</p>
-                        </div>
-                    </div>
-                <?php endif; ?>
+                <?php endforeach; ?>
             </div>
+        <?php else: ?>
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="fas fa-info-circle fa-2x me-3"></i>
+                <div>
+                    <h5 class="mb-1">Không có tour khả dụng</h5>
+                    <p class="mb-0">Hiện tại tất cả tour đã có HDV phụ trách. Vui lòng quay lại sau.</p>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
 </main>
 
 <script>

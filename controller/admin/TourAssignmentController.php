@@ -205,6 +205,17 @@ class TourAssignmentController
         $tourAssignmentModel = new TourAssignment();
         $availableTours = $tourAssignmentModel->getAvailableTours();
 
+        // Loại bỏ duplicate tours (nếu có)
+        $uniqueTours = [];
+        $seenIds = [];
+        foreach ($availableTours as $tour) {
+            if (!in_array($tour['id'], $seenIds)) {
+                $seenIds[] = $tour['id'];
+                $uniqueTours[] = $tour;
+            }
+        }
+        $availableTours = $uniqueTours;
+
         // Thêm chi tiết version breakdown cho mỗi tour
         foreach ($availableTours as &$tour) {
             $tour['version_breakdown'] = $tourAssignmentModel->getTourVersionBreakdown($tour['id']);

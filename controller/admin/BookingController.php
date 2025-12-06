@@ -244,29 +244,10 @@ class BookingController
                 'notes' => $notes
             ], 'id = :id', ['id' => $id]);
 
-            // Update booking customers (companions)
-            $bookingCustomerModel = new BookingCustomer();
+            // NOTE: Companions are managed separately via AJAX endpoints
+            // (addCompanion, updateCompanion, deleteCompanion)
+            // Do NOT delete and recreate companions here to prevent data loss
 
-            // Xóa tất cả companions cũ
-            $bookingCustomerModel->deleteByBooking($id);
-
-            // Thêm companions mới
-            if (!empty($_POST['companion_name'])) {
-                foreach ($_POST['companion_name'] as $index => $name) {
-                    if (!empty($name)) {
-                        $bookingCustomerModel->insert([
-                            'booking_id' => $id,
-                            'name' => $name,
-                            'gender' => $_POST['companion_gender'][$index] ?? '',
-                            'birth_date' => $_POST['companion_birth_date'][$index] ?? null,
-                            'phone' => $_POST['companion_phone'][$index] ?? '',
-                            'id_card' => $_POST['companion_id_card'][$index] ?? '',
-                            'special_request' => $_POST['companion_special_request'][$index] ?? '',
-                            'room_type' => $_POST['companion_room_type'][$index] ?? ''
-                        ]);
-                    }
-                }
-            }
 
             $_SESSION['success'] = 'Cập nhật đơn đặt tour thành công';
             header('Location:' . BASE_URL_ADMIN . '&action=bookings/detail&id=' . $id);
@@ -458,7 +439,7 @@ class BookingController
         // Cập nhật database
         try {
             $companionModel = new BookingCustomer();
-            $companionModel->update($companionId, $data);
+            $companionModel->update($data, 'id = :id', ['id' => $companionId]);
 
             echo json_encode([
                 'success' => true,
@@ -493,7 +474,8 @@ class BookingController
         // Xóa khỏi database
         try {
             $companionModel = new BookingCustomer();
-            $companionModel->delete($companionId);
+            // FIX: Sử dụng đúng cú pháp delete với WHERE clause
+            $companionModel->delete('id = :id', ['id' => $companionId]);
 
             echo json_encode([
                 'success' => true,
