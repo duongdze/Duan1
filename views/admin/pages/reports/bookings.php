@@ -11,12 +11,13 @@ $tours = $data['tours'] ?? [];
 
 <main class="dashboard">
     <div class="dashboard-container">
+        <!-- Header -->
         <header class="dashboard-header">
             <div class="header-content">
                 <div class="header-left">
                     <div class="breadcrumb-modern">
                         <a href="<?= BASE_URL_ADMIN ?>&action=/" class="breadcrumb-link">
-                            <i class="fas fa-home"></i><span>Dashboard</span>
+                            <i class="fas fa-home"></i> <span>Dashboard</span>
                         </a>
                         <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
                         <a href="<?= BASE_URL_ADMIN ?>&action=reports" class="breadcrumb-link">
@@ -30,39 +31,39 @@ $tours = $data['tours'] ?? [];
                             <i class="fas fa-calendar-check title-icon"></i>
                             Báo Cáo Booking
                         </h1>
-                        <p class="page-subtitle">Thống kê và phân tích booking</p>
+                        <p class="page-subtitle">Thống kê số lượng và trạng thái booking</p>
                     </div>
                 </div>
             </div>
         </header>
 
         <!-- Filters -->
-        <section class="filters-section">
-            <div class="filter-card">
-                <form method="GET" action="<?= BASE_URL_ADMIN . '&action=reports/bookings' ?>">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form method="GET" action="<?= BASE_URL_ADMIN ?>">
                     <input type="hidden" name="action" value="reports/bookings">
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <label>Từ ngày</label>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-3">
+                            <label class="form-label text-muted small">Từ ngày</label>
                             <input type="date" class="form-control" name="date_from" value="<?= $filters['date_from'] ?? date('Y-m-01') ?>">
                         </div>
-                        <div class="filter-group">
-                            <label>Đến ngày</label>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label text-muted small">Đến ngày</label>
                             <input type="date" class="form-control" name="date_to" value="<?= $filters['date_to'] ?? date('Y-m-d') ?>">
                         </div>
-                        <div class="filter-group">
-                            <label>Tour</label>
-                            <select class="form-select" name="tour_id">
-                                <option value="">Tất cả</option>
-                                <?php foreach ($tours as $tour): ?>
-                                    <option value="<?= $tour['id'] ?>" <?= ($filters['tour_id'] ?? '') == $tour['id'] ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($tour['name']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                        <div class="col-12 col-md-2">
+                             <label class="form-label text-muted small">Tour</label>
+                             <select class="form-select" name="tour_id">
+                                 <option value="">Tất cả</option>
+                                 <?php foreach ($tours as $tour): ?>
+                                     <option value="<?= $tour['id'] ?>" <?= ($filters['tour_id'] ?? '') == $tour['id'] ? 'selected' : '' ?>>
+                                         <?= htmlspecialchars($tour['name']) ?>
+                                     </option>
+                                 <?php endforeach; ?>
+                             </select>
                         </div>
-                        <div class="filter-group">
-                            <label>Trạng thái</label>
+                        <div class="col-12 col-md-2">
+                            <label class="form-label text-muted small">Trạng thái</label>
                             <select class="form-select" name="status">
                                 <option value="">Tất cả</option>
                                 <option value="pending" <?= ($filters['status'] ?? '') == 'pending' ? 'selected' : '' ?>>Chờ xác nhận</option>
@@ -73,117 +74,118 @@ $tours = $data['tours'] ?? [];
                                 <option value="cancelled" <?= ($filters['status'] ?? '') == 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
                             </select>
                         </div>
-                        <div class="filter-group filter-actions-group">
-                            <button type="submit" class="btn btn-primary"><i class="fas fa-search me-2"></i>Lọc</button>
+                        <div class="col-12 col-md-2">
+                            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Lọc</button>
                         </div>
                     </div>
                 </form>
             </div>
-        </section>
+        </div>
 
         <!-- Stats Cards -->
-        <section class="kpi-section">
-            <div class="kpi-grid">
-                <div class="kpi-card kpi-primary">
-                    <div class="kpi-icon"><i class="fas fa-calendar-check"></i></div>
-                    <div class="kpi-content">
-                        <div class="kpi-label">Tổng Booking</div>
-                        <div class="kpi-value"><?= number_format($bookingStats['total_bookings'] ?? 0) ?></div>
-                    </div>
-                </div>
-                <div class="kpi-card kpi-success">
-                    <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
-                    <div class="kpi-content">
-                        <div class="kpi-label">Thành Công</div>
-                        <div class="kpi-value"><?= number_format($bookingStats['successful_bookings'] ?? 0) ?></div>
-                        <div class="kpi-trend trend-up">
-                            <span><?= number_format($bookingStats['success_rate'] ?? 0, 1) ?>%</span>
-                            <small>tỷ lệ thành công</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="kpi-card kpi-danger">
-                    <div class="kpi-icon"><i class="fas fa-times-circle"></i></div>
-                    <div class="kpi-content">
-                        <div class="kpi-label">Đã Hủy</div>
-                        <div class="kpi-value"><?= number_format($bookingStats['cancelled_bookings'] ?? 0) ?></div>
-                        <div class="kpi-trend">
-                            <span><?= number_format($bookingStats['cancellation_rate'] ?? 0, 1) ?>%</span>
-                            <small>tỷ lệ hủy</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="kpi-card kpi-info">
-                    <div class="kpi-icon"><i class="fas fa-users"></i></div>
-                    <div class="kpi-content">
-                        <div class="kpi-label">Khách Hàng</div>
-                        <div class="kpi-value"><?= number_format($bookingStats['total_customers'] ?? 0) ?></div>
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Tổng Booking</h6>
+                        <h3 class="fw-bold text-primary mb-0"><?= number_format($bookingStats['total_bookings'] ?? 0) ?></h3>
                     </div>
                 </div>
             </div>
-        </section>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Thành Công</h6>
+                        <h3 class="fw-bold text-success mb-1"><?= number_format($bookingStats['successful_bookings'] ?? 0) ?></h3>
+                        <small class="text-muted">Tỷ lệ: <?= number_format($bookingStats['success_rate'] ?? 0, 1) ?>%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Đã Hủy</h6>
+                        <h3 class="fw-bold text-danger mb-1"><?= number_format($bookingStats['cancelled_bookings'] ?? 0) ?></h3>
+                        <small class="text-muted">Tỷ lệ: <?= number_format($bookingStats['cancellation_rate'] ?? 0, 1) ?>%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">Tổng Khách Hàng</h6>
+                        <h3 class="fw-bold text-info mb-0"><?= number_format($bookingStats['total_customers'] ?? 0) ?></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Charts -->
-        <section class="charts-section">
-            <div class="charts-row">
-                <div class="chart-card chart-card-large">
-                    <div class="chart-header">
-                        <h3 class="chart-title"><i class="fas fa-chart-line"></i>Booking Theo Tháng</h3>
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="card-title mb-0 fw-bold">Booking Theo Tháng</h5>
                     </div>
-                    <div class="chart-body">
-                        <canvas id="monthlyBookingsChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3 class="chart-title"><i class="fas fa-chart-pie"></i>Booking Theo Nguồn</h3>
-                    </div>
-                    <div class="chart-body">
-                        <canvas id="sourceChart"></canvas>
+                    <div class="card-body">
+                         <div style="height: 300px;">
+                            <canvas id="monthlyBookingsChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="card-title mb-0 fw-bold">Nguồn Booking</h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 300px;">
+                            <canvas id="sourceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Top Tours -->
-        <section class="tours-section">
-            <div class="tours-header">
-                <h3 class="tours-title"><i class="fas fa-trophy"></i>Top Tours Được Đặt Nhiều Nhất</h3>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0 fw-bold">Top Tours Được Đặt Nhiều Nhất</h5>
             </div>
-            <div class="tours-container">
-                <?php if (!empty($topTours)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-modern">
-                            <thead>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-3 border-0">#</th>
+                            <th class="border-0">Tên Tour</th>
+                            <th class="border-0 text-end">Booking</th>
+                            <th class="border-0 text-end">Tổng Khách</th>
+                            <th class="border-0 text-end pe-3">Doanh Thu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($topTours)): ?>
+                            <?php foreach ($topTours as $index => $tour): ?>
                                 <tr>
-                                    <th>#</th>
-                                    <th>Tên Tour</th>
-                                    <th>Số Booking</th>
-                                    <th>Tổng Khách</th>
-                                    <th>Doanh Thu</th>
+                                    <td class="ps-3 fw-bold"><?= $index + 1 ?></td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 300px;" title="<?= htmlspecialchars($tour['tour_name']) ?>">
+                                            <?= htmlspecialchars($tour['tour_name']) ?>
+                                        </div>
+                                    </td>
+                                    <td class="text-end"><?= number_format($tour['booking_count']) ?></td>
+                                    <td class="text-end"><?= number_format($tour['total_passengers'] ?? 0) ?></td>
+                                    <td class="text-end pe-3 fw-bold text-success"><?= number_format($tour['total_revenue'] ?? 0, 0, ',', '.') ?> ₫</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($topTours as $index => $tour): ?>
-                                    <tr>
-                                        <td><strong><?= $index + 1 ?></strong></td>
-                                        <td><?= htmlspecialchars($tour['tour_name']) ?></td>
-                                        <td><?= number_format($tour['booking_count']) ?></td>
-                                        <td><?= number_format($tour['total_passengers'] ?? 0) ?></td>
-                                        <td class="text-success"><strong><?= number_format($tour['total_revenue'] ?? 0, 0, ',', '.') ?> ₫</strong></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <div class="empty-state-mini">
-                        <i class="fas fa-inbox"></i>
-                        <p>Chưa có dữ liệu</p>
-                    </div>
-                <?php endif; ?>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr><td colspan="5" class="text-center py-4 text-muted">Chưa có dữ liệu</td></tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
-        </section>
+        </div>
     </div>
 </main>
 
@@ -233,11 +235,10 @@ document.addEventListener('DOMContentLoaded', function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } }
+            plugins: { legend: { position: 'right' } }
         }
     });
     <?php endif; ?>
 });
 </script>
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin/reports.css">
 <?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>

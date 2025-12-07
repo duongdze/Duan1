@@ -494,18 +494,23 @@ class Booking extends BaseModel
                 GROUP BY B.source
                 ORDER BY booking_count DESC";
 
-        $stmt = self::$pdo->prepare($sql);
-        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = self::$pdo->prepare($sql);
+            $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Tính tỷ lệ chuyển đổi cho mỗi nguồn
-        foreach ($results as &$result) {
-            $totalBookings = $result['booking_count'];
-            $successfulBookings = $result['successful_bookings'];
-            $result['conversion_rate'] = $totalBookings > 0 ? ($successfulBookings / $totalBookings) * 100 : 0;
+            // Tính tỷ lệ chuyển đổi cho mỗi nguồn
+            foreach ($results as &$result) {
+                $totalBookings = $result['booking_count'];
+                $successfulBookings = $result['successful_bookings'];
+                $result['conversion_rate'] = $totalBookings > 0 ? ($successfulBookings / $totalBookings) * 100 : 0;
+            }
+
+            return $results;
+        } catch (PDOException $e) {
+            // Return empty if column 'source' not found or other error
+            return [];
         }
-
-        return $results;
     }
 
     /**

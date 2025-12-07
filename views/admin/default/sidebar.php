@@ -177,13 +177,6 @@ $currentAction = $_GET['action'] ?? '';
             </div>
         </li>
 
-        <!-- Lịch khởi hành -->
-        <li class="nav-item">
-            <a class="nav-link <?= isActive('schedule') ?>" href="<?= BASE_URL_ADMIN ?>&action=schedule">
-                <i class="fas fa-calendar-alt fa-fw me-2"></i> Lịch khởi hành
-            </a>
-        </li>
-
         <!-- Phần Báo cáo -->
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('reports') ? 'active' : '' ?>"
@@ -220,13 +213,5 @@ $currentAction = $_GET['action'] ?? '';
                 </ul>
             </div>
         </li>
-
-        <!-- Cài đặt -->
-        <li class="nav-item">
-            <a class="nav-link <?= isActive('settings') ?>" href="<?= BASE_URL_ADMIN ?>&action=settings">
-                <i class="fas fa-cogs fa-fw me-2"></i> Cài đặt
-            </a>
-        </li>
-
     </ul>
 </aside>

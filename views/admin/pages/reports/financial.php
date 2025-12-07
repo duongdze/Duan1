@@ -17,306 +17,270 @@ $filterOptions = $data['filterOptions'] ?? [];
                 <div class="header-left">
                     <div class="breadcrumb-modern">
                         <a href="<?= BASE_URL_ADMIN ?>&action=/" class="breadcrumb-link">
-                            <i class="fas fa-home"></i>
-                            <span>Dashboard</span>
+                            <i class="fas fa-home"></i> <span>Dashboard</span>
                         </a>
-                        <span class="breadcrumb-separator">
-                            <i class="fas fa-chevron-right"></i>
-                        </span>
+                        <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
                         <a href="<?= BASE_URL_ADMIN ?>&action=reports" class="breadcrumb-link">
                             <span>Báo Cáo</span>
                         </a>
-                        <span class="breadcrumb-separator">
-                            <i class="fas fa-chevron-right"></i>
-                        </span>
+                        <span class="breadcrumb-separator"><i class="fas fa-chevron-right"></i></span>
                         <span class="breadcrumb-current">Tài Chính</span>
                     </div>
                     <div class="page-title-section">
                         <h1 class="page-title">
-                            <i class="fas fa-dollar-sign title-icon"></i>
+                            <i class="fas fa-money-bill-wave title-icon"></i>
                             Báo Cáo Tài Chính
                         </h1>
-                        <p class="page-subtitle">Doanh thu, chi phí và lợi nhuận chi tiết theo tour</p>
+                        <p class="page-subtitle">Phân tích doanh thu và lợi nhuận</p>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- Advanced Filters -->
-        <section class="filters-section">
-            <div class="filter-card">
-                <div class="filter-header">
-                    <h3 class="filter-title">
-                        <i class="fas fa-filter"></i>
-                        Bộ Lọc Nâng Cao
-                    </h3>
+        <!-- Filter Section -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold"><i class="fas fa-filter me-2"></i>Bộ Lọc</h5>
                     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">
-                        <i class="fas fa-redo"></i> Reset
+                        <i class="fas fa-redo me-1"></i> Reset
                     </button>
                 </div>
-                <form method="GET" action="<?= BASE_URL_ADMIN . '&action=reports/financial' ?>" class="filter-form">
+            </div>
+            <div class="card-body">
+                <form method="GET" action="<?= BASE_URL_ADMIN ?>" class="row g-3">
                     <input type="hidden" name="action" value="reports/financial">
                     
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <label class="filter-label">Từ ngày</label>
-                            <input type="date" class="form-control" name="date_from" 
-                                value="<?= htmlspecialchars($filters['date_from'] ?? date('Y-m-01')) ?>">
-                        </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label text-muted small">Từ ngày</label>
+                        <input type="date" class="form-control" name="date_from" 
+                            value="<?= htmlspecialchars($filters['date_from'] ?? date('Y-m-01')) ?>">
+                    </div>
 
-                        <div class="filter-group">
-                            <label class="filter-label">Đến ngày</label>
-                            <input type="date" class="form-control" name="date_to" 
-                                value="<?= htmlspecialchars($filters['date_to'] ?? date('Y-m-d')) ?>">
-                        </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label text-muted small">Đến ngày</label>
+                        <input type="date" class="form-control" name="date_to" 
+                            value="<?= htmlspecialchars($filters['date_to'] ?? date('Y-m-d')) ?>">
+                    </div>
 
-                        <div class="filter-group">
-                            <label class="filter-label">Tour</label>
-                            <select class="form-select" name="tour_id">
-                                <option value="">Tất cả</option>
-                                <?php if (!empty($filterOptions['tours'])): ?>
-                                    <?php foreach ($filterOptions['tours'] as $tour): ?>
-                                        <option value="<?= $tour['id'] ?>" 
-                                            <?= ($filters['tour_id'] ?? '') == $tour['id'] ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($tour['name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                        </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label text-muted small">Tour</label>
+                        <select class="form-select" name="tour_id">
+                            <option value="">Tất cả</option>
+                            <?php if (!empty($filterOptions['tours'])): ?>
+                                <?php foreach ($filterOptions['tours'] as $tour): ?>
+                                    <option value="<?= $tour['id'] ?>" 
+                                        <?= ($filters['tour_id'] ?? '') == $tour['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($tour['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
 
-                        <div class="filter-group">
-                            <label class="filter-label">Danh mục</label>
-                            <select class="form-select" name="category_id">
-                                <option value="">Tất cả</option>
-                                <?php if (!empty($filterOptions['categories'])): ?>
-                                    <?php foreach ($filterOptions['categories'] as $category): ?>
-                                        <option value="<?= $category['id'] ?>" 
-                                            <?= ($filters['category_id'] ?? '') == $category['id'] ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($category['name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                        </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label text-muted small">Danh mục</label>
+                        <select class="form-select" name="category_id">
+                            <option value="">Tất cả</option>
+                            <?php if (!empty($filterOptions['categories'])): ?>
+                                <?php foreach ($filterOptions['categories'] as $category): ?>
+                                    <option value="<?= $category['id'] ?>" 
+                                        <?= ($filters['category_id'] ?? '') == $category['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($category['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
 
-                        <div class="filter-group filter-actions-group">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search me-2"></i>
-                                Lọc
-                            </button>
-                        </div>
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-search me-2"></i> Lọc dữ liệu
+                        </button>
                     </div>
                 </form>
             </div>
-        </section>
+        </div>
 
-        <!-- Financial Summary Cards -->
-        <section class="financial-summary-section">
-            <div class="summary-grid">
-                <!-- Total Revenue -->
-                <div class="summary-card summary-success">
-                    <div class="summary-icon">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <div class="summary-content">
-                        <div class="summary-label">Tổng Doanh Thu</div>
-                        <div class="summary-value"><?= number_format($financialData['total_revenue'] ?? 0, 0, ',', '.') ?> ₫</div>
-                        <div class="summary-detail">
-                            Từ <?= $financialData['total_bookings'] ?? 0 ?> booking
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4">
+            <!-- Total Revenue -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-success-subtle text-success rounded p-2 me-3">
+                                <i class="fas fa-money-bill-wave fa-lg"></i>
+                            </div>
+                            <h6 class="text-muted mb-0">Tổng Doanh Thu</h6>
                         </div>
+                        <h3 class="fw-bold mb-1"><?= number_format($financialData['total_revenue'] ?? 0, 0, ',', '.') ?> ₫</h3>
+                        <small class="text-muted">Từ <?= $financialData['total_bookings'] ?? 0 ?> booking</small>
                     </div>
                 </div>
+            </div>
 
-                <!-- Total Expense -->
-                <div class="summary-card summary-danger">
-                    <div class="summary-icon">
-                        <i class="fas fa-receipt"></i>
-                    </div>
-                    <div class="summary-content">
-                        <div class="summary-label">Tổng Chi Phí</div>
-                        <div class="summary-value"><?= number_format($financialData['total_expense'] ?? 0, 0, ',', '.') ?> ₫</div>
-                        <div class="summary-detail">
-                            <?= $financialData['cost_count'] ?? 0 ?> khoản chi
+            <!-- Total Expense -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-danger-subtle text-danger rounded p-2 me-3">
+                                <i class="fas fa-receipt fa-lg"></i>
+                            </div>
+                            <h6 class="text-muted mb-0">Tổng Chi Phí</h6>
                         </div>
+                        <h3 class="fw-bold mb-1"><?= number_format($financialData['total_expense'] ?? 0, 0, ',', '.') ?> ₫</h3>
+                        <small class="text-muted"><?= $financialData['cost_count'] ?? 0 ?> khoản chi</small>
                     </div>
                 </div>
+            </div>
 
-                <!-- Profit -->
-                <div class="summary-card summary-primary">
-                    <div class="summary-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="summary-content">
-                        <div class="summary-label">Lợi Nhuận</div>
-                        <div class="summary-value"><?= number_format($financialData['profit'] ?? 0, 0, ',', '.') ?> ₫</div>
-                        <div class="summary-detail">
-                            Margin: <?= number_format($financialData['profit_margin'] ?? 0, 1) ?>%
+            <!-- Profit -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-primary-subtle text-primary rounded p-2 me-3">
+                                <i class="fas fa-chart-line fa-lg"></i>
+                            </div>
+                            <h6 class="text-muted mb-0">Lợi Nhuận</h6>
                         </div>
+                        <h3 class="fw-bold mb-1"><?= number_format($financialData['profit'] ?? 0, 0, ',', '.') ?> ₫</h3>
+                        <small class="text-muted">Margin: <?= number_format($financialData['profit_margin'] ?? 0, 1) ?>%</small>
                     </div>
                 </div>
+            </div>
 
-                <!-- Average Booking Value -->
-                <div class="summary-card summary-info">
-                    <div class="summary-icon">
-                        <i class="fas fa-calculator"></i>
+            <!-- Avg Value -->
+            <div class="col-12 col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-info-subtle text-info rounded p-2 me-3">
+                                <i class="fas fa-calculator fa-lg"></i>
+                            </div>
+                            <h6 class="text-muted mb-0">TB/Booking</h6>
+                        </div>
+                        <h3 class="fw-bold mb-1"><?= number_format($financialData['avg_booking_value'] ?? 0, 0, ',', '.') ?> ₫</h3>
+                        <small class="text-muted">Chi phí TB: <?= number_format($financialData['avg_cost'] ?? 0, 0, ',', '.') ?> ₫</small>
                     </div>
-                    <div class="summary-content">
-                        <div class="summary-label">Giá Trị TB/Booking</div>
-                        <div class="summary-value"><?= number_format($financialData['avg_booking_value'] ?? 0, 0, ',', '.') ?> ₫</div>
-                        <div class="summary-detail">
-                            Chi phí TB: <?= number_format($financialData['avg_cost'] ?? 0, 0, ',', '.') ?> ₫
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+            <!-- Monthly Chart -->
+            <div class="col-12 col-lg-8">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="card-title mb-0 fw-bold">Doanh Thu & Chi Phí Theo Tháng</h5>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 350px;">
+                            <canvas id="monthlyFinancialChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- Charts Section -->
-        <section class="charts-section">
-            <div class="charts-row">
-                <!-- Monthly Revenue vs Expense -->
-                <div class="chart-card chart-card-large">
-                    <div class="chart-header">
-                        <h3 class="chart-title">
-                            <i class="fas fa-chart-bar"></i>
-                            Doanh Thu & Chi Phí Theo Tháng
-                        </h3>
+            
+            <!-- Profit Pie Chart -->
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="card-title mb-0 fw-bold">Lợi Nhuận Top 5 Tours</h5>
                     </div>
-                    <div class="chart-body">
-                        <canvas id="monthlyFinancialChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Profit by Tour (Pie Chart) -->
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3 class="chart-title">
-                            <i class="fas fa-chart-pie"></i>
-                            Lợi Nhuận Top 5 Tours
-                        </h3>
-                    </div>
-                    <div class="chart-body">
-                        <canvas id="tourProfitChart"></canvas>
+                    <div class="card-body">
+                        <div style="height: 300px;">
+                            <canvas id="tourProfitChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- Tour Financials Table -->
-        <section class="tours-section">
-            <div class="tours-header">
-                <div class="tours-info">
-                    <h3 class="tours-title">
-                        <i class="fas fa-table"></i>
-                        Chi Tiết Tài Chính Theo Tour
-                    </h3>
-                </div>
-                <div class="tours-count">
-                    <span class="count-info"><?= count($tourFinancials) ?> tours</span>
-                </div>
+        <!-- Table Row -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold">Chi Tiết Tài Chính Theo Tour</h5>
+                <span class="badge bg-light text-dark border"><?= count($tourFinancials) ?> tours</span>
             </div>
-
-            <div class="tours-container">
-                <?php if (!empty($tourFinancials)): ?>
-                    <div class="table-responsive">
-                        <table class="table table-modern">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Tên Tour</th>
-                                    <th>Danh Mục</th>
-                                    <th class="text-end">Booking</th>
-                                    <th class="text-end">Doanh Thu</th>
-                                    <th class="text-end">Chi Phí</th>
-                                    <th class="text-end">Lợi Nhuận</th>
-                                    <th class="text-end">Margin</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 ps-3">#</th>
+                                <th class="border-0">Tên Tour</th>
+                                <th class="border-0">Danh Mục</th>
+                                <th class="border-0 text-end">Booking</th>
+                                <th class="border-0 text-end">Doanh Thu</th>
+                                <th class="border-0 text-end">Chi Phí</th>
+                                <th class="border-0 text-end">Lợi Nhuận</th>
+                                <th class="border-0 text-end pe-3">Margin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($tourFinancials)): ?>
                                 <?php foreach ($tourFinancials as $index => $tour): ?>
                                     <tr>
-                                        <td><strong><?= $index + 1 ?></strong></td>
+                                        <td class="ps-3 fw-bold"><?= $index + 1 ?></td>
                                         <td>
-                                            <div class="tour-name">
-                                                <i class="fas fa-map-marked-alt text-info me-2"></i>
+                                            <div class="fw-medium text-truncate" style="max-width: 250px;" title="<?= htmlspecialchars($tour['tour_name']) ?>">
+                                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
                                                 <?= htmlspecialchars($tour['tour_name']) ?>
                                             </div>
                                         </td>
-                                        <td>
-                                            <span class="badge bg-secondary">
-                                                <?= htmlspecialchars($tour['category_name'] ?? 'N/A') ?>
-                                            </span>
-                                        </td>
+                                        <td><span class="badge bg-light text-secondary border"><?= htmlspecialchars($tour['category_name'] ?? 'N/A') ?></span></td>
                                         <td class="text-end"><?= number_format($tour['booking_count'] ?? 0) ?></td>
-                                        <td class="text-end">
-                                            <strong class="text-success">
-                                                <?= number_format($tour['revenue'] ?? 0, 0, ',', '.') ?> ₫
-                                            </strong>
+                                        <td class="text-end fw-bold text-success"><?= number_format($tour['revenue'] ?? 0, 0, ',', '.') ?> ₫</td>
+                                        <td class="text-end text-danger"><?= number_format($tour['expense'] ?? 0, 0, ',', '.') ?> ₫</td>
+                                        <td class="text-end fw-bold <?= ($tour['profit'] ?? 0) >= 0 ? 'text-primary' : 'text-danger' ?>">
+                                            <?= number_format($tour['profit'] ?? 0, 0, ',', '.') ?> ₫
                                         </td>
-                                        <td class="text-end">
-                                            <span class="text-danger">
-                                                <?= number_format($tour['expense'] ?? 0, 0, ',', '.') ?> ₫
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            <strong class="<?= ($tour['profit'] ?? 0) >= 0 ? 'text-primary' : 'text-danger' ?>">
-                                                <?= number_format($tour['profit'] ?? 0, 0, ',', '.') ?> ₫
-                                            </strong>
-                                        </td>
-                                        <td class="text-end">
-                                            <span class="badge <?= ($tour['profit_margin'] ?? 0) >= 20 ? 'bg-success' : 
-                                                (($tour['profit_margin'] ?? 0) >= 10 ? 'bg-warning' : 'bg-danger') ?>">
-                                                <?= number_format($tour['profit_margin'] ?? 0, 1) ?>%
+                                        <td class="text-end pe-3">
+                                            <?php $margin = $tour['profit_margin'] ?? 0; ?>
+                                            <span class="badge rounded-pill <?= $margin >= 20 ? 'bg-success' : ($margin >= 10 ? 'bg-warning' : 'bg-danger') ?>">
+                                                <?= number_format($margin, 1) ?>%
                                             </span>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
-                            </tbody>
-                            <tfoot>
-                                <tr class="table-summary">
-                                    <td colspan="3"><strong>TỔNG CỘNG</strong></td>
-                                    <td class="text-end"><strong><?= number_format(array_sum(array_column($tourFinancials, 'booking_count'))) ?></strong></td>
-                                    <td class="text-end">
-                                        <strong class="text-success">
-                                            <?= number_format(array_sum(array_column($tourFinancials, 'revenue')), 0, ',', '.') ?> ₫
-                                        </strong>
-                                    </td>
-                                    <td class="text-end">
-                                        <strong class="text-danger">
-                                            <?= number_format(array_sum(array_column($tourFinancials, 'expense')), 0, ',', '.') ?> ₫
-                                        </strong>
-                                    </td>
-                                    <td class="text-end">
-                                        <strong class="text-primary">
-                                            <?= number_format(array_sum(array_column($tourFinancials, 'profit')), 0, ',', '.') ?> ₫
-                                        </strong>
-                                    </td>
-                                    <td class="text-end">
-                                        <?php 
-                                        $totalRevenue = array_sum(array_column($tourFinancials, 'revenue'));
-                                        $totalProfit = array_sum(array_column($tourFinancials, 'profit'));
-                                        $avgMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
-                                        ?>
-                                        <strong><?= number_format($avgMargin, 1) ?>%</strong>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-folder-open fa-3x mb-3"></i>
+                                            <p>Chưa có dữ liệu phù hợp với bộ lọc.</p>
+                                        </div>
                                     </td>
                                 </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                <?php else: ?>
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <h3 class="empty-title">Chưa có dữ liệu tài chính</h3>
-                        <p class="empty-description">
-                            Thử điều chỉnh bộ lọc hoặc chọn khoảng thời gian khác.
-                        </p>
-                    </div>
-                <?php endif; ?>
+                            <?php endif; ?>
+                        </tbody>
+                        <?php if (!empty($tourFinancials)): ?>
+                        <tfoot class="bg-light fw-bold">
+                            <tr>
+                                <td colspan="3" class="text-end ps-3">TỔNG CỘNG</td>
+                                <td class="text-end"><?= number_format(array_sum(array_column($tourFinancials, 'booking_count'))) ?></td>
+                                <td class="text-end text-success"><?= number_format(array_sum(array_column($tourFinancials, 'revenue')), 0, ',', '.') ?> ₫</td>
+                                <td class="text-end text-danger"><?= number_format(array_sum(array_column($tourFinancials, 'expense')), 0, ',', '.') ?> ₫</td>
+                                <td class="text-end text-primary"><?= number_format(array_sum(array_column($tourFinancials, 'profit')), 0, ',', '.') ?> ₫</td>
+                                <td class="text-end pe-3">
+                                    <?php 
+                                    $totalRevenue = array_sum(array_column($tourFinancials, 'revenue'));
+                                    $totalProfit = array_sum(array_column($tourFinancials, 'profit'));
+                                    $avgMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
+                                    echo number_format($avgMargin, 1) . '%';
+                                    ?>
+                                </td>
+                            </tr>
+                        </tfoot>
+                        <?php endif; ?>
+                    </table>
+                </div>
             </div>
-        </section>
+        </div>
     </div>
 </main>
 
@@ -324,103 +288,124 @@ $filterOptions = $data['filterOptions'] ?? [];
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Re-use data from PHP
+    const monthlyLabels = <?= json_encode($data['monthlyLabels'] ?? []) ?>;
+    const monthlyRevenue = <?= json_encode($data['monthlyRevenue'] ?? []) ?>;
+    const monthlyExpense = <?= json_encode($data['monthlyExpense'] ?? []) ?>;
+    const monthlyProfit = <?= json_encode($data['monthlyProfit'] ?? []) ?>;
+    
+    const tourNames = <?= json_encode($data['tourNames'] ?? []) ?>;
+    const tourProfits = <?= json_encode($data['tourProfits'] ?? []) ?>;
+
     // Monthly Financial Chart
-    <?php if (isset($data['monthlyRevenue'])): ?>
-        const monthlyCtx = document.getElementById('monthlyFinancialChart');
-        if (monthlyCtx) {
-            new Chart(monthlyCtx, {
-                type: 'bar',
-                data: {
-                    labels: <?= json_encode($data['monthlyLabels'] ?? []) ?>,
-                    datasets: [{
-                        label: 'Doanh Thu',
-                        data: <?= json_encode($data['monthlyRevenue'] ?? []) ?>,
-                        backgroundColor: '#10b981',
-                        borderRadius: 8
-                    }, {
-                        label: 'Chi Phí',
-                        data: <?= json_encode($data['monthlyExpense'] ?? []) ?>,
-                        backgroundColor: '#ef4444',
-                        borderRadius: 8
-                    }, {
-                        label: 'Lợi Nhuận',
-                        data: <?= json_encode($data['monthlyProfit'] ?? []) ?>,
-                        backgroundColor: '#667eea',
-                        borderRadius: 8
-                    }]
+    const monthlyCtx = document.getElementById('monthlyFinancialChart');
+    if (monthlyCtx && monthlyLabels.length > 0) {
+        new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'Doanh Thu',
+                    data: monthlyRevenue,
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }, {
+                    label: 'Chi Phí',
+                    data: monthlyExpense,
+                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                    borderColor: '#ef4444',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }, {
+                    label: 'Lợi Nhuận',
+                    data: monthlyProfit,
+                    backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                    borderColor: '#667eea',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + 
-                                        new Intl.NumberFormat('vi-VN').format(context.parsed.y) + ' ₫';
-                                }
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + 
+                                    new Intl.NumberFormat('vi-VN').format(context.raw) + ' ₫';
                             }
                         }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return new Intl.NumberFormat('vi-VN', { 
-                                        notation: 'compact',
-                                        compactDisplay: 'short'
-                                    }).format(value);
-                                }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) return (value/1000000).toFixed(0) + 'tr';
+                                if (value >= 1000) return (value/1000).toFixed(0) + 'k';
+                                return value;
                             }
                         }
                     }
                 }
-            });
-        }
-    <?php endif; ?>
+            }
+        });
+    }
 
     // Tour Profit Pie Chart
-    <?php if (isset($data['tourNames']) && isset($data['tourProfits'])): ?>
-        const profitCtx = document.getElementById('tourProfitChart');
-        if (profitCtx) {
-            new Chart(profitCtx, {
-                type: 'pie',
-                data: {
-                    labels: <?= json_encode($data['tourNames'] ?? []) ?>,
-                    datasets: [{
-                        data: <?= json_encode($data['tourProfits'] ?? []) ?>,
-                        backgroundColor: [
-                            '#667eea',
-                            '#10b981',
-                            '#f59e0b',
-                            '#ef4444',
-                            '#8b5cf6'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = new Intl.NumberFormat('vi-VN').format(context.parsed) + ' ₫';
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((context.parsed / total) * 100).toFixed(1) + '%';
-                                    return label + ': ' + value + ' (' + percentage + ')';
-                                }
+    const profitCtx = document.getElementById('tourProfitChart');
+    if (profitCtx && tourNames.length > 0) {
+        new Chart(profitCtx, {
+            type: 'doughnut',
+            data: {
+                labels: tourNames,
+                datasets: [{
+                    data: tourProfits,
+                    backgroundColor: [
+                        '#667eea',
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#8b5cf6',
+                        '#ec4899'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'right',
+                        labels: {
+                            boxWidth: 12,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = new Intl.NumberFormat('vi-VN').format(context.raw) + ' ₫';
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.raw / total) * 100).toFixed(1) + '%';
+                                return value + ' (' + percentage + ')';
                             }
                         }
                     }
                 }
-            });
-        }
-    <?php endif; ?>
+            }
+        });
+    }
 });
 
 function resetFilters() {
@@ -428,8 +413,4 @@ function resetFilters() {
 }
 </script>
 
-<link rel="stylesheet" href="<?= BASE_URL ?>assets/css/admin/reports.css">
-
-<?php
-include_once PATH_VIEW_ADMIN . 'default/footer.php';
-?>
+<?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>

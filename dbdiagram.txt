@@ -58,6 +58,7 @@
     base_price decimal
     created_at datetime
     updated_at datetime
+    duration_days int [default:  1]
   }
 
   Table tour_pricing_options as TPO {
