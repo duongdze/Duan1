@@ -139,7 +139,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     </div>
                 </div>
 
-                <form id="tour-filters" method="GET" action="<?= BASE_URL_ADMIN . '&action=tours' ?>" class="filter-form">
+                <form id="tour-filters" method="GET" class="filter-form" onsubmit="return false;">
                     <input type="hidden" name="action" value="tours">
 
                     <!-- Basic Filters -->

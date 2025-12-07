@@ -1,64 +1,109 @@
 document.addEventListener("DOMContentLoaded", function () {
   // ===== TOURS INDEX PAGE FUNCTIONALITY =====
 
-  // Filter form handling with AJAX
+  // Filter form handling with CLIENT-SIDE filtering (giống Booking)
   const filterForm = document.getElementById("tour-filters");
   if (filterForm) {
-    // Auto-submit on filter change (debounced)
-    let filterTimeout;
-    const filterInputs = filterForm.querySelectorAll("input, select");
-
-    filterInputs.forEach((input) => {
-      input.addEventListener("input", function () {
-        clearTimeout(filterTimeout);
-        filterTimeout = setTimeout(() => {
-          submitFilters();
-        }, 500);
-      });
-
-      input.addEventListener("change", function () {
-        if (input.type !== "text") {
-          submitFilters();
-        }
-      });
+    // Prevent form submit
+    filterForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      filterTours();
     });
 
-    // Manual submit button
-    const submitBtn = filterForm.querySelector('button[type="submit"]');
-    if (submitBtn) {
-      submitBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        submitFilters();
+    // Real-time filtering on select/date change
+    const filterSelects = filterForm.querySelectorAll('select, input[type="date"], input[type="number"]');
+    filterSelects.forEach(input => {
+      input.addEventListener('change', filterTours);
+    });
+
+    // Debounce keyword input for better performance
+    let keywordTimeout;
+    const keywordInput = filterForm.querySelector('[name="keyword"]');
+    if (keywordInput) {
+      keywordInput.addEventListener('input', function() {
+        clearTimeout(keywordTimeout);
+        keywordTimeout = setTimeout(filterTours, 300);
       });
     }
 
-    function submitFilters() {
-      const formData = new FormData(filterForm);
-      const params = new URLSearchParams();
+    function filterTours() {
+      const keyword = filterForm.querySelector('[name="keyword"]').value.toLowerCase();
+      const categoryId = filterForm.querySelector('[name="category_id"]').value;
+      const status = filterForm.querySelector('[name="status"]').value;
+      const sortBy = filterForm.querySelector('[name="sort_by"]').value;
+      const sortDir = filterForm.querySelector('[name="sort_dir"]').value;
 
-      // Add action parameter
-      params.append("action", "tours");
+      const toursGrid = document.querySelector('.tours-grid');
+      if (!toursGrid) return;
 
-      // Add all form data
-      for (let [key, value] of formData.entries()) {
-        if (value.trim() !== "") {
-          params.append(key, value);
+      const tourCards = Array.from(toursGrid.querySelectorAll('.tour-card-modern'));
+
+      // Filter cards
+      let filteredCards = tourCards.filter(card => {
+        const tourName = card.querySelector('.tour-title').textContent.toLowerCase();
+        const categoryBadge = card.querySelector('.category-badge');
+        const tourCategory = categoryBadge ? categoryBadge.textContent.trim() : '';
+        const statusBadge = card.querySelector('.badge-status');
+        const tourStatus = statusBadge ? statusBadge.textContent.trim() : '';
+
+        // Filter by keyword
+        if (keyword && !tourName.includes(keyword)) {
+          return false;
         }
+
+        // Filter by category
+        if (categoryId) {
+          const selectedCategoryName = filterForm.querySelector(`[name="category_id"] option[value="${categoryId}"]`).textContent;
+          if (tourCategory !== selectedCategoryName) {
+            return false;
+          }
+        }
+
+        // Filter by status
+        if (status) {
+          const statusMap = {
+            'active': 'Đang hoạt động',
+            'inactive': 'Tạm ẩn'
+          };
+          if (tourStatus !== statusMap[status]) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      // Sort cards
+      if (sortBy) {
+        filteredCards.sort((a, b) => {
+          let aVal, bVal;
+          if (sortBy === 'name') {
+            aVal = a.querySelector('.tour-title').textContent.toLowerCase();
+            bVal = b.querySelector('.tour-title').textContent.toLowerCase();
+          } else if (sortBy === 'price') {
+            aVal = parseFloat(a.querySelector('.price-value').textContent.replace(/[^\d]/g, '') || 0);
+            bVal = parseFloat(b.querySelector('.price-value').textContent.replace(/[^\d]/g, '') || 0);
+          } else if (sortBy === 'rating') {
+            const aRating = a.querySelector('.rating-value');
+            const bRating = b.querySelector('.rating-value');
+            aVal = aRating ? parseFloat(aRating.textContent || 0) : 0;
+            bVal = bRating ? parseFloat(bRating.textContent || 0) : 0;
+          }
+          return sortDir === 'ASC' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+        });
       }
 
-      // Update URL without page reload
-      const newUrl = window.location.pathname + "?" + params.toString();
-      window.history.pushState({}, "", newUrl);
+      // Hide all cards
+      tourCards.forEach(card => card.style.display = 'none');
 
-      // Show loading state
-      const container = document.getElementById("tour-list-container");
-      if (container) {
-        container.style.opacity = "0.6";
-        container.style.pointerEvents = "none";
+      // Show filtered cards
+      filteredCards.forEach(card => card.style.display = '');
+
+      // Update count
+      const countElement = document.querySelector('.tours-count .count-info');
+      if (countElement) {
+        countElement.textContent = `${filteredCards.length} tour`;
       }
-
-      // Reload page with new filters
-      window.location.reload();
     }
   }
 
