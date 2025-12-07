@@ -664,6 +664,30 @@ class TourController
         }
         if (!isset($tour['booking_count'])) {
             $stmt = BaseModel::getPdo()->prepare("SELECT COUNT(*) as bc FROM bookings WHERE tour_id = :tid");
+            $stmt->execute(['tid' => $id]);
+            $tour['booking_count'] = $stmt->fetch()['bc'] ?? 0;
+        }
+
+
+        // Load departures (lịch khởi hành)
+        $departureModel = new class extends BaseModel {
+            protected $table = 'tour_departures';
+        };
+        $departures = $departureModel->select('*', 'tour_id = :tid', ['tid' => $id], 'departure_date ASC');
+        
+        // Normalize commonly expected fields for the detail view
+        $tour['subtitle'] = $tour['subtitle'] ?? ($tour['short_description'] ?? '');
+        $tour['duration'] = $tour['duration'] ?? ($tour['days'] ?? '');
+        $tour['capacity'] = $tour['capacity'] ?? ($tour['seats'] ?? '');
+        $tour['start_date'] = $tour['start_date'] ?? ($tour['next_start_date'] ?? '');
+
+        require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
+    }
+
+    /**
+     * Toggle tour status (AJAX endpoint)
+     */
+    public function toggleStatus()
     {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['_method']) || $_POST['_method'] !== 'PATCH') {
             http_response_code(405);
