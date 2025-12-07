@@ -90,7 +90,7 @@ $currentAction = $_GET['action'] ?? '';
 
         <!-- Phần Booking -->
         <li class="nav-item">
-            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('bookings') ? 'active' : '' ?>"
+            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive(['bookings', 'guides/available-tours']) ? 'active' : '' ?>"
                 href="#" role="button"
                 aria-expanded="<?= (isParentActive('bookings') || isActive('guides/available-tours')) ? 'true' : 'false' ?>"
                 aria-controls="bookingMenu"
