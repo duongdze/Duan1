@@ -163,9 +163,13 @@ class FilterService
                 WHERE source IS NOT NULL 
                 AND source != ''
                 ORDER BY source ASC";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute();
-        $sources = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute();
+            $sources = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (PDOException $e) {
+            $sources = [];
+        }
 
         // Thêm các sources mặc định nếu không có data
         if (empty($sources)) {

@@ -470,7 +470,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
     .stat-label {
         color: var(--tours-text-secondary, #6c757d);
-        font-size: 13px;
+        font-size: 10px;
         font-weight: 500;
     }
 
