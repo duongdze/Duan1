@@ -30,7 +30,7 @@ function isParentActive($actions)
 $currentAction = $_GET['action'] ?? '';
 ?>
 
-<aside class="sidebar vh-100 border-end bg-light">
+<aside class="sidebar vh-100 border-end bg-light overflow-y-auto">
     <div class="p-3">
         <h4 class="fw-bold text-center">Trang Quản Trị</h4>
     </div>
@@ -61,22 +61,22 @@ $currentAction = $_GET['action'] ?? '';
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('tours_categories') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_categories">
-                            <i class=""></i> Danh mục Tour
+                            <i class="fas fa-th-list fa-fw me-2"></i> Danh mục Tour
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('tours_versions') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_versions">
-                            <i class=""></i> Phiên bản Tour
+                            <i class="fas fa-code-branch fa-fw me-2"></i> Phiên bản Tour
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('policies') ?>" href="<?= BASE_URL_ADMIN ?>&action=policies">
-                            <i class=""></i> Chính sách
+                            <i class="fas fa-file-contract fa-fw me-2"></i> Chính sách
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('suppliers') ?>" href="<?= BASE_URL_ADMIN ?>&action=suppliers">
-                            <i class=""></i> Nhà cung cấp
+                            <i class="fas fa-handshake fa-fw me-2"></i> Nhà cung cấp
                         </a>
                     </li>
                     <li class="nav-item">
