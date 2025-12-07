@@ -112,20 +112,26 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             <div class="card-body">
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        <div class="form-floating">
+                                        <label for="customer_id" class="form-label">Khách hàng <span class="text-danger">*</span></label>
+                                        <div class="input-group">
                                             <select class="form-select" id="customer_id" name="customer_id" required>
                                                 <option value="">-- Chọn khách hàng --</option>
                                                 <?php if (!empty($customers)): ?>
                                                     <?php foreach ($customers as $c): ?>
-                                                        <option value="<?= htmlspecialchars($c['user_id']) ?>" 
+                                                        <option value="<?= htmlspecialchars($c['user_id']) ?>"
                                                             <?= $c['user_id'] == $booking['customer_id'] ? 'selected' : '' ?>>
                                                             <?= htmlspecialchars($c['full_name']) ?> (<?= htmlspecialchars($c['email']) ?>)
                                                         </option>
                                                     <?php endforeach; ?>
                                                 <?php endif; ?>
                                             </select>
-                                            <label for="customer_id">Khách hàng <span class="text-danger">*</span></label>
+                                            <a href="<?= BASE_URL_ADMIN ?>&action=users/create" target="_blank" class="btn btn-outline-primary" title="Tạo khách hàng mới">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
                                         </div>
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="fas fa-info-circle me-1"></i>Chọn khách hàng từ danh sách hoặc click nút "+" để tạo mới
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -147,7 +153,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                 <option value="">-- Chọn tour --</option>
                                                 <?php if (!empty($tours)): ?>
                                                     <?php foreach ($tours as $t): ?>
-                                                        <option value="<?= htmlspecialchars($t['id']) ?>" 
+                                                        <option value="<?= htmlspecialchars($t['id']) ?>"
                                                             data-price="<?= htmlspecialchars($t['base_price']) ?>"
                                                             <?= $t['id'] == $booking['tour_id'] ? 'selected' : '' ?>>
                                                             <?= htmlspecialchars($t['name']) ?> - <?= number_format($t['base_price'], 0, ',', '.') ?> ₫
@@ -161,15 +167,42 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="date" class="form-control" id="booking_date" name="booking_date" 
+                                            <input type="date" class="form-control" id="booking_date" name="booking_date"
                                                 value="<?= date('Y-m-d', strtotime($booking['booking_date'])) ?>">
                                             <label for="booking_date">Ngày đặt tour <span class="text-danger">*</span></label>
                                         </div>
                                     </div>
 
+                                    <div class="col-12">
+                                        <div class="form-floating">
+                                            <select class="form-select" id="version_id" name="version_id">
+                                                <option value="">-- Chọn phiên bản --</option>
+                                                <?php if (!empty($versions)): ?>
+                                                    <?php foreach ($versions as $v): ?>
+                                                        <option value="<?= htmlspecialchars($v['id']) ?>"
+                                                            data-price-adult="<?= htmlspecialchars($v['price_adult'] ?? 0) ?>"
+                                                            data-price-child="<?= htmlspecialchars($v['price_child'] ?? 0) ?>"
+                                                            data-price-infant="<?= htmlspecialchars($v['price_infant'] ?? 0) ?>"
+                                                            <?= ($v['id'] == ($booking['version_id'] ?? '')) ? 'selected' : '' ?>>
+                                                            <?= htmlspecialchars($v['name']) ?>
+                                                            <?php if (!empty($v['description'])): ?>
+                                                                - <?= htmlspecialchars($v['description']) ?>
+                                                            <?php endif; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </select>
+                                            <label for="version_id">Phiên bản Tour</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Chọn phiên bản để áp dụng giá theo mùa/sự kiện (tùy chọn)
+                                        </small>
+                                    </div>
+
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="number" class="form-control" id="total_price" name="total_price" 
+                                            <input type="number" class="form-control" id="total_price" name="total_price"
                                                 value="<?= $booking['total_price'] ?>" min="0" step="50000" placeholder=" " required>
                                             <label for="total_price">Tổng giá tiền (VNĐ) <span class="text-danger">*</span></label>
                                         </div>
@@ -224,9 +257,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <option value="">-- Chưa phân công --</option>
                                         <?php if (!empty($guides)): ?>
                                             <?php foreach ($guides as $guide): ?>
-                                                <option value="<?= $guide['id'] ?>" 
+                                                <option value="<?= $guide['id'] ?>"
                                                     <?= ($guide['id'] == ($booking['guide_id'] ?? '')) ? 'selected' : '' ?>>
-                                                    <?= htmlspecialchars($guide['full_name']) ?> 
+                                                    <?= htmlspecialchars($guide['full_name']) ?>
                                                     (<?= htmlspecialchars($guide['phone']) ?> - <?= htmlspecialchars($guide['languages'] ?? 'N/A') ?>)
                                                 </option>
                                             <?php endforeach; ?>
@@ -252,9 +285,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <option value="">-- Chưa phân công --</option>
                                         <?php if (!empty($drivers)): ?>
                                             <?php foreach ($drivers as $driver): ?>
-                                                <option value="<?= $driver['id'] ?>" 
+                                                <option value="<?= $driver['id'] ?>"
                                                     <?= ($driver['id'] == ($booking['driver_id'] ?? '')) ? 'selected' : '' ?>>
-                                                    <?= htmlspecialchars($driver['full_name']) ?> 
+                                                    <?= htmlspecialchars($driver['full_name']) ?>
                                                     (<?= htmlspecialchars($driver['phone']) ?> - <?= htmlspecialchars($driver['vehicle_plate'] ?? 'Chưa có xe') ?>)
                                                 </option>
                                             <?php endforeach; ?>
@@ -304,7 +337,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <div class="col-4"><strong>Trạng thái:</strong></div>
                                         <div class="col-8" id="summary-status">--</div>
                                     </div>
-                                    
+
                                     <hr>
                                     <h6 class="mb-3">Phân công nhân sự</h6>
                                     <div class="row mb-2">
@@ -315,7 +348,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <div class="col-4"><strong>Tài xế:</strong></div>
                                         <div class="col-8" id="summary-driver">Chưa phân công</div>
                                     </div>
-                                    
+
                                     <hr>
                                     <div class="row">
                                         <div class="col-4"><strong>Tổng giá:</strong></div>
@@ -419,8 +452,45 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     }
 
     function setupEventListeners() {
+        // Auto-update price when tour is selected
+        document.getElementById('tour_id').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const price = selectedOption.getAttribute('data-price');
+            if (price) {
+                // Reset version selection when tour changes
+                const versionSelect = document.getElementById('version_id');
+                if (versionSelect) {
+                    versionSelect.value = '';
+                }
+                document.getElementById('total_price').value = price;
+                updateSummary();
+            }
+        });
+
+        // Auto-update price when version is selected
+        const versionSelect = document.getElementById('version_id');
+        if (versionSelect) {
+            versionSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const priceAdult = selectedOption.getAttribute('data-price-adult');
+
+                if (priceAdult && priceAdult > 0) {
+                    // Nếu có chọn version → dùng giá của version
+                    document.getElementById('total_price').value = priceAdult;
+                } else {
+                    // Nếu không chọn version → quay về giá gốc của tour
+                    const tourSelect = document.getElementById('tour_id');
+                    const tourPrice = tourSelect.options[tourSelect.selectedIndex].getAttribute('data-price');
+                    if (tourPrice) {
+                        document.getElementById('total_price').value = tourPrice;
+                    }
+                }
+                updateSummary();
+            });
+        }
+
         // Update summary on field changes
-        ['customer_id', 'tour_id', 'booking_date', 'status', 'total_price', 'guide_id', 'driver_id'].forEach(id => {
+        ['customer_id', 'tour_id', 'version_id', 'booking_date', 'status', 'total_price', 'guide_id', 'driver_id'].forEach(id => {
             const element = document.getElementById(id);
             if (element) {
                 element.addEventListener('change', updateSummary);

@@ -76,8 +76,10 @@ class BookingController
                 'version_id' => !empty($version_id) ? $version_id : null,
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
+                'final_price' => $total_price,  // Database yêu cầu final_price
                 'status' => $status,
-                'notes' => $notes
+                'notes' => $notes,
+                'created_by' => $_SESSION['user']['user_id'] ?? null  // User đang tạo booking
             ]);
 
             // Insert booking customers (companions)
@@ -170,9 +172,11 @@ class BookingController
         // Load customers and tours data for dropdown
         $customerModel = new UserModel();
         $tourModel = new Tour();
+        $versionModel = new TourVersion();
 
         $customers = $customerModel->select('*', "role = :role", ['role' => 'customer']);
         $tours = $tourModel->select('*', null, [], 'name ASC');
+        $versions = $versionModel->getActiveVersionsWithPrices();
 
         // Get drivers list
         $driverModel = new Driver();
@@ -218,6 +222,7 @@ class BookingController
             $total_price = $_POST['total_price'] ?? null;
             $status = $_POST['status'] ?? 'cho_xac_nhan';
             $notes = $_POST['notes'] ?? '';
+            $version_id = $_POST['version_id'] ?? null;
 
             // Basic validation
             if (!$customer_id || !$tour_id || !$booking_date || !$total_price || !$status) {
@@ -230,36 +235,19 @@ class BookingController
             $this->model->update([
                 'customer_id' => $customer_id,
                 'tour_id' => $tour_id,
+                'version_id' => !empty($version_id) ? $version_id : null,
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
+                'final_price' => $total_price,  // ← THÊM DÒNG NÀY (cần thiết cho database)
                 'status' => $status,
-                'driver_id' => $_POST['driver_id'] ?? null,
+                'driver_id' => !empty($_POST['driver_id']) ? $_POST['driver_id'] : null,  // ← SỬA DÒNG NÀY
                 'notes' => $notes
             ], 'id = :id', ['id' => $id]);
 
-            // Update booking customers (companions)
-            $bookingCustomerModel = new BookingCustomer();
+            // NOTE: Companions are managed separately via AJAX endpoints
+            // (addCompanion, updateCompanion, deleteCompanion)
+            // Do NOT delete and recreate companions here to prevent data loss
 
-            // Xóa tất cả companions cũ
-            $bookingCustomerModel->deleteByBooking($id);
-
-            // Thêm companions mới
-            if (!empty($_POST['companion_name'])) {
-                foreach ($_POST['companion_name'] as $index => $name) {
-                    if (!empty($name)) {
-                        $bookingCustomerModel->insert([
-                            'booking_id' => $id,
-                            'name' => $name,
-                            'gender' => $_POST['companion_gender'][$index] ?? '',
-                            'birth_date' => $_POST['companion_birth_date'][$index] ?? null,
-                            'phone' => $_POST['companion_phone'][$index] ?? '',
-                            'id_card' => $_POST['companion_id_card'][$index] ?? '',
-                            'special_request' => $_POST['companion_special_request'][$index] ?? '',
-                            'room_type' => $_POST['companion_room_type'][$index] ?? ''
-                        ]);
-                    }
-                }
-            }
 
             $_SESSION['success'] = 'Cập nhật đơn đặt tour thành công';
             header('Location:' . BASE_URL_ADMIN . '&action=bookings/detail&id=' . $id);
@@ -383,7 +371,7 @@ class BookingController
         // Lấy dữ liệu từ form
         $data = [
             'booking_id' => $bookingId,
-            'name' => $_POST['name'] ?? '',
+            'full_name' => $_POST['name'] ?? '',
             'gender' => $_POST['gender'] ?? null,
             'birth_date' => $_POST['birth_date'] ?? null,
             'phone' => $_POST['phone'] ?? null,
@@ -392,7 +380,7 @@ class BookingController
             'special_request' => $_POST['special_request'] ?? null
         ];
         // Validate
-        if (empty($data['name'])) {
+        if (empty($data['full_name'])) {
             echo json_encode(['success' => false, 'message' => 'Vui lòng nhập họ tên khách']);
             exit;
         }
@@ -434,7 +422,7 @@ class BookingController
         }
         // Lấy dữ liệu từ form
         $data = [
-            'name' => $_POST['name'] ?? '',
+            'full_name' => $_POST['name'] ?? '',
             'gender' => $_POST['gender'] ?? null,
             'birth_date' => $_POST['birth_date'] ?? null,
             'phone' => $_POST['phone'] ?? null,
@@ -444,14 +432,14 @@ class BookingController
         ];
 
         // Validate
-        if (empty($data['name'])) {
+        if (empty($data['full_name'])) {
             echo json_encode(['success' => false, 'message' => 'Vui lòng nhập họ tên khách']);
             exit;
         }
         // Cập nhật database
         try {
             $companionModel = new BookingCustomer();
-            $companionModel->update($companionId, $data);
+            $companionModel->update($data, 'id = :id', ['id' => $companionId]);
 
             echo json_encode([
                 'success' => true,
@@ -486,11 +474,55 @@ class BookingController
         // Xóa khỏi database
         try {
             $companionModel = new BookingCustomer();
-            $companionModel->delete($companionId);
+            // FIX: Sử dụng đúng cú pháp delete với WHERE clause
+            $companionModel->delete('id = :id', ['id' => $companionId]);
 
             echo json_encode([
                 'success' => true,
                 'message' => 'Xóa khách đi kèm thành công'
+            ]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Cập nhật yêu cầu đặc biệt (dành cho HDV)
+     * AJAX endpoint
+     */
+    public function updateSpecialRequest()
+    {
+        header('Content-Type: application/json');
+
+        $companionId = $_POST['companion_id'] ?? null;
+        $bookingId = $_POST['booking_id'] ?? null;
+        $specialRequest = $_POST['special_request'] ?? '';
+
+        if (!$companionId || !$bookingId) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin']);
+            exit;
+        }
+
+        // Kiểm tra quyền - HDV chỉ được sửa booking được phân công
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        $userId = $_SESSION['user']['user_id'] ?? null;
+
+        if (!$this->model->canUserEditBooking($bookingId, $userId, $userRole)) {
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền cập nhật yêu cầu này']);
+            exit;
+        }
+
+        // Cập nhật special_request
+        try {
+            $companionModel = new BookingCustomer();
+            $companionModel->update([
+                'special_request' => $specialRequest
+            ], 'id = :id', ['id' => $companionId]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Cập nhật yêu cầu đặc biệt thành công'
             ]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);

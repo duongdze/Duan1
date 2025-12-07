@@ -22,6 +22,7 @@ match ($action) {
     'account'                               => (new AuthorController)->accountInfo(),
     'account/update-profile'                => (new AuthorController)->updateProfile(), // AJAX
     'account/change-password'               => (new AuthorController)->changePassword(), // AJAX
+    'account/update-avatar'                 => (new AuthorController)->updateAvatar(), // AJAX
 
     // Tours Management 
     'tours'                                 => (new TourController)->index(),

@@ -102,7 +102,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             <div class="card-body">
                                 <div class="row g-3">
                                     <div class="col-12">
-                                        <div class="form-floating">
+                                        <label for="customer_id" class="form-label">Khách hàng <span class="text-danger">*</span></label>
+                                        <div class="input-group">
                                             <select class="form-select" id="customer_id" name="customer_id" required>
                                                 <option value="">-- Chọn khách hàng --</option>
                                                 <?php if (!empty($customers)): ?>
@@ -113,12 +114,12 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                     <?php endforeach; ?>
                                                 <?php endif; ?>
                                             </select>
-                                            <label for="customer_id">Khách hàng <span class="text-danger">*</span></label>
+                                            <a href="<?= BASE_URL_ADMIN ?>&action=users/create" target="_blank" class="btn btn-outline-primary" title="Tạo khách hàng mới">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
                                         </div>
                                         <small class="text-muted d-block mt-2">
-                                            <a href="<?= BASE_URL_ADMIN ?>&action=customers/create" target="_blank">
-                                                <i class="fas fa-plus me-1"></i>Tạo khách hàng mới
-                                            </a>
+                                            <i class="fas fa-info-circle me-1"></i>Chọn khách hàng từ danh sách hoặc click nút "+" để tạo mới
                                         </small>
                                     </div>
                                 </div>
@@ -352,49 +353,49 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     }
 
     function setupEventListeners() {
-    // Auto-update price when tour is selected
-    document.getElementById('tour_id').addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const price = selectedOption.getAttribute('data-price');
-        if (price) {
-            // Reset version selection when tour changes
-            const versionSelect = document.getElementById('version_id');
-            if (versionSelect) {
-                versionSelect.value = '';
-            }
-            document.getElementById('total_price').value = price;
-            updateSummary();
-        }
-    });
-    // Auto-update price when version is selected
-    const versionSelect = document.getElementById('version_id');
-    if (versionSelect) {
-        versionSelect.addEventListener('change', function() {
+        // Auto-update price when tour is selected
+        document.getElementById('tour_id').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            const priceAdult = selectedOption.getAttribute('data-price-adult');
-            
-            if (priceAdult && priceAdult > 0) {
-                // Nếu có chọn version → dùng giá của version
-                document.getElementById('total_price').value = priceAdult;
-            } else {
-                // Nếu không chọn version → quay về giá gốc của tour
-                const tourSelect = document.getElementById('tour_id');
-                const tourPrice = tourSelect.options[tourSelect.selectedIndex].getAttribute('data-price');
-                if (tourPrice) {
-                    document.getElementById('total_price').value = tourPrice;
+            const price = selectedOption.getAttribute('data-price');
+            if (price) {
+                // Reset version selection when tour changes
+                const versionSelect = document.getElementById('version_id');
+                if (versionSelect) {
+                    versionSelect.value = '';
                 }
+                document.getElementById('total_price').value = price;
+                updateSummary();
             }
-            updateSummary();
+        });
+        // Auto-update price when version is selected
+        const versionSelect = document.getElementById('version_id');
+        if (versionSelect) {
+            versionSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const priceAdult = selectedOption.getAttribute('data-price-adult');
+
+                if (priceAdult && priceAdult > 0) {
+                    // Nếu có chọn version → dùng giá của version
+                    document.getElementById('total_price').value = priceAdult;
+                } else {
+                    // Nếu không chọn version → quay về giá gốc của tour
+                    const tourSelect = document.getElementById('tour_id');
+                    const tourPrice = tourSelect.options[tourSelect.selectedIndex].getAttribute('data-price');
+                    if (tourPrice) {
+                        document.getElementById('total_price').value = tourPrice;
+                    }
+                }
+                updateSummary();
+            });
+        }
+        // Update summary on field changes
+        ['customer_id', 'tour_id', 'version_id', 'booking_date', 'status', 'total_price'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('change', updateSummary);
+            }
         });
     }
-    // Update summary on field changes
-    ['customer_id', 'tour_id', 'version_id', 'booking_date', 'status', 'total_price'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('change', updateSummary);
-        }
-    });
-}
 
     // Step Navigation
     function nextStep() {

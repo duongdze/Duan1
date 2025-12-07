@@ -53,10 +53,6 @@ $user = $_SESSION['user'] ?? null;
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label text-muted">Địa chỉ:</label>
-                                <p class="fw-500"><?= htmlspecialchars($user['address'] ?? 'N/A') ?></p>
-                            </div>
-                            <div class="col-md-6">
                                 <label class="form-label text-muted">Ngày tham gia:</label>
                                 <p class="fw-500"><?= !empty($user['created_at']) ? date('d/m/Y', strtotime($user['created_at'])) : 'N/A' ?></p>
                             </div>
@@ -83,9 +79,16 @@ $user = $_SESSION['user'] ?? null;
                     </div>
                     <div class="card-body text-center">
                         <?php
-                        $avatarUrl = !empty($user['avatar']) ? BASE_ASSETS_UPLOADS . $user['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['name'] ?? 'User') . '&background=0D6EFD&color=fff&size=200';
+                        $avatarUrl = !empty($user['avatar']) ? BASE_ASSETS_UPLOADS . $user['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['full_name'] ?? 'User') . '&background=0D6EFD&color=fff&size=200';
                         ?>
-                        <img src="<?= $avatarUrl ?>" alt="<?= htmlspecialchars($user['full_name']) ?>" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #e9ecef;">
+                        <img src="<?= $avatarUrl ?>" alt="<?= htmlspecialchars($user['full_name']) ?>" class="rounded-circle mb-3" id="avatarPreview" style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #e9ecef;">
+
+                        <div>
+                            <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById('avatarInput').click()">
+                                <i class="fas fa-camera"></i> Đổi ảnh đại diện
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -129,10 +132,6 @@ $user = $_SESSION['user'] ?? null;
                     <div class="mb-3">
                         <label class="form-label">Số điện thoại</label>
                         <input type="text" class="form-control" name="phone" value="<?= htmlspecialchars($user['phone'] ?? '') ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Địa chỉ</label>
-                        <textarea class="form-control" name="address" rows="3"><?= htmlspecialchars($user['address'] ?? '') ?></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -240,6 +239,53 @@ $user = $_SESSION['user'] ?? null;
                 alert('Có lỗi xảy ra!');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Đổi mật khẩu';
+            });
+    });
+
+    // Handle avatar upload
+    document.getElementById('avatarInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Vui lòng chọn file ảnh!');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Kích thước ảnh tối đa 5MB!');
+            return;
+        }
+
+        // Preview image
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('avatarPreview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+
+        // Upload image
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        fetch('<?= BASE_URL_ADMIN ?>&action=account/update-avatar', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    location.reload();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi upload ảnh!');
             });
     });
 </script>

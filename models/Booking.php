@@ -178,6 +178,7 @@ class Booking extends BaseModel
                     T.name AS tour_name,
                     T.base_price AS tour_base_price,
                     U.full_name AS customer_name,
+                    U.email AS customer_email,
                     U.phone AS customer_phone,
                     D.id AS driver_id,
                     D.full_name AS driver_name,
@@ -606,7 +607,7 @@ class Booking extends BaseModel
                     SUM(CASE WHEN status = 'da_huy' THEN 1 ELSE 0 END) as cancelled,
                     SUM(final_price) as total_revenue
                 FROM bookings";
-        
+
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);

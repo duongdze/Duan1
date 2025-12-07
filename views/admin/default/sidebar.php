@@ -7,10 +7,23 @@ function isActive($action)
 }
 
 // Hàm kiểm tra menu cha có active không (kiểm tra các menu con)
-function isParentActive($prefix)
+function isParentActive($actions)
 {
     $currentAction = $_GET['action'] ?? '';
-    return (strpos($currentAction, $prefix) === 0) ? 'show' : '';
+
+    // Nếu $actions là string, chuyển thành array
+    if (!is_array($actions)) {
+        $actions = [$actions];
+    }
+
+    // Check nếu current action nằm trong danh sách hoặc bắt đầu bằng một trong các prefix
+    foreach ($actions as $action) {
+        if ($currentAction === $action || strpos($currentAction, $action) === 0) {
+            return 'show';
+        }
+    }
+
+    return '';
 }
 
 // Lấy action hiện tại
@@ -30,16 +43,16 @@ $currentAction = $_GET['action'] ?? '';
 
         <!-- Phần Tour -->
         <li class="nav-item">
-            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('tours') ? 'active' : '' ?>"
+            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive(['tours', 'policies', 'suppliers', 'tours_categories', 'tours_versions', 'tours_history']) ? 'active' : '' ?>"
                 href="#" role="button"
-                aria-expanded="<?= isParentActive('tours') ? 'true' : 'false' ?>"
+                aria-expanded="<?= isParentActive(['tours', 'policies', 'suppliers', 'tours_categories', 'tours_versions', 'tours_history']) ? 'true' : 'false' ?>"
                 aria-controls="tourMenu"
                 data-menu-key="tours"
                 data-collapse-id="tourMenu">
                 <span><i class="fas fa-map-signs fa-fw me-2"></i>Tour</span>
                 <i class="fas fa-chevron-down fa-xs"></i>
             </a>
-            <div class="collapse <?= isParentActive('tours') ?>" id="tourMenu">
+            <div class="collapse <?= isParentActive(['tours', 'policies', 'suppliers', 'tours_categories', 'tours_versions', 'tours_history']) ?>" id="tourMenu">
                 <ul class="nav flex-column ms-3">
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('tours') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours">
@@ -139,7 +152,7 @@ $currentAction = $_GET['action'] ?? '';
 
         <!-- Quản lý công việc -->
         <li class="nav-item">
-            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= (isActive('tours_logs') || isActive('guide/schedule')) ? 'active' : '' ?>"
+            <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive(['tours_logs', 'guide/schedule']) ? 'active' : '' ?>"
                 href="#" role="button"
                 aria-expanded="<?= (isActive('tours_logs') || isActive('guide/schedule')) ? 'true' : 'false' ?>"
                 aria-controls="workManagementMenu"
@@ -148,7 +161,7 @@ $currentAction = $_GET['action'] ?? '';
                 <span><i class="fas fa-briefcase fa-fw me-2"></i>Quản lý công việc</span>
                 <i class="fas fa-chevron-down fa-xs"></i>
             </a>
-            <div class="collapse <?= (isActive('tours_logs') || isActive('guide/schedule')) ? 'show' : '' ?>" id="workManagementMenu">
+            <div class="collapse <?= isParentActive(['tours_logs', 'guide/schedule']) ? 'show' : '' ?>" id="workManagementMenu">
                 <ul class="nav flex-column ms-3">
                     <li class="nav-item">
                         <a class="nav-link <?= isActive('tours_logs') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_logs">
