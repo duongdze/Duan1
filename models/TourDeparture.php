@@ -40,4 +40,9 @@ class TourDeparture extends BaseModel
         $stmt->execute(['tid' => $tourId]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
+    public function findById($id)
+    {
+        $item = $this->find('*', 'id = :id', ['id' => $id]);
+        return $item ?: null;
+    }
 }

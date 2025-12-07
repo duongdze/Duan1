@@ -58,7 +58,7 @@ class ClientTourController
 
         // Departures
         $departureModel = new TourDeparture();
-        $departures = $departureModel->select('*', 'tour_id = :tid AND status = "open" AND departure_date >= CURDATE()', ['tid' => $id], 'departure_date ASC');
+        $departures = $departureModel->select('*', 'tour_id = :tid', ['tid' => $id], 'departure_date ASC');
 
         // Check for success message from booking
         $success = $_SESSION['success'] ?? null;

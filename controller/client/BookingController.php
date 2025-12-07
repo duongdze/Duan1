@@ -34,6 +34,12 @@ class ClientBookingController
             exit;
         }
 
+        // Calculate duration from itineraries if column is missing
+        if (!isset($tour['duration_days'])) {
+            $itineraries = $this->tourModel->getRelatedData('itineraries', $tourId);
+            $tour['duration_days'] = count($itineraries) > 0 ? count($itineraries) : 'N/A';
+        }
+
         require_once PATH_VIEW_CLIENT . 'pages/bookings/create.php';
     }
 
@@ -81,8 +87,9 @@ class ClientBookingController
             'booking_date' => date('Y-m-d H:i:s'),
             'departure_date' => $departure['departure_date'],
             'final_price' => $totalPrice,
+            'total_price' => $totalPrice,
             'status' => 'pending',
-            'source' => 'website',
+            'created_by' => $_SESSION['user']['user_id'] ?? 0,
             'created_at' => date('Y-m-d H:i:s')
         ];
 
@@ -101,11 +108,8 @@ class ClientBookingController
             $customerData = [
                 'booking_id' => $bookingId,
                 'full_name' => $_POST['full_name'],
-                'email' => $_POST['email'],
                 'phone' => $_POST['phone'],
-                'address' => $_POST['address'] ?? '',
                 'passenger_type' => 'adult', // Lead is usually adult
-                'is_contact' => 1 // Mark as contact person
             ];
             $bookingCustomerModel->insert($customerData);
 
