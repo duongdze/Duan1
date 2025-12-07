@@ -176,7 +176,6 @@ $currentAction = $_GET['action'] ?? '';
                 </ul>
             </div>
         </li>
-
         <!-- Phần Báo cáo -->
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('reports') ? 'active' : '' ?>"

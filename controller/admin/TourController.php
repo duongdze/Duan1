@@ -132,15 +132,52 @@ class TourController
 
             // Handle image uploads with security checks
             $uploadedImages = [];
-            if (!empty($_FILES['gallery_images']['name'][0])) {
-                $uploadDir = PATH_ASSETS_UPLOADS . 'tours/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
+            $uploadDir = PATH_ASSETS_UPLOADS . 'tours/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            $maxFileSize = 5 * 1024 * 1024; // 5MB
+
+            // Handle main image upload (if provided)
+            if (!empty($_FILES['main_image']['tmp_name'])) {
+                $tmpName = $_FILES['main_image']['tmp_name'];
+                $originalName = $_FILES['main_image']['name'];
+                $fileType = $_FILES['main_image']['type'];
+                $fileSize = $_FILES['main_image']['size'];
+
+                // Validate file type
+                if (!in_array($fileType, $allowedTypes)) {
+                    throw new Exception("Loại file không được phép: {$originalName}");
                 }
 
-                $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-                $maxFileSize = 5 * 1024 * 1024; // 5MB
+                // Validate file size
+                if ($fileSize > $maxFileSize) {
+                    throw new Exception("File quá lớn (tối đa 5MB): {$originalName}");
+                }
 
+                // Validate file is actually an image
+                if (!getimagesize($tmpName)) {
+                    throw new Exception("File không phải là hình ảnh hợp lệ: {$originalName}");
+                }
+
+                $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+                $newName = uniqid('tour_main_') . '.' . $extension;
+                $filePath = $uploadDir . $newName;
+
+                if (move_uploaded_file($tmpName, $filePath)) {
+                    $uploadedImages[] = [
+                        'path' => 'tours/' . $newName,
+                        'is_main' => true
+                    ];
+                } else {
+                    throw new Exception("Không thể tải lên ảnh đại diện: {$originalName}");
+                }
+            }
+
+            // Handle gallery images upload
+            if (!empty($_FILES['gallery_images']['name'][0])) {
                 foreach ($_FILES['gallery_images']['tmp_name'] as $index => $tmpName) {
                     if (!empty($tmpName)) {
                         $originalName = $_FILES['gallery_images']['name'][$index];
@@ -167,9 +204,12 @@ class TourController
                         $filePath = $uploadDir . $newName;
 
                         if (move_uploaded_file($tmpName, $filePath)) {
+                            // If no main image uploaded, make first gallery image as main
+                            $isMain = (count($uploadedImages) === 0 && $index === 0);
+                            
                             $uploadedImages[] = [
                                 'path' => 'tours/' . $newName,
-                                'is_main' => ($index == ($_POST['main_image_index'] ?? 0)) ? true : false
+                                'is_main' => $isMain
                             ];
                         } else {
                             throw new Exception("Không thể tải lên file: {$originalName}");
