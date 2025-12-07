@@ -50,7 +50,7 @@ class Booking extends BaseModel
 
     public function getMonthlyRevenue($month, $year)
     {
-        $sql = "SELECT SUM(final_price) as revenue FROM {$this->table} WHERE MONTH(booking_date) = :month AND YEAR(booking_date) = :year AND status = 'completed'";
+        $sql = "SELECT SUM(final_price) as revenue FROM {$this->table} WHERE MONTH(booking_date) = :month AND YEAR(booking_date) = :year AND status IN ('completed', 'paid')";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['month' => $month, 'year' => $year]);
 
