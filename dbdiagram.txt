@@ -53,10 +53,12 @@
     id int [pk, increment]
     name varchar
     category_id int [ref: > TC.id]
+    supplier_id int [ref: > S.id]
     description text
     base_price decimal
     created_at datetime
     updated_at datetime
+    duration_days int [default:  1]
   }
 
   Table tour_pricing_options as TPO {
@@ -141,6 +143,7 @@
 
     // Liên kết chính
     tour_id int [ref: > T.id]
+    supplier_id int [ref: > S.id]
     departure_id int [ref: > TD.id, null]        // nếu là tour ghép đoàn
     version_id int [ref: > TV.id, null]          // phiên bản tour (mùa, khuyến mãi…)
     customer_id int [ref: > U.user_id, null]
@@ -240,10 +243,9 @@
     passenger_type enum('adult','child','infant') [default: 'adult']
     is_foc tinyint [default: 0, note: '1 = khách FOC']
 
-  // Yêu cầu đặc biệt (rất hay dùng)
-  room_type varchar [null, note: 'single/double/twin/triple']
-  special_request text [null, note: 'ăn chay, dị ứng tôm, xe lăn, ghế ngồi đầu...']
-  request_handled tinyint [default: 0, note: 'HDV đã xử lý yêu cầu đặc biệt chưa']
+    // Yêu cầu đặc biệt (rất hay dùng)
+    room_type varchar [null, note: 'single/double/twin/triple']
+    special_request text [null, note: 'ăn chay, dị ứng tôm, xe lăn, ghế ngồi đầu...']
 
     // Check-in thực tế của HDV (mục 43)
     is_present tinyint [default: 0, note: 'HDV đánh dấu khách đã có mặt']
@@ -251,21 +253,21 @@
     created_at datetime
     updated_at datetime
 
-  payment_status enum('unpaid', 'partial', 'paid') [default: 'unpaid']
-  payment_amount decimal(15,2) [default: 0]
-  payment_date datetime [null]
-  
-  checkin_status enum('not_arrived', 'checked_in', 'absent') [default: 'not_arrived']
-  checkin_time date [null]
-  checkin_location VARCHAR(255) [null]
-  checkin_notes TEXT [null]
-  checked_by int [ref: > U.user_id, null]       // User ID của HDV check-in
-  // Index bắt buộc để load danh sách khách của 1 booking siêu nhanh
-  Indexes {
-    booking_id
-    (booking_id, passenger_type)
+    payment_status enum('unpaid', 'partial', 'paid') [default: 'unpaid']
+    payment_amount decimal(15,2) [default: 0]
+    payment_date datetime [null]
+    
+    checkin_status enum('not_arrived', 'checked_in', 'absent') [default: 'not_arrived']
+    checkin_time date [null]
+    checkin_location VARCHAR(255) [null]
+    checkin_notes TEXT [null]
+    checked_by INT [null] // 'User ID của HDV check-in';
+    // Index bắt buộc để load danh sách khách của 1 booking siêu nhanh
+    Indexes {
+      booking_id
+      (booking_id, passenger_type)
+    }
   }
-}
 
   Table booking_suppliers_assignment as BSA {
     id int [pk, increment]

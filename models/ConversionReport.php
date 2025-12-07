@@ -44,10 +44,14 @@ class ConversionReport extends BaseModel
             $sqlInquiries .= " AND T.category_id = :category_id";
         }
 
-        $stmtInquiries = self::$pdo->prepare($sqlInquiries);
-        $stmtInquiries->execute($params);
-        $inquiries = $stmtInquiries->fetch();
-        $totalInquiries = $inquiries['total_inquiries'] ?? 0;
+        try {
+            $stmtInquiries = self::$pdo->prepare($sqlInquiries);
+            $stmtInquiries->execute($params);
+            $inquiries = $stmtInquiries->fetch();
+            $totalInquiries = $inquiries['total_inquiries'] ?? 0;
+        } catch (PDOException $e) {
+            $totalInquiries = 0;
+        }
 
         // Đếm các giai đoạn booking
         $sql = "SELECT 
@@ -113,7 +117,7 @@ class ConversionReport extends BaseModel
                 FROM tours T
                 LEFT JOIN {$this->table} B ON T.id = B.tour_id 
                     AND B.booking_date BETWEEN :date_from AND :date_to
-                WHERE T.is_active = 1
+                WHERE 1=1
                 GROUP BY T.id, T.name
                 HAVING total_bookings > 0
                 ORDER BY conversion_rate DESC, total_bookings DESC
@@ -143,9 +147,13 @@ class ConversionReport extends BaseModel
                 GROUP BY B.source
                 ORDER BY conversion_rate DESC";
 
-        $stmt = self::$pdo->prepare($sql);
-        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = self::$pdo->prepare($sql);
+            $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
     }
 
     /**
@@ -165,7 +173,7 @@ class ConversionReport extends BaseModel
                 LEFT JOIN tours T ON TC.id = T.category_id
                 LEFT JOIN {$this->table} B ON T.id = B.tour_id 
                     AND B.booking_date BETWEEN :date_from AND :date_to
-                WHERE TC.is_active = 1
+                WHERE 1=1
                 GROUP BY TC.id, TC.name
                 HAVING total_bookings > 0
                 ORDER BY conversion_rate DESC";
@@ -220,9 +228,13 @@ class ConversionReport extends BaseModel
 
         // Đếm inquiries (đầu funnel)
         $sqlInquiries = "SELECT COUNT(*) as count FROM booking_inquiries $whereClause";
-        $stmt = self::$pdo->prepare($sqlInquiries);
-        $stmt->execute($params);
-        $inquiries = $stmt->fetch();
+        try {
+            $stmt = self::$pdo->prepare($sqlInquiries);
+            $stmt->execute($params);
+            $inquiries = $stmt->fetch();
+        } catch (PDOException $e) {
+            $inquiries = ['count' => 0];
+        }
 
         // Đếm bookings theo từng stage
         $sqlBookings = "SELECT 
@@ -322,9 +334,13 @@ class ConversionReport extends BaseModel
                         (B.status = 'completed' AND B.completed_at IS NOT NULL)
                     )";
 
-        $stmt = self::$pdo->prepare($sql);
-        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
-        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = self::$pdo->prepare($sql);
+            $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $results = [];
+        }
 
         // Tính toán thống kê
         $validResults = array_filter($results, function ($row) {

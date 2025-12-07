@@ -7,7 +7,7 @@ $allImages = $allImages ?? [];
 $pricingOptions = $pricingOptions ?? [];
 $itinerarySchedule = $itinerarySchedule ?? [];
 $partnerServices = $partnerServices ?? [];
-$versions = $versions ?? [];
+$departures = $departures ?? [];
 $policies = $policies ?? [];
 
 // Helper for price formatting
@@ -129,7 +129,7 @@ if (empty($galleryUrls)) {
                         <i class="fas fa-calendar-alt"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value"><?= count($versions) ?></div>
+                        <div class="stat-value"><?= count($departures) ?></div>
                         <div class="stat-label">Lịch khởi hành</div>
                     </div>
                 </div>
@@ -236,7 +236,7 @@ if (empty($galleryUrls)) {
                         </h5>
                     </div>
                     <div class="card-body">
-                        <?php if (!empty($versions)): ?>
+                        <?php if (!empty($departures)): ?>
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
@@ -249,23 +249,23 @@ if (empty($galleryUrls)) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($versions as $version): ?>
+                                        <?php foreach ($departures as $departure): ?>
                                             <tr>
                                                 <td class="fw-medium">
-                                                    <?= date('d/m/Y', strtotime($version['departure_date'])) ?>
+                                                    <?= date('d/m/Y', strtotime($departure['departure_date'])) ?>
                                                 </td>
                                                 <td>
-                                                    <?= $version['max_seats'] ?? 'N/A' ?>
+                                                    <?= $departure['max_seats'] ?? 'N/A' ?>
                                                 </td>
                                                 <td>
-                                                    <?= $version['booked_seats'] ?? 0 ?>
+                                                    <?= $departure['booked_seats'] ?? 0 ?>
                                                 </td>
                                                 <td class="text-end fw-bold text-primary">
-                                                    <?= formatPrice($version['price_adult'] ?? $tour['base_price']) ?>
+                                                    <?= formatPrice($departure['price_adult'] ?? $tour['base_price']) ?>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-<?= $version['status'] === 'open' ? 'success' : ($version['status'] === 'full' ? 'danger' : 'warning') ?>">
-                                                        <?= ucfirst($version['status'] ?? 'unknown') ?>
+                                                    <span class="badge bg-<?= $departure['status'] === 'open' ? 'success' : ($departure['status'] === 'full' ? 'danger' : 'warning') ?>">
+                                                        <?= ucfirst($departure['status'] ?? 'unknown') ?>
                                                     </span>
                                                 </td>
                                             </tr>

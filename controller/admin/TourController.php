@@ -679,6 +679,18 @@ class TourController
         }
 
 
+        // Load departures (lịch khởi hành)
+        $departureModel = new class extends BaseModel {
+            protected $table = 'tour_departures';
+        };
+        $departures = $departureModel->select('*', 'tour_id = :tid', ['tid' => $id], 'departure_date ASC');
+        
+        // Normalize commonly expected fields for the detail view
+        $tour['subtitle'] = $tour['subtitle'] ?? ($tour['short_description'] ?? '');
+        $tour['duration'] = $tour['duration'] ?? ($tour['days'] ?? '');
+        $tour['capacity'] = $tour['capacity'] ?? ($tour['seats'] ?? '');
+        $tour['start_date'] = $tour['start_date'] ?? ($tour['next_start_date'] ?? '');
+
         require_once PATH_VIEW_ADMIN . 'pages/tours/detail.php';
     }
 

@@ -138,7 +138,7 @@ class ReportController
 
         // Lấy options cho filters
         $filterOptions = [
-            'tours' => $this->filterService->getFilteredTours(['is_active' => 1]),
+            'tours' => $this->filterService->getFilteredTours([]),
             'categories' => $this->filterService->getCategories(),
             'departureLocations' => $this->filterService->getDepartureLocations(),
             'priceRanges' => $this->filterService->getPriceRanges(),
@@ -197,7 +197,7 @@ class ReportController
         $sourceCounts = array_column($sourceAnalysis, 'booking_count');
 
         // Lấy danh sách tours cho dropdown filter
-        $tours = $this->tourModel->select('id, name', 'is_active = 1', [], 'name ASC');
+        $tours = $this->tourModel->select('id, name', '1=1', [], 'name ASC');
 
         // Xử lý export nếu có yêu cầu
         if (isset($_GET['export'])) {
@@ -251,7 +251,7 @@ class ReportController
         $feedbackTypeData = $this->getFeedbackTypeDistribution($dateFrom, $dateTo);
 
         // Lấy danh sách tours cho dropdown filter
-        $tours = $this->tourModel->select('id, name', 'is_active = 1', [], 'name ASC');
+        $tours = $this->tourModel->select('id, name', '1=1', [], 'name ASC');
 
         // Xử lý export nếu có yêu cầu
         if (isset($_GET['export'])) {
@@ -321,7 +321,7 @@ class ReportController
     /**
      * Lấy thống kê feedback
      */
-    private function getFeedbackStats($dateFrom, $dateTo, $tourId = null, $feedbackType = null, $rating = null, $sentiment = null)
+    private function getFeedbackStats($dateFrom, $dateTo, $tourId = null, $feedbackType = null, $rating = null, $sentiment = null, $includeGrowth = true)
     {
         $whereConditions = ["F.created_at BETWEEN :date_from AND :date_to"];
         $params = [':date_from' => $dateFrom, ':date_to' => $dateTo];
@@ -357,9 +357,13 @@ class ReportController
                 FROM feedbacks F 
                 $whereClause";
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        $stats = $stmt->fetch();
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            $stats = $stmt->fetch();
+        } catch (PDOException $e) {
+            $stats = [];
+        }
 
         $totalFeedbacks = $stats['total_feedbacks'] ?? 0;
         $positiveFeedbacks = $stats['positive_feedbacks'] ?? 0;
@@ -377,8 +381,11 @@ class ReportController
         $feedbackRate = $totalBookings > 0 ? ($totalFeedbacks / $totalBookings) * 100 : 0;
 
         // Lấy dữ liệu kỳ trước để tính growth
-        $previousStats = $this->getPreviousFeedbackStats($dateFrom, $dateTo, $tourId, $feedbackType, $rating, $sentiment);
-        $ratingGrowth = $this->calculateGrowth($stats['avg_rating'] ?? 0, $previousStats['avg_rating'] ?? 0);
+        $ratingGrowth = 0;
+        if ($includeGrowth) {
+            $previousStats = $this->getPreviousFeedbackStats($dateFrom, $dateTo, $tourId, $feedbackType, $rating, $sentiment);
+            $ratingGrowth = $this->calculateGrowth($stats['avg_rating'] ?? 0, $previousStats['avg_rating'] ?? 0);
+        }
 
         return [
             'total_feedbacks' => $totalFeedbacks,
@@ -444,9 +451,13 @@ class ReportController
                 $whereClause
                 ORDER BY F.created_at DESC";
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
     }
 
     /**
@@ -468,9 +479,13 @@ class ReportController
                 ORDER BY avg_rating DESC, feedback_count DESC
                 LIMIT " . (int)$limit;
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return [];
+        }
     }
 
     /**
@@ -483,9 +498,13 @@ class ReportController
                 WHERE created_at BETWEEN :date_from AND :date_to
                 AND comment IS NOT NULL AND comment != ''";
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
-        $feedbacks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+            $feedbacks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $feedbacks = [];
+        }
 
         $keywords = [];
         $positiveWords = ['tốt', 'hay', 'hài lòng', 'tuyệt vời', 'xuất sắc', 'thích', 'đẹp', 'chuyên nghiệp'];
@@ -535,9 +554,13 @@ class ReportController
                 GROUP BY F.feedback_type
                 ORDER BY count DESC";
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $data = [];
+        }
 
         // Map loại feedback sang tên tiếng Việt
         $typeLabels = [
@@ -563,7 +586,7 @@ class ReportController
         $prevDateTo = date('Y-m-d', strtotime($dateFrom . ' -1 day'));
         $prevDateFrom = date('Y-m-d', strtotime($prevDateTo . ' -' . ($days - 1) . ' days'));
 
-        return $this->getFeedbackStats($prevDateFrom, $prevDateTo, $tourId, $feedbackType, $rating, $sentiment);
+        return $this->getFeedbackStats($prevDateFrom, $prevDateTo, $tourId, $feedbackType, $rating, $sentiment, false);
     }
 
     private function exportBookingReport($exportType, $bookingStats, $bookings)
@@ -661,7 +684,7 @@ class ReportController
 
         // Lấy options cho filters
         $filterOptions = [
-            'tours' => $this->filterService->getFilteredTours(['is_active' => 1]),
+            'tours' => $this->filterService->getFilteredTours([]),
             'categories' => $this->filterService->getCategories(),
             'sources' => $this->filterService->getBookingSources(),
             'datePresets' => $this->filterService->getDateRangePresets()
@@ -861,9 +884,13 @@ class ReportController
                 GROUP BY rating
                 ORDER BY rating DESC";
 
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':date_from' => $dateFrom, ':date_to' => $dateTo]);
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $data = [];
+        }
 
         // Initialize with 0 for all ratings
         $distribution = [0, 0, 0, 0, 0]; // 5,4,3,2,1 stars
