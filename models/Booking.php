@@ -34,13 +34,13 @@ class Booking extends BaseModel
         $sql = "SELECT 
                     B.*, 
                     T.name AS tour_name, 
-                    U.full_name AS customer_name,
+                    COALESCE((SELECT full_name FROM booking_customers WHERE booking_id = B.id LIMIT 1), U.full_name) AS customer_name,
                     D.full_name AS driver_name,
                     D.phone AS driver_phone,
                     D.vehicle_plate AS driver_vehicle
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
-                LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
+                LEFT JOIN users AS U ON B.customer_id = U.user_id
                 LEFT JOIN drivers AS D ON B.driver_id = D.id
                 ORDER BY B.booking_date DESC, B.id DESC";
         $stmt = self::$pdo->prepare($sql);
