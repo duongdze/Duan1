@@ -131,7 +131,7 @@ $departures = $departures ?? [];
                 </div>
                 <div class="step" data-step="4">
                     <div class="step-number">4</div>
-                    <div class="step-label">Giá & Khởi hành</div>
+                    <div class="step-label">Khởi hành</div>
                 </div>
                 <div class="step" data-step="5">
                     <div class="step-number">5</div>
@@ -356,63 +356,6 @@ $departures = $departures ?? [];
 
                     <!-- Step 4: Pricing & Departures -->
                     <div class="form-step" id="step-4">
-                        <!-- Pricing Options -->
-                        <div class="card mb-4">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-tags text-info me-2"></i>
-                                    Tùy chọn giá
-                                </h5>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="addPricingOption()">
-                                    <i class="fas fa-plus me-1"></i>
-                                    Thêm gói
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <div id="pricing-options-list" class="pricing-options-list">
-                                    <?php if (!empty($pricingOptions)): ?>
-                                        <?php foreach ($pricingOptions as $index => $option): ?>
-                                            <div class="pricing-item border rounded p-3 mb-3">
-                                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                                    <h6 class="mb-0">Gói dịch vụ</h6>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePricingItem(this)">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                                <div class="row g-3">
-                                                    <div class="col-md-6">
-                                                        <div class="form-floating">
-                                                            <input type="text" class="form-control pricing-label" value="<?= htmlspecialchars($option['label']) ?>" placeholder=" " required>
-                                                            <label>Tên gói (VD: Người lớn, Trẻ em)</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-floating">
-                                                            <input type="number" class="form-control pricing-price" min="0" step="1000" value="<?= $option['price'] ?? 0 ?>" placeholder=" " required>
-                                                            <label>Giá (VNĐ)</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="form-floating">
-                                                            <textarea class="form-control pricing-description" style="height: 80px" placeholder=" "><?= htmlspecialchars($option['description'] ?? '') ?></textarea>
-                                                            <label>Mô tả ngắn</label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="text-center text-muted py-4" id="pricing-empty" style="<?= !empty($pricingOptions) ? 'display: none;' : '' ?>">
-                                    <i class="fas fa-dollar-sign fa-3x mb-3"></i>
-                                    <p>Chưa có gói dịch vụ nào</p>
-                                    <button type="button" class="btn btn-outline-primary" onclick="addPricingOption()">
-                                        <i class="fas fa-plus me-2"></i>
-                                        Thêm gói đầu tiên
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Tour Departures -->
                         <div class="card mb-4">
@@ -450,18 +393,7 @@ $departures = $departures ?? [];
                                                             <label>Số chỗ</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-2">
-                                                        <div class="form-floating">
-                                                            <input type="number" class="form-control departure-price-adult" min="0" step="1000" value="<?= $departure['price_adult'] ?>" placeholder=" ">
-                                                            <label>Giá NL</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <div class="form-floating">
-                                                            <input type="number" class="form-control departure-price-child" min="0" step="1000" value="<?= $departure['price_child'] ?? 0 ?>" placeholder=" ">
-                                                            <label>Giá TE</label>
-                                                        </div>
-                                                    </div>
+
                                                     <div class="col-md-2">
                                                         <div class="form-floating">
                                                             <select class="form-select departure-status">
@@ -499,12 +431,58 @@ $departures = $departures ?? [];
                                     <i class="fas fa-handshake text-secondary me-2"></i>
                                     Đối tác dịch vụ
                                 </h5>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="addPartner()">
-                                    <i class="fas fa-plus me-1"></i>
-                                    Thêm đối tác
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <select class="form-select form-select-sm" id="supplier-select" style="width: 250px;">
+                                        <option value="">-- Chọn nhà cung cấp --</option>
+                                        <?php if (!empty($suppliers)): ?>
+                                            <?php foreach ($suppliers as $supplier): ?>
+                                                <option value="<?= $supplier['id'] ?>" 
+                                                    data-name="<?= htmlspecialchars($supplier['name']) ?>"
+                                                    data-type="<?= $supplier['type'] ?? '' ?>"
+                                                    data-contact="<?= htmlspecialchars($supplier['phone'] ?? $supplier['email'] ?? '') ?>">
+                                                    <?= htmlspecialchars($supplier['name']) ?> (<?= strtoupper($supplier['type'] ?? '') ?>)
+                                                </option>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </select>
+                                    <button type="button" class="btn btn-sm btn-primary" onclick="addPartnerFromSupplier()">
+                                        <i class="fas fa-plus me-1"></i>
+                                        Thêm
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
+                                <!-- Supplier Selection -->
+                                <div class="mb-4 p-3 bg-light rounded">
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-building me-2 text-primary"></i>
+                                                Chọn Nhà cung cấp
+                                            </label>
+                                            <select class="form-select" name="supplier_id" id="supplier_id">
+                                                <option value="">-- Không chọn nhà cung cấp --</option>
+                                                <?php if (!empty($suppliers)): ?>
+                                                    <?php foreach ($suppliers as $supplier): ?>
+                                                        <option value="<?= $supplier['id'] ?>"
+                                                            <?= ($tour['supplier_id'] ?? '') == $supplier['id'] ? 'selected' : '' ?>>
+                                                            <?= htmlspecialchars($supplier['name']) ?>
+                                                            (<?= strtoupper($supplier['type'] ?? '') ?>)
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </select>
+                                            <small class="text-muted">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Chọn nhà cung cấp chính cho tour này (khách sạn, xe, nhà hàng...)
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+
+                                <!-- Partner Services List -->
                                 <div id="partners-list" class="partners-list">
                                     <?php if (!empty($partnerServices)): ?>
                                         <?php foreach ($partnerServices as $index => $partner): ?>
@@ -739,18 +717,7 @@ $departures = $departures ?? [];
                     <label>Số chỗ</label>
                 </div>
             </div>
-            <div class="col-md-2">
-                <div class="form-floating">
-                    <input type="number" class="form-control departure-price-adult" min="0" step="1000" placeholder=" ">
-                    <label>Giá NL</label>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="form-floating">
-                    <input type="number" class="form-control departure-price-child" min="0" step="1000" placeholder=" ">
-                    <label>Giá TE</label>
-                </div>
-            </div>
+
             <div class="col-md-2">
                 <div class="form-floating">
                     <select class="form-select departure-status">
@@ -996,8 +963,7 @@ $departures = $departures ?? [];
             departures.push({
                 departure_date: item.querySelector('.departure-date').value,
                 max_seats: item.querySelector('.departure-max-seats').value,
-                price_adult: item.querySelector('.departure-price-adult').value,
-                price_child: item.querySelector('.departure-price-child').value,
+
                 status: item.querySelector('.departure-status').value
             });
         });
@@ -1207,6 +1173,94 @@ $departures = $departures ?? [];
         setTimeout(() => {
             toast.remove();
         }, 3000);
+    }
+
+    // Partner Management - Add from Supplier dropdown
+    function addPartnerFromSupplier() {
+        const select = document.getElementById('supplier-select');
+        const selectedOption = select.options[select.selectedIndex];
+        
+        if (!selectedOption.value) {
+            showToast('Vui lòng chọn nhà cung cấp', 'warning');
+            return;
+        }
+
+        const supplierName = selectedOption.dataset.name;
+        const supplierType = selectedOption.dataset.type;
+        const supplierContact = selectedOption.dataset.contact;
+
+        // Create partner item HTML
+        const partnerHTML = `
+            <div class="partner-item border rounded p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="mb-0">Đối tác dịch vụ</h6>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePartnerItem(this)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select class="form-select partner-service-type" required>
+                                <option value="">-- Loại dịch vụ --</option>
+                                <option value="hotel" ${supplierType === 'hotel' ? 'selected' : ''}>Khách sạn</option>
+                                <option value="transport" ${supplierType === 'transport' ? 'selected' : ''}>Vận chuyển</option>
+                                <option value="restaurant" ${supplierType === 'restaurant' ? 'selected' : ''}>Nhà hàng</option>
+                                <option value="guide" ${supplierType === 'guide' ? 'selected' : ''}>Hướng dẫn viên</option>
+                                <option value="other" ${supplierType === 'other' ? 'selected' : ''}>Khác</option>
+                            </select>
+                            <label>Loại dịch vụ</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" class="form-control partner-name" value="${supplierName}" placeholder=" " required>
+                            <label>Tên đối tác</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-floating">
+                            <input type="text" class="form-control partner-contact" value="${supplierContact}" placeholder=" " required>
+                            <label>Thông tin liên hệ</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add to partners list
+        const partnersList = document.getElementById('partners-list');
+        partnersList.insertAdjacentHTML('beforeend', partnerHTML);
+
+        // Hide empty message
+        document.getElementById('partners-empty').style.display = 'none';
+
+        // Reset select
+        select.selectedIndex = 0;
+
+        showToast('Đã thêm đối tác từ nhà cung cấp', 'success');
+    }
+
+    function removePartnerItem(button) {
+        button.closest('.partner-item').remove();
+        
+        // Show empty message if no partners
+        const partnersList = document.getElementById('partners-list');
+        if (partnersList.children.length === 0) {
+            document.getElementById('partners-empty').style.display = 'block';
+        }
+    }
+
+    function updatePartnerData() {
+        const partners = [];
+        document.querySelectorAll('.partner-item').forEach(item => {
+            partners.push({
+                service_type: item.querySelector('.partner-service-type').value,
+                partner_name: item.querySelector('.partner-name').value,
+                contact: item.querySelector('.partner-contact').value
+            });
+        });
+        document.getElementById('tour_partners').value = JSON.stringify(partners);
     }
 </script>
 
