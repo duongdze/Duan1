@@ -24,6 +24,12 @@ switch ($action) {
         $controller = new ClientBookingController();
         $controller->store();
         break;
+
+    case 'booking-payment':
+        require_once 'controller/client/BookingController.php';
+        $controller = new ClientBookingController();
+        $controller->payment();
+        break;
         
     case 'booking-success':
         require_once 'controller/client/BookingController.php';

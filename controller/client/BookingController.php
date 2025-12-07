@@ -119,13 +119,32 @@ class ClientBookingController
 
             $this->bookingModel->commit();
 
-            header('Location: ' . BASE_URL . '?action=booking-success&code=' . $bookingCode);
+            header('Location: ' . BASE_URL . '?action=booking-payment&code=' . $bookingCode);
 
         } catch (Exception $e) {
             $this->bookingModel->rollBack();
             $_SESSION['error'] = 'Lỗi xử lý đặt tour: ' . $e->getMessage();
              header("Location: " . BASE_URL . "?action=booking-create&tour_id=$tourId&departure_id=$departureId");
         }
+    }
+
+    public function payment()
+    {
+        $code = $_GET['code'] ?? '';
+        if (!$code) {
+             header('Location: ' . BASE_URL);
+             exit;
+        }
+        
+        // Fetch booking info for display
+        $booking = $this->bookingModel->find('*', 'id = :id', ['id' => intval(substr($code, 2))]); // BK000001 -> 1
+        
+        if (!$booking) {
+             header('Location: ' . BASE_URL);
+             exit;
+        }
+
+        require_once PATH_VIEW_CLIENT . 'pages/bookings/payment.php';
     }
 
     public function success()
