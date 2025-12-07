@@ -205,6 +205,18 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                             <label for="status">Trạng thái <span class="text-danger">*</span></label>
                                         </div>
                                     </div>
+
+                                    <div class="col-12">
+                                        <div class="alert alert-info mb-0">
+                                            <i class="fas fa-building me-2"></i>
+                                            <strong>Nhà cung cấp:</strong>
+                                            <span id="supplier_display">Chọn tour để xem nhà cung cấp</span>
+                                        </div>
+                                        <small class="text-muted d-block mt-2">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Nhà cung cấp sẽ tự động lấy từ tour. Có thể thay đổi sau khi tạo booking.
+                                        </small>
+                                    </div>
                                 </div>
                             </div>
                         </div>

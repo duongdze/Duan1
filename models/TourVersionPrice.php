@@ -23,7 +23,7 @@ class TourVersionPrice extends BaseModel
      * Upsert price (insert or update)
      * 
      * @param int $versionId
-     * @param array $priceData ['price_adult', 'price_child', 'price_infant']
+     * @param array $priceData ['adult_percent', 'child_percent', 'infant_percent', 'child_base_percent', 'infant_base_percent']
      * @return bool
      */
     public function upsertPrice($versionId, $priceData)
@@ -33,9 +33,11 @@ class TourVersionPrice extends BaseModel
 
         $data = [
             'version_id' => $versionId,
-            'price_adult' => $priceData['price_adult'] ?? 0,
-            'price_child' => $priceData['price_child'] ?? 0,
-            'price_infant' => $priceData['price_infant'] ?? 0,
+            'adult_percent' => $priceData['adult_percent'] ?? 0,
+            'child_percent' => $priceData['child_percent'] ?? 0,
+            'infant_percent' => $priceData['infant_percent'] ?? 0,
+            'child_base_percent' => $priceData['child_base_percent'] ?? 75,
+            'infant_base_percent' => $priceData['infant_base_percent'] ?? 50,
             'updated_at' => date('Y-m-d H:i:s')
         ];
 
@@ -76,5 +78,97 @@ class TourVersionPrice extends BaseModel
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy giá cho booking (ưu tiên version, fallback tour base_price)
+     * 
+     * @param int $tourId
+     * @param int|null $versionId
+     * @return array ['price_adult', 'price_child', 'price_infant']
+     */
+    public function getPriceForBooking($tourId, $versionId = null)
+    {
+        // Get tour base price
+        $tourModel = new Tour();
+        $tour = $tourModel->find('*', 'id = :id', ['id' => $tourId]);
+        $basePrice = $tour['base_price'] ?? 0;
+
+        // Try version first
+        if ($versionId) {
+            $version = $this->getByVersionId($versionId);
+            if ($version) {
+                // Tính giá từ % tăng/giảm
+                return $this->calculatePricesFromPercent($basePrice, $version);
+            }
+        }
+
+        // Fallback: default percentages (no version)
+        return [
+            'price_adult' => $basePrice,
+            'price_child' => $basePrice * 0.75,  // 75% of adult
+            'price_infant' => $basePrice * 0.50   // 50% of adult
+        ];
+    }
+
+    /**
+     * Tính giá từ % tăng/giảm
+     * 
+     * @param float $basePrice
+     * @param array $version
+     * @return array
+     */
+    private function calculatePricesFromPercent($basePrice, $version)
+    {
+        // Lấy % tăng/giảm
+        $adultPercent = $version['adult_percent'] ?? 0;
+        $childPercent = $version['child_percent'] ?? 0;
+        $infantPercent = $version['infant_percent'] ?? 0;
+
+        // Lấy tỷ lệ base
+        $childBasePercent = $version['child_base_percent'] ?? 75;
+        $infantBasePercent = $version['infant_base_percent'] ?? 50;
+
+        // Tính giá người lớn
+        // Ví dụ: base_price = 10tr, adult_percent = +20% → 12tr
+        $priceAdult = $basePrice * (1 + $adultPercent / 100);
+
+        // Tính giá trẻ em
+        // Ví dụ: base_price = 10tr, child_base_percent = 75% → 7.5tr
+        //        child_percent = +10% → 7.5tr × 1.1 = 8.25tr
+        $priceChild = ($basePrice * $childBasePercent / 100) * (1 + $childPercent / 100);
+
+        // Tính giá em bé (tương tự)
+        $priceInfant = ($basePrice * $infantBasePercent / 100) * (1 + $infantPercent / 100);
+
+        return [
+            'price_adult' => round($priceAdult, 2),
+            'price_child' => round($priceChild, 2),
+            'price_infant' => round($priceInfant, 2)
+        ];
+    }
+
+    /**
+     * Lấy giá cho 1 loại khách cụ thể
+     * 
+     * @param int $tourId
+     * @param int|null $versionId
+     * @param string $passengerType ('adult', 'child', 'infant')
+     * @return float
+     */
+    public function getPriceByType($tourId, $versionId, $passengerType)
+    {
+        $prices = $this->getPriceForBooking($tourId, $versionId);
+
+        switch ($passengerType) {
+            case 'adult':
+                return $prices['price_adult'] ?? 0;
+            case 'child':
+                return $prices['price_child'] ?? 0;
+            case 'infant':
+                return $prices['price_infant'] ?? 0;
+            default:
+                return 0;
+        }
     }
 }

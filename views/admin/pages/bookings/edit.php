@@ -224,6 +224,86 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             </div>
                         </div>
 
+                        <!-- Supplier Management -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-building text-info me-2"></i>
+                                    Quản lý Nhà cung cấp
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="addSupplierRow()">
+                                    <i class="fas fa-plus me-1"></i>
+                                    Thêm supplier
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover" id="suppliers-table">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th width="20%">Loại dịch vụ</th>
+                                                <th width="30%">Nhà cung cấp</th>
+                                                <th width="10%">Số lượng</th>
+                                                <th width="15%">Giá (VNĐ)</th>
+                                                <th width="20%">Ghi chú</th>
+                                                <th width="5%">Xóa</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="suppliers-tbody">
+                                            <?php if (!empty($bookingSuppliers)): ?>
+                                                <?php foreach ($bookingSuppliers as $index => $bs): ?>
+                                                    <tr>
+                                                        <td>
+                                                            <select name="suppliers[<?= $index ?>][service_type]" class="form-select form-select-sm" required>
+                                                                <option value="tour_operator" <?= $bs['service_type'] == 'tour_operator' ? 'selected' : '' ?>>Tour Operator</option>
+                                                                <option value="hotel" <?= $bs['service_type'] == 'hotel' ? 'selected' : '' ?>>Khách sạn</option>
+                                                                <option value="transport" <?= $bs['service_type'] == 'transport' ? 'selected' : '' ?>>Vận chuyển</option>
+                                                                <option value="restaurant" <?= $bs['service_type'] == 'restaurant' ? 'selected' : '' ?>>Nhà hàng</option>
+                                                                <option value="guide" <?= $bs['service_type'] == 'guide' ? 'selected' : '' ?>>Hướng dẫn viên</option>
+                                                                <option value="other" <?= $bs['service_type'] == 'other' ? 'selected' : '' ?>>Khác</option>
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <select name="suppliers[<?= $index ?>][supplier_id]" class="form-select form-select-sm" required>
+                                                                <?php foreach ($suppliers as $s): ?>
+                                                                    <option value="<?= $s['id'] ?>" <?= $bs['supplier_id'] == $s['id'] ? 'selected' : '' ?>>
+                                                                        <?= htmlspecialchars($s['name']) ?> (<?= htmlspecialchars($s['type'] ?? '') ?>)
+                                                                    </option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" name="suppliers[<?= $index ?>][quantity]"
+                                                                value="<?= $bs['quantity'] ?>" class="form-control form-control-sm" min="1" required>
+                                                        </td>
+                                                        <td>
+                                                            <input type="number" name="suppliers[<?= $index ?>][price]"
+                                                                value="<?= $bs['price'] ?>" class="form-control form-control-sm" min="0" step="10000">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" name="suppliers[<?= $index ?>][notes]"
+                                                                value="<?= htmlspecialchars($bs['notes'] ?? '') ?>" class="form-control form-control-sm" placeholder="Ghi chú...">
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-danger" onclick="removeSupplierRow(this)" title="Xóa">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <?php if (empty($bookingSuppliers)): ?>
+                                    <div class="text-center text-muted py-3" id="empty-suppliers-message">
+                                        <i class="fas fa-building fa-2x mb-2"></i>
+                                        <p>Chưa có nhà cung cấp nào. Click "Thêm supplier" để thêm.</p>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
                         <!-- Notes -->
                         <div class="card mb-4">
                             <div class="card-header">
@@ -591,6 +671,91 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         document.getElementById('summary-driver').textContent = driverText;
         document.getElementById('summary-price').textContent = new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
     }
+
+    // Supplier Management Functions
+    let supplierIndex = <?= count($bookingSuppliers ?? []) ?>;
+
+    function addSupplierRow() {
+        const tbody = document.getElementById('suppliers-tbody');
+        const emptyMessage = document.getElementById('empty-suppliers-message');
+
+        if (emptyMessage) {
+            emptyMessage.remove();
+        }
+
+        const row = `
+            <tr>
+                <td>
+                    <select name="suppliers[${supplierIndex}][service_type]" class="form-select form-select-sm" required>
+                        <option value="tour_operator">Tour Operator</option>
+                        <option value="hotel">Khách sạn</option>
+                        <option value="transport">Vận chuyển</option>
+                        <option value="restaurant">Nhà hàng</option>
+                        <option value="guide">Hướng dẫn viên</option>
+                        <option value="other">Khác</option>
+                    </select>
+                </td>
+                <td>
+                    <select name="suppliers[${supplierIndex}][supplier_id]" class="form-select form-select-sm" required>
+                        <?php foreach ($suppliers as $s): ?>
+                            <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['name']) ?> (<?= htmlspecialchars($s['type'] ?? '') ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" name="suppliers[${supplierIndex}][quantity]" value="1" class="form-control form-control-sm" min="1" required>
+                </td>
+                <td>
+                    <input type="number" name="suppliers[${supplierIndex}][price]" value="0" class="form-control form-control-sm" min="0" step="10000">
+                </td>
+                <td>
+                    <input type="text" name="suppliers[${supplierIndex}][notes]" class="form-control form-control-sm" placeholder="Ghi chú...">
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-danger" onclick="removeSupplierRow(this)" title="Xóa">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+
+        tbody.insertAdjacentHTML('beforeend', row);
+        supplierIndex++;
+    }
+
+    function removeSupplierRow(btn) {
+        const row = btn.closest('tr');
+        row.remove();
+
+        // Show empty message if no rows left
+        const tbody = document.getElementById('suppliers-tbody');
+        if (tbody.children.length === 0) {
+            const tableContainer = tbody.closest('.table-responsive');
+            tableContainer.insertAdjacentHTML('afterend', `
+                <div class="text-center text-muted py-3" id="empty-suppliers-message">
+                    <i class="fas fa-building fa-2x mb-2"></i>
+                    <p>Chưa có nhà cung cấp nào. Click "Thêm supplier" để thêm.</p>
+                </div>
+            `);
+        }
+    }
+
+    // ========== Passenger Type Pricing ==========
+    // Hidden inputs for prices
+    const priceAdult = <?= $versionPrices['price_adult'] ?? 0 ?>;
+    const priceChild = <?= $versionPrices['price_child'] ?? 0 ?>;
+    const priceInfant = <?= $versionPrices['price_infant'] ?? 0 ?>;
+</script>
+
+<!-- Include Passenger Pricing Module -->
+<script src="<?= BASE_URL ?>assets/admin/js/passenger-pricing.js"></script>
+<script>
+    // Initialize passenger pricing when document is ready
+    $(document).ready(function() {
+        if (typeof PassengerPricing !== 'undefined') {
+            PassengerPricing.init(priceAdult, priceChild, priceInfant);
+        }
+    });
 </script>
 
 <?php

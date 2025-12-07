@@ -304,47 +304,29 @@ class TourAssignmentController
                 exit;
             }
 
-            // Lấy tất cả booking chưa có HDV của tour
-            $sql = "SELECT b.* 
-                FROM bookings b
-                WHERE b.tour_id = :tour_id
-                AND b.status NOT IN ('hoan_tat', 'da_huy')
-                AND b.id NOT IN (
-                    SELECT DISTINCT booking_id 
-                    FROM tour_assignments 
-                    WHERE status = 'active' 
-                    AND booking_id IS NOT NULL
-                )";
+            // Lấy ngày khởi hành sớm nhất
+            $sql = "SELECT MIN(booking_date) as start_date 
+                FROM bookings 
+                WHERE tour_id = :tour_id 
+                AND status NOT IN ('hoan_tat', 'da_huy')";
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute(['tour_id' => $tourId]);
-            $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $dateInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+            $startDate = $dateInfo['start_date'] ?? date('Y-m-d');
 
-            if (empty($bookings)) {
-                echo json_encode(['success' => false, 'message' => 'Không có booking nào để gán']);
-                exit;
-            }
+            // Gán tour cho HDV (1 record duy nhất)
+            $result = $tourAssignmentModel->insert([
+                'guide_id' => $guideId,
+                'tour_id' => $tourId,
+                'start_date' => $startDate,
+                'status' => 'active'
+            ]);
 
-            // Gán tất cả booking cho HDV
-            $assignedCount = 0;
-            foreach ($bookings as $booking) {
-                $result = $tourAssignmentModel->insert([
-                    'guide_id' => $guideId,
-                    'tour_id' => $tourId,
-                    'booking_id' => $booking['id'],
-                    'start_date' => $booking['booking_date'],
-                    'status' => 'active'
-                ]);
-
-                if ($result) {
-                    $assignedCount++;
-                }
-            }
-
-            if ($assignedCount > 0) {
+            if ($result) {
                 echo json_encode([
                     'success' => true,
-                    'message' => "Nhận tour thành công! Đã gán {$assignedCount} booking cho bạn. Tổng {$totalCustomers} khách."
+                    'message' => "Nhận tour thành công! Tổng {$totalCustomers} khách."
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không thể nhận tour']);
@@ -378,22 +360,16 @@ class TourAssignmentController
             exit;
         }
 
-        // Lấy danh sách booking chưa có HDV
+        // Lấy danh sách booking của tour
         $bookingModel = new Booking();
         $sql = "SELECT b.*, 
                     u.full_name as customer_name,
-                    COUNT(bc.id) as total_customers
+                    COUNT(bc.id) + 1 as total_customers
                 FROM bookings b
                 LEFT JOIN users u ON b.customer_id = u.user_id
-                LEFT JOIN booking_customers bc ON b.id = bc.booking_id
+                LEFT JOIN booking_customers bc ON b.id = bc.id
                 WHERE b.tour_id = :tour_id
                 AND b.status NOT IN ('hoan_tat', 'da_huy')
-                AND b.id NOT IN (
-                    SELECT DISTINCT booking_id 
-                    FROM tour_assignments 
-                    WHERE status = 'active' 
-                    AND booking_id IS NOT NULL
-                )
                 GROUP BY b.id
                 ORDER BY b.booking_date ASC";
 
@@ -451,11 +427,10 @@ class TourAssignmentController
                 exit;
             }
 
-            // Phân công tour cho HDV với booking_id
+            // Phân công tour cho HDV
             $result = $this->model->insert([
                 'guide_id' => $guide['id'],
                 'tour_id' => $tourId,
-                'booking_id' => $bookingId,
                 'start_date' => $booking['booking_date'],
                 'status' => 'active'
             ]);

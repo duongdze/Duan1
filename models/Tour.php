@@ -8,6 +8,7 @@ class Tour extends BaseModel
         'id',
         'name',
         'category_id',
+        'supplier_id',
         'description',
         'base_price',
         'status',

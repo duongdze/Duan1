@@ -185,6 +185,24 @@ $departures = $departures ?? [];
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-floating">
+                                            <select name="supplier_id" id="supplier_id" class="form-select">
+                                                <option value="">-- Không chọn --</option>
+                                                <?php if (!empty($suppliers)): ?>
+                                                    <?php foreach ($suppliers as $supplier): ?>
+                                                        <option value="<?= $supplier['id'] ?>" <?= ($supplier['id'] == ($tour['supplier_id'] ?? '')) ? 'selected' : '' ?>>
+                                                            <?= htmlspecialchars($supplier['name']) ?> - <?= htmlspecialchars($supplier['type'] ?? '') ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </select>
+                                            <label for="supplier_id">Nhà cung cấp (tùy chọn)</label>
+                                        </div>
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="fas fa-info-circle me-1"></i>Chọn nhà cung cấp chính cho tour này
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
                                             <input type="number" name="base_price" id="base_price" class="form-control" required min="0" step="1000" placeholder=" " value="<?= $tour['base_price'] ?? 0 ?>">
                                             <label for="base_price">Giá cơ bản (VNĐ) <span class="text-danger">*</span></label>
                                         </div>

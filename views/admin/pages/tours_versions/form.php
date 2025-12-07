@@ -198,91 +198,151 @@ unset($_SESSION['old_input'], $_SESSION['form_errors']);
                         <div class="form-section-group">
                             <div class="section-subtitle">
                                 <h3 class="section-subtitle-text">
-                                    <i class="fas fa-dollar-sign me-2"></i>
-                                    Giá Mặc Định
+                                    <i class="fas fa-percent me-2"></i>
+                                    Giá theo Phiên Bản
                                 </h3>
                                 <div class="section-subtitle-description">
-                                    Thiết lập giá cho từng loại khách hàng
+                                    Nhập % tăng/giảm so với giá gốc của tour. Ví dụ: +20 (tăng 20%), -15 (giảm 15%)
                                 </div>
                             </div>
+
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Lưu ý:</strong> Giá sẽ được tính dựa trên % tăng/giảm so với giá gốc của tour.
+                                Để giữ nguyên giá gốc, nhập 0%.
+                            </div>
+
                             <div class="form-row">
-                                <!-- Giá Người Lớn -->
+                                <!-- % Người Lớn -->
                                 <div class="form-group">
-                                    <label for="price_adult" class="form-label">
+                                    <label for="adult_percent" class="form-label">
                                         <i class="fas fa-user me-1"></i>
-                                        Giá Người Lớn (VNĐ) <span class="required">*</span>
+                                        Người lớn (%)
                                     </label>
                                     <div class="form-input-wrapper">
                                         <input type="number"
                                             class="form-control form-control-modern"
-                                            id="price_adult"
-                                            name="price_adult"
-                                            value="<?= htmlspecialchars($prices['price_adult'] ?? 0) ?>"
-                                            min="0"
-                                            step="10000"
-                                            required>
+                                            id="adult_percent"
+                                            name="adult_percent"
+                                            value="<?= htmlspecialchars($prices['adult_percent'] ?? 0) ?>"
+                                            step="0.01"
+                                            placeholder="0">
                                         <div class="form-input-icon">
-                                            <i class="fas fa-dollar-sign"></i>
+                                            <i class="fas fa-percent"></i>
                                         </div>
                                     </div>
                                     <div class="form-help">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        Giá cơ bản cho người lớn
+                                        % tăng/giảm so với giá gốc tour
                                     </div>
                                 </div>
-                                <!-- Giá Trẻ Em -->
+
+                                <!-- % Trẻ Em -->
                                 <div class="form-group">
-                                    <label for="price_child" class="form-label">
+                                    <label for="child_percent" class="form-label">
                                         <i class="fas fa-child me-1"></i>
-                                        Giá Trẻ Em (VNĐ)
+                                        Trẻ em (%)
                                     </label>
                                     <div class="form-input-wrapper">
                                         <input type="number"
                                             class="form-control form-control-modern"
-                                            id="price_child"
-                                            name="price_child"
-                                            value="<?= htmlspecialchars($prices['price_child'] ?? 0) ?>"
-                                            min="0"
-                                            step="10000">
+                                            id="child_percent"
+                                            name="child_percent"
+                                            value="<?= htmlspecialchars($prices['child_percent'] ?? 0) ?>"
+                                            step="0.01"
+                                            placeholder="0">
                                         <div class="form-input-icon">
-                                            <i class="fas fa-dollar-sign"></i>
+                                            <i class="fas fa-percent"></i>
                                         </div>
                                     </div>
                                     <div class="form-help">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        Giá cho trẻ em (5-11 tuổi)
+                                        % tăng/giảm so với 75% giá người lớn
                                     </div>
                                 </div>
                             </div>
+
                             <div class="form-row">
-                                <!-- Giá Trẻ Sơ Sinh -->
+                                <!-- % Em Bé -->
                                 <div class="form-group">
-                                    <label for="price_infant" class="form-label">
+                                    <label for="infant_percent" class="form-label">
                                         <i class="fas fa-baby me-1"></i>
-                                        Giá Trẻ Sơ Sinh (VNĐ)
+                                        Em bé (%)
                                     </label>
                                     <div class="form-input-wrapper">
                                         <input type="number"
                                             class="form-control form-control-modern"
-                                            id="price_infant"
-                                            name="price_infant"
-                                            value="<?= htmlspecialchars($prices['price_infant'] ?? 0) ?>"
-                                            min="0"
-                                            step="10000">
+                                            id="infant_percent"
+                                            name="infant_percent"
+                                            value="<?= htmlspecialchars($prices['infant_percent'] ?? 0) ?>"
+                                            step="0.01"
+                                            placeholder="0">
                                         <div class="form-input-icon">
-                                            <i class="fas fa-dollar-sign"></i>
+                                            <i class="fas fa-percent"></i>
                                         </div>
                                     </div>
                                     <div class="form-help">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        Giá cho trẻ sơ sinh (dưới 2 tuổi)
+                                        % tăng/giảm so với 50% giá người lớn
                                     </div>
                                 </div>
+
+                                <!-- Tỷ lệ Base Trẻ Em -->
                                 <div class="form-group">
-                                    <div class="alert alert-info" style="margin-top: 28px;">
-                                        <i class="fas fa-lightbulb me-2"></i>
-                                        <strong>Lưu ý:</strong> Giá này sẽ được áp dụng khi tạo booking với phiên bản này
+                                    <label for="child_base_percent" class="form-label">
+                                        <i class="fas fa-percentage me-1"></i>
+                                        Tỷ lệ giá trẻ em (%)
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input type="number"
+                                            class="form-control form-control-modern"
+                                            id="child_base_percent"
+                                            name="child_base_percent"
+                                            value="<?= htmlspecialchars($prices['child_base_percent'] ?? 75) ?>"
+                                            step="0.01"
+                                            min="0"
+                                            max="100"
+                                            placeholder="75">
+                                        <div class="form-input-icon">
+                                            <i class="fas fa-percentage"></i>
+                                        </div>
                                     </div>
+                                    <div class="form-help">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Trẻ em = % giá người lớn (mặc định 75%)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <!-- Tỷ lệ Base Em Bé -->
+                                <div class="form-group">
+                                    <label for="infant_base_percent" class="form-label">
+                                        <i class="fas fa-percentage me-1"></i>
+                                        Tỷ lệ giá em bé (%)
+                                    </label>
+                                    <div class="form-input-wrapper">
+                                        <input type="number"
+                                            class="form-control form-control-modern"
+                                            id="infant_base_percent"
+                                            name="infant_base_percent"
+                                            value="<?= htmlspecialchars($prices['infant_base_percent'] ?? 50) ?>"
+                                            step="0.01"
+                                            min="0"
+                                            max="100"
+                                            placeholder="50">
+                                        <div class="form-input-icon">
+                                            <i class="fas fa-percentage"></i>
+                                        </div>
+                                    </div>
+                                    <div class="form-help">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Em bé = % giá người lớn (mặc định 50%)
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <!-- Empty space for alignment -->
                                 </div>
                             </div>
                         </div>

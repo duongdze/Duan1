@@ -424,6 +424,142 @@ $canEdit = $bookingModel->canUserEditBooking($booking['id'], $userId, $userRole)
                         </div>
                     </div>
                 </div>
+
+                <!-- Suppliers Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-building text-warning me-2"></i>
+                            Nhà cung cấp
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php
+                        // Load booking suppliers
+                        $bsaModel = new BookingSupplierAssignment();
+                        $bookingSuppliers = $bsaModel->getByBookingId($booking['id']);
+
+                        // Load tour default supplier for comparison
+                        $tourDefaultSupplier = null;
+                        if (!empty($booking['tour_supplier_id'])) {
+                            $supplierModel = new Supplier();
+                            $tourDefaultSupplier = $supplierModel->find('*', 'id = :id', ['id' => $booking['tour_supplier_id']]);
+                        }
+                        ?>
+
+                        <?php if ($tourDefaultSupplier): ?>
+                            <!-- Tour Default Supplier -->
+                            <div class="alert alert-light border mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-route text-primary me-2"></i>
+                                    <strong>Supplier mặc định từ tour:</strong>
+                                </div>
+                                <div class="ps-4">
+                                    <div class="mb-1">
+                                        <i class="fas fa-building text-muted me-2"></i>
+                                        <strong><?= htmlspecialchars($tourDefaultSupplier['name']) ?></strong>
+                                        <?php if (!empty($tourDefaultSupplier['type'])): ?>
+                                            <span class="badge bg-secondary ms-2"><?= htmlspecialchars($tourDefaultSupplier['type']) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php if (!empty($tourDefaultSupplier['phone'])): ?>
+                                        <div class="small text-muted">
+                                            <i class="fas fa-phone me-1"></i>
+                                            <?= htmlspecialchars($tourDefaultSupplier['phone']) ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-list me-2"></i>
+                                Suppliers được sử dụng cho booking này:
+                            </h6>
+                        <?php endif; ?>
+
+                        <?php if (!empty($bookingSuppliers)): ?>
+                            <div class="suppliers-list">
+                                <?php foreach ($bookingSuppliers as $bs): ?>
+                                    <div class="supplier-item mb-3 pb-3 border-bottom">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-handshake text-info me-1"></i>
+                                                <?= htmlspecialchars($bs['supplier_name']) ?>
+                                            </h6>
+                                            <span class="badge bg-secondary"><?= htmlspecialchars($bs['service_type']) ?></span>
+                                        </div>
+
+                                        <?php if (!empty($bs['supplier_type'])): ?>
+                                            <div class="small text-muted mb-1">
+                                                <i class="fas fa-tag me-1"></i>
+                                                <?= htmlspecialchars($bs['supplier_type']) ?>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <div class="row g-2 mt-2 small">
+                                            <div class="col-6">
+                                                <span class="text-muted">Số lượng:</span>
+                                                <span class="fw-medium"><?= $bs['quantity'] ?></span>
+                                            </div>
+                                            <?php if (!empty($bs['price'])): ?>
+                                                <div class="col-6">
+                                                    <span class="text-muted">Giá:</span>
+                                                    <span class="fw-medium text-primary"><?= number_format($bs['price'], 0, ',', '.') ?> ₫</span>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <?php if (!empty($bs['notes'])): ?>
+                                            <div class="small text-muted mt-2">
+                                                <i class="fas fa-sticky-note me-1"></i>
+                                                <?= htmlspecialchars($bs['notes']) ?>
+                                            </div>
+                                        <?php endif; ?>
+
+                                        <?php if (!empty($bs['supplier_phone']) || !empty($bs['supplier_email'])): ?>
+                                            <div class="mt-2 pt-2 border-top small">
+                                                <?php if (!empty($bs['supplier_phone'])): ?>
+                                                    <div class="mb-1">
+                                                        <i class="fas fa-phone text-muted me-1"></i>
+                                                        <a href="tel:<?= $bs['supplier_phone'] ?>"><?= htmlspecialchars($bs['supplier_phone']) ?></a>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($bs['supplier_email'])): ?>
+                                                    <div>
+                                                        <i class="fas fa-envelope text-muted me-1"></i>
+                                                        <a href="mailto:<?= $bs['supplier_email'] ?>"><?= htmlspecialchars($bs['supplier_email']) ?></a>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+
+                            <?php
+                            // Calculate total supplier cost
+                            $totalSupplierCost = $bsaModel->getTotalCostByBookingId($booking['id']);
+                            if ($totalSupplierCost > 0):
+                            ?>
+                                <div class="alert alert-info mb-0 mt-3">
+                                    <strong>Tổng chi phí suppliers:</strong><br>
+                                    <span class="fs-5"><?= number_format($totalSupplierCost, 0, ',', '.') ?> ₫</span>
+                                </div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <div class="text-center text-muted py-3">
+                                <i class="fas fa-building fa-2x mb-2"></i>
+                                <p class="mb-0 small">Chưa có nhà cung cấp nào</p>
+                                <?php if ($canEdit): ?>
+                                    <a href="<?= BASE_URL_ADMIN ?>&action=bookings/edit&id=<?= $booking['id'] ?>" class="btn btn-sm btn-outline-primary mt-2">
+                                        <i class="fas fa-plus me-1"></i>
+                                        Thêm supplier
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -37,10 +37,12 @@ class BookingController
         $customerModel = new UserModel();
         $tourModel = new Tour();
         $versionModel = new TourVersion();
+        $supplierModel = new Supplier();
 
         $customers = $customerModel->select('*', "role = :role", ['role' => 'customer']);
         $tours = $tourModel->select('*', null, [], 'name ASC');
         $versions = $versionModel->getActiveVersionsWithPrices();
+        $suppliers = $supplierModel->select();
 
         require_once PATH_VIEW_ADMIN . 'pages/bookings/create.php';
     }
@@ -69,18 +71,36 @@ class BookingController
                 exit;
             }
 
-            // Insert booking
+            // Insert booking (không có supplier_id nữa)
             $booking_id = $this->model->insert([
                 'customer_id' => $customer_id,
                 'tour_id' => $tour_id,
                 'version_id' => !empty($version_id) ? $version_id : null,
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
-                'final_price' => $total_price,  // Database yêu cầu final_price
+                'final_price' => $total_price,
                 'status' => $status,
                 'notes' => $notes,
-                'created_by' => $_SESSION['user']['user_id'] ?? null  // User đang tạo booking
+                'created_by' => $_SESSION['user']['user_id'] ?? null
             ]);
+
+            // Tự động thêm supplier từ tour vào booking_suppliers_assignment
+            if ($booking_id) {
+                $tourModel = new Tour();
+                $tour = $tourModel->find('*', 'id = :id', ['id' => $tour_id]);
+
+                if (!empty($tour['supplier_id'])) {
+                    $bsaModel = new BookingSupplierAssignment();
+                    $bsaModel->addSupplierToBooking(
+                        $booking_id,
+                        $tour['supplier_id'],
+                        'tour_operator',
+                        1,
+                        0,
+                        'Supplier mặc định từ tour'
+                    );
+                }
+            }
 
             // Insert booking customers (companions)
             if (!empty($_POST['companion_name'])) {
@@ -90,7 +110,9 @@ class BookingController
                     if (!empty($name)) {
                         $bookingCustomerModel->insert([
                             'booking_id' => $booking_id,
-                            'name' => $name,
+                            'full_name' => $name,
+                            'passenger_type' => $_POST['companion_passenger_type'][$index] ?? 'adult',
+                            'is_foc' => isset($_POST['companion_is_foc'][$index]) ? 1 : 0,
                             'gender' => $_POST['companion_gender'][$index] ?? '',
                             'birth_date' => $_POST['companion_birth_date'][$index] ?? null,
                             'phone' => $_POST['companion_phone'][$index] ?? '',
@@ -100,6 +122,15 @@ class BookingController
                         ]);
                     }
                 }
+
+                // Recalculate total price based on passenger types
+                $calculation = $bookingCustomerModel->calculateTotalPrice($booking_id, $tour_id, $version_id);
+                
+                // Update booking with calculated price
+                $this->model->update([
+                    'total_price' => $calculation['total'],
+                    'final_price' => $calculation['total']
+                ], 'id = :id', ['id' => $booking_id]);
             }
 
             $_SESSION['success'] = 'Tạo đơn đặt tour thành công';
@@ -186,6 +217,33 @@ class BookingController
         $guideModel = new Guide();
         $guides = $guideModel->getAll();
 
+        // Get suppliers list
+        $supplierModel = new Supplier();
+        $suppliers = $supplierModel->select();
+
+        // Get booking suppliers (many-to-many)
+        $bsaModel = new BookingSupplierAssignment();
+        $bookingSuppliers = $bsaModel->getByBookingId($id);
+
+        // Auto-add tour supplier if booking has no suppliers yet
+        if (empty($bookingSuppliers) && !empty($booking['tour_supplier_id'])) {
+            // Tự động thêm supplier từ tour cho booking cũ
+            $bsaModel->addSupplierToBooking(
+                $id,
+                $booking['tour_supplier_id'],
+                'tour_operator',
+                1,
+                0,
+                'Supplier mặc định từ tour (tự động thêm)'
+            );
+            // Reload suppliers
+            $bookingSuppliers = $bsaModel->getByBookingId($id);
+        }
+
+        // Load version prices for passenger type pricing
+        $versionPriceModel = new TourVersionPrice();
+        $versionPrices = $versionPriceModel->getPriceForBooking($booking['tour_id'], $booking['version_id']);
+
         require_once PATH_VIEW_ADMIN . 'pages/bookings/edit.php';
     }
 
@@ -231,23 +289,42 @@ class BookingController
                 exit;
             }
 
-            // Update booking
+            // Update booking (không có supplier_id nữa)
             $this->model->update([
                 'customer_id' => $customer_id,
                 'tour_id' => $tour_id,
                 'version_id' => !empty($version_id) ? $version_id : null,
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
-                'final_price' => $total_price,  // ← THÊM DÒNG NÀY (cần thiết cho database)
+                'final_price' => $total_price,
                 'status' => $status,
-                'driver_id' => !empty($_POST['driver_id']) ? $_POST['driver_id'] : null,  // ← SỬA DÒNG NÀY
+                'driver_id' => !empty($_POST['driver_id']) ? $_POST['driver_id'] : null,
                 'notes' => $notes
             ], 'id = :id', ['id' => $id]);
+
+            // Cập nhật booking suppliers (many-to-many)
+            if (isset($_POST['suppliers']) && is_array($_POST['suppliers'])) {
+                $bsaModel = new BookingSupplierAssignment();
+                $bsaModel->updateSuppliersForBooking($id, $_POST['suppliers']);
+            }
 
             // NOTE: Companions are managed separately via AJAX endpoints
             // (addCompanion, updateCompanion, deleteCompanion)
             // Do NOT delete and recreate companions here to prevent data loss
 
+            // Recalculate total price based on current companions and their passenger types
+            $bookingCustomerModel = new BookingCustomer();
+            $companions = $bookingCustomerModel->getByBooking($id);
+            
+            if (!empty($companions)) {
+                $calculation = $bookingCustomerModel->calculateTotalPrice($id, $tour_id, $version_id);
+                
+                // Update booking with calculated price
+                $this->model->update([
+                    'total_price' => $calculation['total'],
+                    'final_price' => $calculation['total']
+                ], 'id = :id', ['id' => $id]);
+            }
 
             $_SESSION['success'] = 'Cập nhật đơn đặt tour thành công';
             header('Location:' . BASE_URL_ADMIN . '&action=bookings/detail&id=' . $id);

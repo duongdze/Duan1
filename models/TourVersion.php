@@ -96,7 +96,7 @@ class TourVersion extends BaseModel
      */
     public function getActiveVersionsWithPrices()
     {
-        $sql = "SELECT tv.*, tvp.price_adult, tvp.price_child, tvp.price_infant
+        $sql = "SELECT tv.*, tvp.adult_percent, tvp.child_percent, tvp.infant_percent, tvp.child_base_percent, tvp.infant_base_percent
                 FROM {$this->table} tv
                 LEFT JOIN tour_version_prices tvp ON tv.id = tvp.version_id
                 WHERE tv.status = 'active'

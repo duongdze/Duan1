@@ -392,6 +392,84 @@ if (empty($galleryUrls)) {
                         </div>
                     </div>
                 </div>
+
+                <!-- Supplier Card -->
+                <?php if (!empty($tour['supplier_id'])): ?>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-building text-info me-2"></i>
+                                Nhà cung cấp
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <?php
+                            // Load supplier info
+                            $supplierModel = new Supplier();
+                            $supplier = $supplierModel->find('*', 'id = :id', ['id' => $tour['supplier_id']]);
+                            ?>
+                            <?php if ($supplier): ?>
+                                <div class="supplier-info">
+                                    <h6 class="mb-3 text-primary">
+                                        <i class="fas fa-handshake me-2"></i>
+                                        <?= htmlspecialchars($supplier['name']) ?>
+                                    </h6>
+
+                                    <?php if (!empty($supplier['type'])): ?>
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-tag me-2"></i>Loại:
+                                            </small>
+                                            <span class="badge bg-info"><?= htmlspecialchars($supplier['type']) ?></span>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($supplier['contact_person'])): ?>
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-2"></i>Người liên hệ:
+                                            </small>
+                                            <span><?= htmlspecialchars($supplier['contact_person']) ?></span>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($supplier['phone'])): ?>
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-phone me-2"></i>Điện thoại:
+                                            </small>
+                                            <a href="tel:<?= $supplier['phone'] ?>"><?= htmlspecialchars($supplier['phone']) ?></a>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($supplier['email'])): ?>
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-envelope me-2"></i>Email:
+                                            </small>
+                                            <a href="mailto:<?= $supplier['email'] ?>"><?= htmlspecialchars($supplier['email']) ?></a>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($supplier['address'])): ?>
+                                        <div class="mb-0">
+                                            <small class="text-muted">
+                                                <i class="fas fa-map-marker-alt me-2"></i>Địa chỉ:
+                                            </small>
+                                            <span><?= htmlspecialchars($supplier['address']) ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="text-center text-muted py-3">
+                                    <i class="fas fa-building fa-2x mb-2"></i>
+                                    <p class="mb-0 small">Không tìm thấy thông tin nhà cung cấp</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <script>
                     function openLightbox(index) {
                         // Create lightbox overlay

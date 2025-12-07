@@ -60,11 +60,13 @@ class TourVersionController
      */
     public function create()
     {
-        // Default prices
+        // Default prices (% tăng/giảm)
         $prices = [
-            'price_adult' => 0,
-            'price_child' => 0,
-            'price_infant' => 0
+            'adult_percent' => 0,
+            'child_percent' => 0,
+            'infant_percent' => 0,
+            'child_base_percent' => 75,
+            'infant_base_percent' => 50
         ];
 
         $title = 'Thêm phiên bản mới';
@@ -103,11 +105,13 @@ class TourVersionController
         try {
             $versionId = $this->model->insert($data);
 
-            // Save prices
+            // Save prices (% tăng/giảm)
             $priceData = [
-                'price_adult' => floatval($_POST['price_adult'] ?? 0),
-                'price_child' => floatval($_POST['price_child'] ?? 0),
-                'price_infant' => floatval($_POST['price_infant'] ?? 0)
+                'adult_percent' => floatval($_POST['adult_percent'] ?? 0),
+                'child_percent' => floatval($_POST['child_percent'] ?? 0),
+                'infant_percent' => floatval($_POST['infant_percent'] ?? 0),
+                'child_base_percent' => floatval($_POST['child_base_percent'] ?? 75),
+                'infant_base_percent' => floatval($_POST['infant_base_percent'] ?? 50)
             ];
             $this->priceModel->upsertPrice($versionId, $priceData);
 
@@ -145,9 +149,11 @@ class TourVersionController
         $prices = $this->priceModel->getByVersionId($id);
         if (!$prices) {
             $prices = [
-                'price_adult' => 0,
-                'price_child' => 0,
-                'price_infant' => 0
+                'adult_percent' => 0,
+                'child_percent' => 0,
+                'infant_percent' => 0,
+                'child_base_percent' => 75,
+                'infant_base_percent' => 50
             ];
         }
 
@@ -207,11 +213,13 @@ class TourVersionController
 
             $this->model->update($data, 'id = :id', ['id' => $id]);
 
-            // Update prices
+            // Update prices (% tăng/giảm)
             $priceData = [
-                'price_adult' => floatval($_POST['price_adult'] ?? 0),
-                'price_child' => floatval($_POST['price_child'] ?? 0),
-                'price_infant' => floatval($_POST['price_infant'] ?? 0)
+                'adult_percent' => floatval($_POST['adult_percent'] ?? 0),
+                'child_percent' => floatval($_POST['child_percent'] ?? 0),
+                'infant_percent' => floatval($_POST['infant_percent'] ?? 0),
+                'child_base_percent' => floatval($_POST['child_base_percent'] ?? 75),
+                'infant_base_percent' => floatval($_POST['infant_base_percent'] ?? 50)
             ];
             $this->priceModel->upsertPrice($id, $priceData);
 

@@ -199,7 +199,7 @@ class TourAssignment extends BaseModel
     {
         $sql = "SELECT DISTINCT t.id, t.name, t.category_id, t.description, t.base_price, t.created_at, t.updated_at,
         COUNT(DISTINCT b.id) as booking_count,
-        SUM(COALESCE(bc_count.total, 0) + 1) as total_customers,
+        COALESCE(SUM(bc_count.total), 0) + COUNT(DISTINCT b.id) as total_customers,
         MIN(b.booking_date) as nearest_booking_date
         FROM tours t
         LEFT JOIN bookings b ON t.id = b.tour_id 
@@ -281,7 +281,7 @@ class TourAssignment extends BaseModel
                     COALESCE(tv.name, 'Mặc định') as version_name,
                     b.version_id,
                     COUNT(DISTINCT b.id) as booking_count,
-                    SUM(COALESCE(bc_count.total, 0) + 1) as customer_count
+                    COALESCE(SUM(bc_count.total), 0) + COUNT(DISTINCT b.id) as customer_count
                 FROM bookings b
                 LEFT JOIN tour_versions tv ON b.version_id = tv.id
                 LEFT JOIN (

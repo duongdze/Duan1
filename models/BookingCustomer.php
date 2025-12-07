@@ -137,4 +137,68 @@ class BookingCustomer extends BaseModel
             ['id' => $customerId]
         );
     }
+
+    /**
+     * Đếm số lượng khách theo loại (không tính FOC)
+     * 
+     * @param int $bookingId
+     * @param string $type ('adult', 'child', 'infant')
+     * @return int
+     */
+    public function countByType($bookingId, $type)
+    {
+        $sql = "SELECT COUNT(*) as count 
+                FROM {$this->table} 
+                WHERE booking_id = :booking_id 
+                AND passenger_type = :type 
+                AND is_foc = 0";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['booking_id' => $bookingId, 'type' => $type]);
+        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+    }
+
+    /**
+     * Tính tổng giá cho booking dựa trên version prices
+     * 
+     * @param int $bookingId
+     * @param int $tourId
+     * @param int|null $versionId
+     * @return array ['total' => float, 'breakdown' => array]
+     */
+    public function calculateTotalPrice($bookingId, $tourId, $versionId = null)
+    {
+        $priceModel = new TourVersionPrice();
+        $prices = $priceModel->getPriceForBooking($tourId, $versionId);
+
+        $adults = $this->countByType($bookingId, 'adult');
+        $children = $this->countByType($bookingId, 'child');
+        $infants = $this->countByType($bookingId, 'infant');
+
+        $total = ($adults * $prices['price_adult']) +
+            ($children * $prices['price_child']) +
+            ($infants * $prices['price_infant']);
+
+        return [
+            'total' => $total,
+            'breakdown' => [
+                'adults' => ['count' => $adults, 'price' => $prices['price_adult'], 'subtotal' => $adults * $prices['price_adult']],
+                'children' => ['count' => $children, 'price' => $prices['price_child'], 'subtotal' => $children * $prices['price_child']],
+                'infants' => ['count' => $infants, 'price' => $prices['price_infant'], 'subtotal' => $infants * $prices['price_infant']]
+            ]
+        ];
+    }
+
+    /**
+     * Lấy giá cho 1 khách dựa trên loại
+     * 
+     * @param int $tourId
+     * @param int|null $versionId
+     * @param string $passengerType
+     * @return float
+     */
+    public function getPriceForPassenger($tourId, $versionId, $passengerType)
+    {
+        $priceModel = new TourVersionPrice();
+        return $priceModel->getPriceByType($tourId, $versionId, $passengerType);
+    }
 }

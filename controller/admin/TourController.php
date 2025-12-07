@@ -88,6 +88,10 @@ class TourController
         $categoryModel = new TourCategory();
         $categories = $categoryModel->select();
 
+        // Load suppliers for supplier dropdown
+        $supplierModel = new Supplier();
+        $suppliers = $supplierModel->select();
+
         require_once PATH_VIEW_ADMIN . 'pages/tours/create.php';
     }
 
@@ -121,6 +125,7 @@ class TourController
             $tourData = [
                 'name' => trim($_POST['name']),
                 'category_id' => (int)$_POST['category_id'],
+                'supplier_id' => !empty($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : null,
                 'description' => trim($_POST['description'] ?? ''),
                 'base_price' => (float)$_POST['base_price'],
             ];
@@ -214,6 +219,10 @@ class TourController
         $categoryModel = new TourCategory();
         $categories = $categoryModel->select();
 
+        // Load suppliers
+        $supplierModel = new Supplier();
+        $suppliers = $supplierModel->select();
+
         // Load policies
         $policyModel = new TourPolicy();
         $policies = $policyModel->select();
@@ -283,6 +292,7 @@ class TourController
             $tourData = [
                 'name' => trim($_POST['name']),
                 'category_id' => (int)$_POST['category_id'],
+                'supplier_id' => !empty($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : null,
                 'description' => $_POST['description'] ?? '',
                 'base_price' => (float)$_POST['base_price'],
                 'updated_at' => date('Y-m-d H:i:s'),

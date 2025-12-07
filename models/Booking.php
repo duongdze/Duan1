@@ -177,6 +177,7 @@ class Booking extends BaseModel
                     B.*, 
                     T.name AS tour_name,
                     T.base_price AS tour_base_price,
+                    T.supplier_id AS tour_supplier_id,
                     U.full_name AS customer_name,
                     U.email AS customer_email,
                     U.phone AS customer_phone,
