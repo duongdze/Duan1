@@ -528,6 +528,14 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                 title="Xóa">
                                                 <i class="fas fa-trash"></i>
                                             </button>
+                                            <button type="button"
+                                                class="btn-action btn-qr btn-info"
+                                                data-id="<?= $tour['id'] ?>"
+                                                data-name="<?= htmlspecialchars($tour['name']) ?>"
+                                                data-bs-toggle="tooltip"
+                                                title="Lấy Link & QR">
+                                                <i class="fas fa-qrcode"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -634,6 +642,40 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         </section>
     </div>
 </main>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrModalLabel">
+                    <i class="fas fa-qrcode me-2"></i>
+                    Mã QR & Link Đặt Tour
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <h6 id="qr-tour-name" class="mb-3 fw-bold text-primary"></h6>
+                
+                <div class="qr-code-wrapper mb-4 p-3 border rounded bg-light d-inline-block">
+                    <div id="qrcode"></div>
+                </div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="fas fa-link"></i></span>
+                    <input type="text" class="form-control" id="tour-link" readonly>
+                    <button class="btn btn-primary" type="button" id="copy-link-btn">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                
+                <div class="alert alert-success d-none" id="copy-success-alert">
+                    <small><i class="fas fa-check-circle me-1"></i> Đã sao chép liên kết vào bộ nhớ tạm!</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -1017,6 +1059,201 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         // Add toast to container
         const toastElement = document.createElement('div');
         toastElement.innerHTML = toastHtml;
+                    });
+            });
+        });
+
+        // Delete functionality
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const deleteForm = document.getElementById('delete-form');
+
+        document.querySelectorAll('.delete-tour').forEach(button => {
+            button.addEventListener('click', function() {
+                const tourId = this.dataset.id;
+                const tourName = this.dataset.name;
+
+                document.getElementById('delete-tour-id').value = tourId;
+                document.getElementById('delete-tour-name').textContent = tourName;
+                deleteForm.action = '<?= BASE_URL_ADMIN ?>&action=tours/delete&id=' + tourId;
+
+                deleteModal.show();
+            });
+        });
+
+        // Bulk actions
+        document.getElementById('bulk-activate').addEventListener('click', function() {
+            performBulkAction('active');
+        });
+
+        document.getElementById('bulk-deactivate').addEventListener('click', function() {
+            performBulkAction('inactive');
+        });
+
+        document.getElementById('bulk-featured').addEventListener('click', function() {
+            performBulkAction('featured');
+        });
+
+        function performBulkAction(action) {
+            const selectedIds = Array.from(document.querySelectorAll('.tour-select:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+
+            if (action === 'featured') {
+                form.action = '<?= BASE_URL_ADMIN ?>&action=tours/bulk-update-featured';
+            } else {
+                form.action = '<?= BASE_URL_ADMIN ?>&action=tours/bulk-update-status';
+            }
+
+            selectedIds.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'tour_ids[]';
+                input.value = id;
+                form.appendChild(input);
+            });
+
+            if (action !== 'featured') {
+                const statusInput = document.createElement('input');
+                statusInput.type = 'hidden';
+                statusInput.name = 'status';
+                statusInput.value = action;
+                form.appendChild(statusInput);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // Bulk delete
+        const bulkDeleteModal = new bootstrap.Modal(document.getElementById('bulkDeleteModal'));
+        const bulkDeleteForm = document.getElementById('bulk-delete-form');
+
+        document.getElementById('bulk-delete').addEventListener('click', function() {
+            const selectedIds = Array.from(document.querySelectorAll('.tour-select:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) return;
+
+            document.getElementById('bulk-delete-count').textContent = selectedIds.length;
+            document.getElementById('bulk-tour-ids').value = JSON.stringify(selectedIds);
+
+            bulkDeleteModal.show();
+        });
+
+        // Handle bulk delete form submission
+        bulkDeleteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const tourIds = JSON.parse(document.getElementById('bulk-tour-ids').value);
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '<?= BASE_URL_ADMIN ?>&action=tours/bulk-delete';
+
+            tourIds.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'tour_ids[]';
+                input.value = id;
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        // Gallery functionality
+        document.querySelectorAll('.tour-card-modern').forEach(card => {
+            const gallery = JSON.parse(card.dataset.gallery || '[]');
+            const mainImg = card.querySelector('.main-img');
+            const thumbs = card.querySelectorAll('.thumbnail-item img');
+
+            if (thumbs.length > 0) {
+                thumbs.forEach((thumb, index) => {
+                    thumb.addEventListener('click', function() {
+                        if (gallery[index + 1]) {
+                            mainImg.src = gallery[index + 1];
+                            mainImg.dataset.index = index + 1;
+
+                            // Update active thumbnail
+                            document.querySelectorAll('.thumbnail-item').forEach(item => {
+                                item.classList.remove('active');
+                            });
+                            this.closest('.thumbnail-item').classList.add('active');
+                        }
+                    });
+                });
+            }
+
+            if (mainImg && gallery.length > 0) {
+                mainImg.addEventListener('click', function() {
+                    // Simple lightbox implementation
+                    const currentIndex = parseInt(this.dataset.index) || 0;
+                    // You can integrate with a proper lightbox library here
+                    console.log('Open lightbox at index:', currentIndex, gallery);
+                });
+            }
+        });
+
+        // View toggle functionality
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const view = this.dataset.view;
+                const container = document.querySelector('.tours-grid');
+
+                if (view === 'list') {
+                    container.classList.add('list-view');
+                } else {
+                    container.classList.remove('list-view');
+                }
+            });
+        });
+    });
+
+    // Helper functions
+    function toggleAdvancedFilters() {
+        const advancedFilters = document.querySelector('.advanced-filters');
+        const toggleBtn = document.querySelector('[onclick="toggleAdvancedFilters()"]');
+
+        if (advancedFilters.style.display === 'none') {
+            advancedFilters.style.display = 'flex';
+            toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Thu gọn';
+        } else {
+            advancedFilters.style.display = 'none';
+            toggleBtn.innerHTML = '<i class="fas fa-cog"></i> Nâng cao';
+        }
+    }
+
+    function resetFilters() {
+        window.location.href = '<?= BASE_URL_ADMIN ?>&action=tours';
+    }
+
+    function showToast(message, type = 'success') {
+        // Create toast element
+        const toastHtml = `
+        <div class="toast toast-${type} show" role="alert">
+            <div class="toast-body">
+                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle me-2"></i>
+                ${message}
+            </div>
+        </div>
+    `;
+
+        // Create container if not exists
+        let container = document.querySelector('.toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container';
+            container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999;';
+            document.body.appendChild(container);
+        }
+
+        // Add toast to container
+        const toastElement = document.createElement('div');
+        toastElement.innerHTML = toastHtml;
         container.appendChild(toastElement.firstElementChild);
 
         // Remove after 3 seconds
@@ -1025,6 +1262,61 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         }, 3000);
     }
 </script>
+<!-- QR Code Functionality -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const qrModal = document.getElementById('qrModal');
+        const qrCodeContainer = document.getElementById('qrcode');
+        const tourLinkInput = document.getElementById('tour-link');
+        const qrTourName = document.getElementById('qr-tour-name');
+        const copyBtn = document.getElementById('copy-link-btn');
+        const copyAlert = document.getElementById('copy-success-alert');
+        let qrcodeObj = null;
+
+        document.querySelectorAll('.btn-qr').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const tourId = this.dataset.id;
+                const tourName = this.dataset.name;
+                // Construct public URL
+                const publicUrl = `<?= BASE_URL ?>?action=tour-detail&id=${tourId}`;
+
+                // Update Modal Content
+                qrTourName.textContent = tourName;
+                tourLinkInput.value = publicUrl;
+                copyAlert.classList.add('d-none');
+
+                // Generate QR
+                qrCodeContainer.innerHTML = '';
+                qrcodeObj = new QRCode(qrCodeContainer, {
+                    text: publicUrl,
+                    width: 180,
+                    height: 180,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                // Show Modal
+                const modal = new bootstrap.Modal(qrModal);
+                modal.show();
+            });
+        });
+
+        copyBtn.addEventListener('click', function() {
+            tourLinkInput.select();
+            tourLinkInput.setSelectionRange(0, 99999); /* For mobile devices */
+            navigator.clipboard.writeText(tourLinkInput.value).then(function() {
+                copyAlert.classList.remove('d-none');
+                setTimeout(() => {
+                    copyAlert.classList.add('d-none');
+                }, 2000);
+            });
+        });
+    });
+</script>
+<!-- QRCode.js Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <?php
 include_once PATH_VIEW_ADMIN . 'default/footer.php';

@@ -227,17 +227,47 @@ $canEdit = $bookingModel->canUserEditBooking($booking['id'], $userId, $userRole)
                         <div class="guest-item mb-3">
                             <div class="guest-header">
                                 <span class="badge bg-primary">Khách chính</span>
-                                <h6 class="mb-0 ms-2"><?= htmlspecialchars($booking['customer_name'] ?? 'N/A') ?></h6>
+                                <h6 class="mb-0 ms-2">
+                                    <?php 
+                                        if (!empty($booking['customer_name'])) {
+                                            echo htmlspecialchars($booking['customer_name']);
+                                        } elseif (!empty($companions[0]['full_name'])) {
+                                            echo htmlspecialchars($companions[0]['full_name']) . ' (Khách vãng lai)';
+                                        } else {
+                                            echo 'N/A';
+                                        }
+                                    ?>
+                                </h6>
                             </div>
                             <div class="guest-details mt-2">
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <small class="text-muted">Email:</small>
-                                        <div><?= htmlspecialchars($booking['customer_email'] ?? 'N/A') ?></div>
+                                        <div>
+                                            <?php 
+                                                if (!empty($booking['customer_email'])) {
+                                                    echo htmlspecialchars($booking['customer_email']);
+                                                } else {
+                                                    // Try to match email from notes
+                                                    preg_match('/Email: (.*)/', $booking['notes'] ?? '', $matches);
+                                                    echo !empty($matches[1]) ? htmlspecialchars(trim($matches[1])) : 'Xem ghi chú';
+                                                }
+                                            ?>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <small class="text-muted">Điện thoại:</small>
-                                        <div><?= htmlspecialchars($booking['customer_phone'] ?? 'N/A') ?></div>
+                                        <div>
+                                            <?php 
+                                                if (!empty($booking['customer_phone'])) {
+                                                    echo htmlspecialchars($booking['customer_phone']);
+                                                } elseif (!empty($companions[0]['phone'])) {
+                                                    echo htmlspecialchars($companions[0]['phone']);
+                                                } else {
+                                                    echo 'N/A';
+                                                }
+                                            ?>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

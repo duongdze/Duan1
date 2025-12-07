@@ -1,13 +1,13 @@
 <?php
 // Include controllers
-// require_once 'controller/admin/AuthorController.php';
-// require_once 'controller/admin/DashboardController.php';
-// require_once 'controller/admin/TourController.php';
-// require_once 'controller/admin/TourVersionController.php';
-// require_once 'controller/admin/BookingController.php';
-// require_once 'controller/admin/GuideController.php';
-// require_once 'controller/admin/SupplierController.php';
-// require_once 'controller/admin/ReportController.php';
+require_once 'controller/admin/AuthorController.php';
+require_once 'controller/admin/DashboardController.php';
+require_once 'controller/admin/TourController.php';
+require_once 'controller/admin/TourVersionController.php';
+require_once 'controller/admin/BookingController.php';
+require_once 'controller/admin/GuideController.php';
+require_once 'controller/admin/SupplierController.php';
+require_once 'controller/admin/ReportController.php';
 
 $action = $_GET['action'] ?? '/';
 
