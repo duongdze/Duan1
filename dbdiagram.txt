@@ -119,6 +119,11 @@
   Table tour_version_prices {
     id int [pk, increment]
     version_id int [ref: > TV.id]
+    adult_percent decimal
+    child_percent decimal
+    infant_percent decimal
+    child_base_percent decimal
+    infant_base_percent decimal
     price_adult decimal
     price_child decimal
     price_infant decimal

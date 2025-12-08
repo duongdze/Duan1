@@ -1,13 +1,4 @@
 <?php
-// Include controllers
-require_once 'controller/admin/AuthorController.php';
-require_once 'controller/admin/DashboardController.php';
-require_once 'controller/admin/TourController.php';
-require_once 'controller/admin/TourVersionController.php';
-require_once 'controller/admin/BookingController.php';
-require_once 'controller/admin/GuideController.php';
-require_once 'controller/admin/SupplierController.php';
-require_once 'controller/admin/ReportController.php';
 
 $action = $_GET['action'] ?? '/';
 
@@ -136,10 +127,7 @@ match ($action) {
     'users/delete'                          => (new UserController)->delete(),
     'users/detail'                          => (new UserController)->detail(),
 
-    // Suppliers
-    'suppliers'                             => (new SupplierController)->index(),
-    'suppliers/create'                      => (new SupplierController)->create(),
-    'suppliers/store'                       => (new SupplierController)->store(),
+
 
     // Reports
     'reports'              => (new ReportController)->index(),

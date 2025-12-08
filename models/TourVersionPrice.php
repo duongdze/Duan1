@@ -38,7 +38,7 @@ class TourVersionPrice extends BaseModel
             'infant_percent' => $priceData['infant_percent'] ?? 0,
             'child_base_percent' => $priceData['child_base_percent'] ?? 75,
             'infant_base_percent' => $priceData['infant_base_percent'] ?? 50,
-            'updated_at' => date('Y-m-d H:i:s')
+            // 'updated_at' => date('Y-m-d H:i:s')
         ];
 
         if ($existing) {
