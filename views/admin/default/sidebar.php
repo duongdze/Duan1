@@ -26,8 +26,11 @@ function isParentActive($actions)
     return '';
 }
 
-// Lấy action hiện tại
+// Lấy action hiện tại và role
 $currentAction = $_GET['action'] ?? '';
+$userRole = $_SESSION['user']['role'] ?? 'customer';
+$isAdmin = $userRole === 'admin';
+$isGuide = $userRole === 'guide';
 ?>
 
 <aside class="sidebar vh-100 border-end bg-light overflow-y-auto">
@@ -35,13 +38,15 @@ $currentAction = $_GET['action'] ?? '';
         <h4 class="fw-bold text-center">Trang Quản Trị</h4>
     </div>
     <ul class="nav flex-column">
+        <?php if ($isAdmin): ?>
+        <!-- Dashboard - Chỉ Admin -->
         <li class="nav-item">
             <a class="nav-link <?= $currentAction === 'dashboard' || empty($currentAction) ? 'active' : '' ?>" href="<?= BASE_URL_ADMIN ?>&action=/">
                 <i class="fas fa-tachometer-alt fa-fw me-2"></i> Tổng quan
             </a>
         </li>
 
-        <!-- Phần Tour -->
+        <!-- Phần Tour - Chỉ Admin -->
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive(['tours', 'policies', 'suppliers', 'tours_categories', 'tours_versions', 'tours_history']) ? 'active' : '' ?>"
                 href="#" role="button"
@@ -87,8 +92,9 @@ $currentAction = $_GET['action'] ?? '';
                 </ul>
             </div>
         </li>
+        <?php endif; ?>
 
-        <!-- Phần Booking -->
+        <!-- Phần Booking - Admin và Guide -->
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive(['bookings', 'guides/available-tours']) ? 'active' : '' ?>"
                 href="#" role="button"
@@ -117,7 +123,8 @@ $currentAction = $_GET['action'] ?? '';
             </div>
         </li>
 
-        <!-- Phần Quản Lý Nhân Sự -->
+        <?php if ($isAdmin): ?>
+        <!-- Phần Quản Lý Nhân Sự - Chỉ Admin -->
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= (isActive('guides') || isParentActive('drivers')) ? 'active' : '' ?>"
                 href="#" role="button"
@@ -144,13 +151,15 @@ $currentAction = $_GET['action'] ?? '';
             </div>
         </li>
 
+        <!-- Users - Chỉ Admin -->
         <li class="nav-item">
             <a class="nav-link <?= isActive('users') ?>" href="<?= BASE_URL_ADMIN ?>&action=users">
                 <i class="fas fa-user fa-fw me-2"></i> User
             </a>
         </li>
+        <?php endif; ?>
 
-        <!-- Quản lý công việc -->
+        <!-- Quản lý công việc - Admin và Guide -->
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive(['tours_logs', 'guide/schedule']) ? 'active' : '' ?>"
                 href="#" role="button"
@@ -176,7 +185,9 @@ $currentAction = $_GET['action'] ?? '';
                 </ul>
             </div>
         </li>
-        <!-- Phần Báo cáo -->
+        
+        <?php if ($isAdmin): ?>
+        <!-- Phần Báo cáo - Chỉ Admin -->
         <li class="nav-item">
             <a class="nav-link dropdown-toggles d-flex justify-content-between align-items-center <?= isParentActive('reports') ? 'active' : '' ?>"
                 href="#" role="button"
@@ -212,5 +223,6 @@ $currentAction = $_GET['action'] ?? '';
                 </ul>
             </div>
         </li>
+        <?php endif; ?>
     </ul>
 </aside>

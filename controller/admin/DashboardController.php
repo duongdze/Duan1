@@ -23,6 +23,13 @@ class DashboardController
         // Kiểm tra quyền: chỉ admin và hdv được truy cập
         check_role(['admin', 'guide']);
 
+        // Redirect guide về trang schedule
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if ($userRole === 'guide') {
+            header('Location: ' . BASE_URL_ADMIN . '&action=guide/schedule');
+            exit;
+        }
+
         $currentMonth = date('m');
         $currentYear = date('Y');
         $today = date('Y-m-d');
