@@ -82,10 +82,12 @@ class TourLog extends BaseModel
     public function getToursWithLogStats()
     {
         $sql = "SELECT t.id, t.name, 
-                       COUNT(tl.id) as log_count, 
+                       COUNT(DISTINCT tl.id) as log_count, 
                        MAX(tl.date) as last_log_date
                 FROM tours t
+                INNER JOIN tour_assignments ta ON t.id = ta.tour_id
                 LEFT JOIN tour_logs tl ON t.id = tl.tour_id
+                WHERE ta.status = 'active'
                 GROUP BY t.id, t.name
                 ORDER BY last_log_date DESC";
         $stmt = self::$pdo->prepare($sql);
