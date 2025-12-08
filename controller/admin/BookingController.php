@@ -125,7 +125,7 @@ class BookingController
 
                 // Recalculate total price based on passenger types
                 $calculation = $bookingCustomerModel->calculateTotalPrice($booking_id, $tour_id, $version_id);
-                
+
                 // Update booking with calculated price
                 $this->model->update([
                     'total_price' => $calculation['total'],
@@ -209,9 +209,9 @@ class BookingController
         $tours = $tourModel->select('*', null, [], 'name ASC');
         $versions = $versionModel->getActiveVersionsWithPrices();
 
-        // Get drivers list
-        $driverModel = new Driver();
-        $drivers = $driverModel->getAvailableDrivers();
+        // Get bus companies list
+        $busCompanyModel = new BusCompany();
+        $busCompanies = $busCompanyModel->getActiveBusCompanies();
 
         // Get guides list
         $guideModel = new Guide();
@@ -315,10 +315,10 @@ class BookingController
             // Recalculate total price based on current companions and their passenger types
             $bookingCustomerModel = new BookingCustomer();
             $companions = $bookingCustomerModel->getByBooking($id);
-            
+
             if (!empty($companions)) {
                 $calculation = $bookingCustomerModel->calculateTotalPrice($id, $tour_id, $version_id);
-                
+
                 // Update booking with calculated price
                 $this->model->update([
                     'total_price' => $calculation['total'],
