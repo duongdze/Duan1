@@ -244,7 +244,6 @@ if (empty($galleryUrls)) {
                                             <th>Ngày khởi hành</th>
                                             <th>Số chỗ</th>
                                             <th>Đã đặt</th>
-                                            <th>Giá người lớn</th>
                                             <th>Trạng thái</th>
                                         </tr>
                                     </thead>
@@ -259,9 +258,6 @@ if (empty($galleryUrls)) {
                                                 </td>
                                                 <td>
                                                     <?= $departure['booked_seats'] ?? 0 ?>
-                                                </td>
-                                                <td class="text-end fw-bold text-primary">
-                                                    <?= formatPrice($departure['price_adult'] ?? $tour['base_price']) ?>
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-<?= $departure['status'] === 'open' ? 'success' : ($departure['status'] === 'full' ? 'danger' : 'warning') ?>">

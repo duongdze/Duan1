@@ -436,7 +436,7 @@ $departures = $departures ?? [];
                                         <option value="">-- Chọn nhà cung cấp --</option>
                                         <?php if (!empty($suppliers)): ?>
                                             <?php foreach ($suppliers as $supplier): ?>
-                                                <option value="<?= $supplier['id'] ?>" 
+                                                <option value="<?= $supplier['id'] ?>"
                                                     data-name="<?= htmlspecialchars($supplier['name']) ?>"
                                                     data-type="<?= $supplier['type'] ?? '' ?>"
                                                     data-contact="<?= htmlspecialchars($supplier['phone'] ?? $supplier['email'] ?? '') ?>">
@@ -1179,7 +1179,7 @@ $departures = $departures ?? [];
     function addPartnerFromSupplier() {
         const select = document.getElementById('supplier-select');
         const selectedOption = select.options[select.selectedIndex];
-        
+
         if (!selectedOption.value) {
             showToast('Vui lòng chọn nhà cung cấp', 'warning');
             return;
@@ -1243,7 +1243,7 @@ $departures = $departures ?? [];
 
     function removePartnerItem(button) {
         button.closest('.partner-item').remove();
-        
+
         // Show empty message if no partners
         const partnersList = document.getElementById('partners-list');
         if (partnersList.children.length === 0) {

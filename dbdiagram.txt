@@ -21,7 +21,7 @@
     updated_at datetime
   }
 
-  Table suppliers as S {
+  Table suppliers as S { 
     id int [pk, increment]
     name varchar
     type varchar
