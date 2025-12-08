@@ -4,27 +4,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // Filter form handling with CLIENT-SIDE filtering (giống Booking)
   const filterForm = document.getElementById("tour-filters");
   if (filterForm) {
-    // Prevent form submit
+    // Prevent form submit and filter manually
     filterForm.addEventListener("submit", function(e) {
       e.preventDefault();
       filterTours();
     });
-
-    // Real-time filtering on select/date change
-    const filterSelects = filterForm.querySelectorAll('select, input[type="date"], input[type="number"]');
-    filterSelects.forEach(input => {
-      input.addEventListener('change', filterTours);
-    });
-
-    // Debounce keyword input for better performance
-    let keywordTimeout;
-    const keywordInput = filterForm.querySelector('[name="keyword"]');
-    if (keywordInput) {
-      keywordInput.addEventListener('input', function() {
-        clearTimeout(keywordTimeout);
-        keywordTimeout = setTimeout(filterTours, 300);
-      });
-    }
 
     function filterTours() {
       const keyword = filterForm.querySelector('[name="keyword"]').value.toLowerCase();

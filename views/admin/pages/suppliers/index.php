@@ -130,7 +130,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     </h3>
                 </div>
 
-                <form method="GET" action="<?= BASE_URL_ADMIN . '&action=suppliers' ?>" class="filter-form">
+                <form id="supplier-filters" method="GET" action="<?= BASE_URL_ADMIN . '&action=suppliers' ?>" class="filter-form" onsubmit="return false;">
                     <input type="hidden" name="action" value="suppliers">
 
                     <div class="filter-row">
@@ -172,14 +172,14 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
 
                         <div class="filter-group filter-actions-group">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="button" onclick="filterSuppliers()" class="btn btn-primary">
                                 <i class="fas fa-search me-2"></i>
                                 Tìm kiếm
                             </button>
-                            <a href="<?= BASE_URL_ADMIN . '&action=suppliers' ?>" class="btn btn-outline-secondary">
+                            <button type="button" onclick="resetFilters()" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-2"></i>
                                 Xóa lọc
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -330,6 +330,65 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     });
+
+    function filterSuppliers() {
+        const keyword = document.querySelector('[name="keyword"]').value.toLowerCase();
+        const type = document.querySelector('[name="type"]').value.toLowerCase();
+        const ratingMin = parseFloat(document.querySelector('[name="rating_min"]').value) || 0;
+
+        const tbody = document.querySelector('.table-modern tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        // Filter rows
+        let visibleCount = 0;
+        rows.forEach(row => {
+            // Get row data
+            const supplierName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const supplierType = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            const contactInfo = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+            const phoneEmail = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
+            
+            // Get rating
+            const ratingElement = row.querySelector('.rating-value');
+            const supplierRating = ratingElement ? parseFloat(ratingElement.textContent) : 0;
+
+            // Check filters
+            let show = true;
+
+            // Filter by keyword (search in name, contact, phone, email)
+            if (keyword && !supplierName.includes(keyword) && 
+                !contactInfo.includes(keyword) && !phoneEmail.includes(keyword)) {
+                show = false;
+            }
+
+            // Filter by type
+            if (type && !supplierType.includes(type)) {
+                show = false;
+            }
+
+            // Filter by rating
+            if (ratingMin > 0 && supplierRating < ratingMin) {
+                show = false;
+            }
+
+            // Show/hide row
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+
+        // Update count
+        const countElement = document.querySelector('.count-info');
+        if (countElement) {
+            countElement.textContent = visibleCount + ' nhà cung cấp';
+        }
+    }
+
+    function resetFilters() {
+        document.getElementById('supplier-filters').reset();
+        filterSuppliers();
+    }
 
     function deleteSupplier(id, name) {
         if (confirm('Bạn có chắc muốn xóa nhà cung cấp "' + name + '"?\nLưu ý: Các dữ liệu liên quan có thể bị ảnh hưởng.')) {
