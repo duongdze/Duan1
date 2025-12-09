@@ -114,6 +114,7 @@ match ($action) {
     'guide/tourDetail'                      => (new GuideWorkController)->tourDetail(),
     'guide/cancelAssignment'                => (new GuideWorkController)->cancelAssignment(), // AJAX
     'guides/available-tours'                => (new TourAssignmentController)->availableTours(),
+    'guides/admin-assign-guide'             => (new TourAssignmentController)->adminAssignGuide(), // AJAX
     'guides/tour-bookings'                  => (new TourAssignmentController)->tourBookings(),
     'guides/claim-tour'                     => (new TourAssignmentController)->claimTour(), // AJAX
     'guides/accept-booking'                 => (new TourAssignmentController)->acceptBooking(), // AJAX
