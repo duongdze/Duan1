@@ -210,7 +210,8 @@ body {
 
 .admin-layout .wrapper {
   width: 100%;
-  padding-left: 250px; /* Same as sidebar width */
+  padding-left: 250px;
+  /* Same as sidebar width */
   transition: all 0.3s;
 }
 
@@ -343,16 +344,20 @@ body {
   .sidebar {
     left: -250px;
   }
+
   .admin-layout .wrapper {
     padding-left: 0;
   }
+
   .admin-header {
     left: 0;
     padding: 1rem;
   }
+
   .user-info {
     display: none;
   }
+
   .user-profile-section {
     gap: 0.5rem;
   }
@@ -382,6 +387,7 @@ body {
 .nav-tabs .nav-link {
   border-radius: 0.5rem 0.5rem 0 0;
 }
+
 .tab-pane {
   padding: 1rem 0 0 0;
 }
@@ -471,6 +477,7 @@ body {
   gap: 0.5rem;
   margin-top: 0.75rem;
 }
+
 .tour-thumbs .thumb-item {
   width: 56px;
   height: 40px;
@@ -482,12 +489,14 @@ body {
   justify-content: center;
   border: 1px solid transparent;
 }
+
 .tour-thumbs .thumb-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   cursor: pointer;
 }
+
 .tour-thumbs .thumb-item.more {
   display: flex;
   align-items: center;
@@ -496,6 +505,7 @@ body {
   color: #374151;
   background: #f3f4f6;
 }
+
 .tour-thumbs .thumb-item.active {
   border-color: #0d6efd;
   box-shadow: 0 2px 6px rgba(13, 110, 253, 0.12);
@@ -510,9 +520,11 @@ body {
   background: rgba(0, 0, 0, 0.75);
   z-index: 2000;
 }
+
 .image-lightbox.open {
   display: flex;
 }
+
 .image-lightbox .lightbox-inner {
   position: relative;
   max-width: 92vw;
@@ -522,6 +534,7 @@ body {
   align-items: center;
   gap: 12px;
 }
+
 .image-lightbox img.lightbox-image {
   max-width: 100%;
   max-height: calc(100vh - 220px);
@@ -531,6 +544,7 @@ body {
   border-radius: 0.5rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
+
 .image-lightbox .lightbox-close,
 .image-lightbox .lightbox-prev,
 .image-lightbox .lightbox-next {
@@ -545,15 +559,18 @@ body {
   justify-content: center;
   cursor: pointer;
 }
+
 .image-lightbox .lightbox-close {
   right: -10px;
   top: -10px;
 }
+
 .image-lightbox .lightbox-prev {
   left: -50px;
   top: 50%;
   transform: translateY(-50%);
 }
+
 .image-lightbox .lightbox-next {
   right: -50px;
   top: 50%;
@@ -569,6 +586,7 @@ body {
   max-width: 100%;
   justify-content: center;
 }
+
 .lightbox-thumbs .thumb {
   width: 68px;
   height: 48px;
@@ -578,11 +596,13 @@ body {
   border: 2px solid transparent;
   cursor: pointer;
 }
+
 .lightbox-thumbs .thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .lightbox-thumbs .thumb.active {
   border-color: #0d6efd;
 }

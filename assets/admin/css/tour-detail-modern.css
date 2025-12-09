@@ -47,12 +47,11 @@
 }
 
 .tour-detail-container {
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* Sidebar collapsed state */
-.sidebarCollapsed + main .tour-detail-wrapper {
+.sidebarCollapsed+main .tour-detail-wrapper {
   margin-left: 70px;
 }
 
@@ -62,7 +61,7 @@
     margin-left: 200px;
   }
 
-  .sidebarCollapsed + main .tour-detail-wrapper {
+  .sidebarCollapsed+main .tour-detail-wrapper {
     margin-left: 60px;
   }
 }
@@ -183,11 +182,9 @@
 }
 
 .btn-modern.btn-primary-gradient {
-  background: linear-gradient(
-    135deg,
-    var(--tour-detail-primary),
-    var(--primary-600)
-  );
+  background: linear-gradient(135deg,
+      var(--tour-detail-primary),
+      var(--primary-600));
   color: white;
 }
 
@@ -236,11 +233,9 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(
-    90deg,
-    var(--tour-detail-primary),
-    var(--primary-600)
-  );
+  background: linear-gradient(90deg,
+      var(--tour-detail-primary),
+      var(--primary-600));
 }
 
 .stat-icon {
@@ -256,11 +251,9 @@
 }
 
 .stat-icon.text-primary {
-  background: linear-gradient(
-    135deg,
-    var(--tour-detail-primary),
-    var(--primary-600)
-  );
+  background: linear-gradient(135deg,
+      var(--tour-detail-primary),
+      var(--primary-600));
 }
 
 .stat-icon.text-success {
@@ -378,11 +371,9 @@
   top: 0;
   bottom: 0;
   width: 3px;
-  background: linear-gradient(
-    180deg,
-    var(--tour-detail-primary),
-    var(--primary-600)
-  );
+  background: linear-gradient(180deg,
+      var(--tour-detail-primary),
+      var(--primary-600));
   border-radius: 2px;
 }
 
@@ -401,11 +392,9 @@
   top: 0;
   width: 32px;
   height: 32px;
-  background: linear-gradient(
-    135deg,
-    var(--tour-detail-primary),
-    var(--primary-600)
-  );
+  background: linear-gradient(135deg,
+      var(--tour-detail-primary),
+      var(--primary-600));
   color: white;
   border-radius: 50%;
   display: flex;
@@ -628,11 +617,9 @@
   font-size: 18px;
   color: white;
   flex-shrink: 0;
-  background: linear-gradient(
-    135deg,
-    var(--tour-detail-primary),
-    var(--primary-600)
-  );
+  background: linear-gradient(135deg,
+      var(--tour-detail-primary),
+      var(--primary-600));
 }
 
 .partner-info {

@@ -140,15 +140,15 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     $userRole = $_SESSION['user']['role'] ?? 'customer';
                                     if ($userRole === 'admin' && !empty($guides)):
                                     ?>
-                                        <!-- Admin: Departure Date Picker -->
+                                        <!-- Admin: Departure Date Selection -->
                                         <div class="mb-3">
                                             <label class="form-label small text-muted">
                                                 <i class="fas fa-calendar-alt me-1"></i>
-                                                Ngày khởi hành
+                                                Chọn ngày khởi hành
                                             </label>
                                             <?php if (!empty($tour['departure_dates'])): ?>
                                                 <select class="form-select form-select-sm" id="departure-date-<?= $tour['id'] ?>">
-                                                    <option value="">-- Chọn ngày khởi hành --</option>
+                                                    <option value="">-- Chọn ngày --</option>
                                                     <?php foreach ($tour['departure_dates'] as $departure): ?>
                                                         <option value="<?= $departure['departure_date'] ?>">
                                                             <?= date('d/m/Y', strtotime($departure['departure_date'])) ?>
@@ -156,45 +156,67 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                         </option>
                                                     <?php endforeach; ?>
                                                 </select>
-                                                <small class="text-muted">
-                                                    Chọn từ lịch khởi hành có sẵn
-                                                </small>
                                             <?php else: ?>
-                                                <select class="form-select form-select-sm" id="departure-date-<?= $tour['id'] ?>" disabled>
-                                                    <option value="">Chưa có lịch khởi hành</option>
+                                                <select class="form-select form-select-sm" disabled>
+                                                    <option>Chưa có lịch khởi hành</option>
                                                 </select>
-                                                <small class="text-warning">
-                                                    <i class="fas fa-exclamation-triangle me-1"></i>
-                                                    Tour chưa có lịch trình
-                                                </small>
                                             <?php endif; ?>
                                         </div>
 
-                                        <!-- Admin: Guide Assignment Dropdown -->
-                                        <div class="mb-3">
-                                            <label class="form-label small text-muted">
-                                                <i class="fas fa-user-tie me-1"></i>
-                                                Phân công HDV
-                                            </label>
-                                            <select class="form-select form-select-sm" id="guide-select-<?= $tour['id'] ?>">
-                                                <option value="">-- Chọn HDV --</option>
-                                                <?php foreach ($guides as $guide): ?>
-                                                    <option value="<?= $guide['id'] ?>">
-                                                        <?= htmlspecialchars($guide['full_name']) ?>
-                                                        <?php if (!empty($guide['languages'])): ?>
-                                                            (<?= htmlspecialchars($guide['languages']) ?>)
-                                                        <?php endif; ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <button
-                                            class="btn btn-success w-100 admin-assign-guide-btn"
-                                            data-tour-id="<?= $tour['id'] ?>"
-                                            data-tour-name="<?= htmlspecialchars($tour['name']) ?>">
-                                            <i class="fas fa-user-check me-2"></i>
-                                            Phân công HDV
-                                        </button>
+                                        <!-- Confirm Date Button -->
+                                        <?php if (!empty($tour['departure_dates'])): ?>
+                                            <button class="btn btn-info w-100 mb-3 confirm-date-btn"
+                                                    data-tour-id="<?= $tour['id'] ?>"
+                                                    data-tour-name="<?= htmlspecialchars($tour['name']) ?>">
+                                                <i class="fas fa-check-circle me-2"></i>
+                                                Xác nhận ngày khởi hành
+                                            </button>
+
+                                            <!-- Guide Selection (Hidden until date confirmed) -->
+                                            <div id="guide-section-<?= $tour['id'] ?>" style="display: none;">
+                                                <div class="alert alert-success alert-sm mb-3 d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <i class="fas fa-calendar-check me-1"></i>
+                                                        Ngày: <strong id="confirmed-date-<?= $tour['id'] ?>"></strong>
+                                                    </div>
+                                                    <button class="btn btn-sm btn-outline-secondary edit-date-btn" 
+                                                            data-tour-id="<?= $tour['id'] ?>"
+                                                            title="Chỉnh sửa ngày">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label small text-muted">
+                                                        <i class="fas fa-user-tie me-1"></i>
+                                                        Chọn HDV
+                                                    </label>
+                                                    <select class="form-select form-select-sm" id="guide-select-<?= $tour['id'] ?>">
+                                                        <option value="">-- Chọn HDV --</option>
+                                                        <?php foreach ($guides as $guide): ?>
+                                                            <option value="<?= $guide['id'] ?>">
+                                                                <?= htmlspecialchars($guide['full_name']) ?>
+                                                                <?php if (!empty($guide['languages'])): ?>
+                                                                    (<?= htmlspecialchars($guide['languages']) ?>)
+                                                                <?php endif; ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+
+                                                <button class="btn btn-success w-100 admin-assign-guide-btn"
+                                                        data-tour-id="<?= $tour['id'] ?>"
+                                                        data-tour-name="<?= htmlspecialchars($tour['name']) ?>">
+                                                    <i class="fas fa-user-check me-2"></i>
+                                                    Phân công HDV
+                                                </button>
+                                            </div>
+                                        <?php else: ?>
+                                            <div class="alert alert-warning small mb-0">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                Tour chưa có lịch trình
+                                            </div>
+                                        <?php endif; ?>
                                     <?php elseif ($isEligible): ?>
                                         <!-- HDV: Claim Tour Button -->
                                         <button
@@ -271,6 +293,54 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             this.innerHTML = '<i class="fas fa-hand-paper me-2"></i>Nhận Tour';
                         });
                 }
+            });
+        });
+
+        // Handle confirm date buttons
+        document.querySelectorAll('.confirm-date-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tourId = this.dataset.tourId;
+                const dateSelect = document.getElementById(`departure-date-${tourId}`);
+                const selectedDate = dateSelect.value;
+
+                if (!selectedDate) {
+                    alert('⚠️ Vui lòng chọn ngày khởi hành!');
+                    dateSelect.focus();
+                    return;
+                }
+
+                // Format date for display
+                const formattedDate = new Date(selectedDate).toLocaleDateString('vi-VN');
+                
+                // Show confirmed date
+                document.getElementById(`confirmed-date-${tourId}`).textContent = formattedDate;
+                
+                // Hide confirm button and date select
+                this.style.display = 'none';
+                dateSelect.closest('.mb-3').style.display = 'none';
+                
+                // Show guide selection section
+                document.getElementById(`guide-section-${tourId}`).style.display = 'block';
+            });
+        });
+
+        // Handle edit date buttons
+        document.querySelectorAll('.edit-date-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tourId = this.dataset.tourId;
+                
+                // Hide guide section
+                document.getElementById(`guide-section-${tourId}`).style.display = 'none';
+                
+                // Show date select and confirm button again
+                const dateSelectDiv = document.querySelector(`#departure-date-${tourId}`).closest('.mb-3');
+                const confirmBtn = document.querySelector(`.confirm-date-btn[data-tour-id="${tourId}"]`);
+                
+                dateSelectDiv.style.display = 'block';
+                confirmBtn.style.display = 'block';
+                
+                // Reset guide selection
+                document.getElementById(`guide-select-${tourId}`).value = '';
             });
         });
 
