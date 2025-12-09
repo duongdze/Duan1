@@ -318,8 +318,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     }
 
     .dashboard-container {
-        max-width: 1200px;
-        margin: 0 auto;
+        width: 100%;
         padding: 0 15px;
     }
 

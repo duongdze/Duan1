@@ -123,10 +123,18 @@ match ($action) {
     'guide/schedule'                        => (new GuideWorkController)->schedule(),
     'guide/tourDetail'                      => (new GuideWorkController)->tourDetail(),
     'guide/cancelAssignment'                => (new GuideWorkController)->cancelAssignment(), // AJAX
-    'guides/available-tours'                => (new TourAssignmentController)->availableTours(),
-    'guides/admin-assign-guide'             => (new TourAssignmentController)->adminAssignGuide(), // AJAX
+    
+    // Available Tours (moved from guides/)
+    'available-tours'                       => (new AvailableToursController)->index(),
+    'available-tours/assign-guide'          => (new AvailableToursController)->assignGuide(), // AJAX
+    'available-tours/claim-tour'            => (new AvailableToursController)->claimTour(), // AJAX
+    
+    // Legacy routes for backward compatibility (will be removed later)
+    'guides/available-tours'                => (new AvailableToursController)->index(),
+    'guides/admin-assign-guide'             => (new AvailableToursController)->assignGuide(), // AJAX
+    'guides/claim-tour'                     => (new AvailableToursController)->claimTour(), // AJAX
+    
     'guides/tour-bookings'                  => (new TourAssignmentController)->tourBookings(),
-    'guides/claim-tour'                     => (new TourAssignmentController)->claimTour(), // AJAX
     'guides/accept-booking'                 => (new TourAssignmentController)->acceptBooking(), // AJAX
     'guides/remove-assignment'              => (new TourAssignmentController)->removeAssignmentByAdmin(), // AJAX
 
