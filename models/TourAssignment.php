@@ -207,7 +207,8 @@ class TourAssignment extends BaseModel
             t.updated_at,
             COUNT(DISTINCT b.id) as booking_count,
             COALESCE(SUM(CASE WHEN bc_count.total IS NOT NULL THEN bc_count.total ELSE 0 END), 0) + COUNT(DISTINCT b.id) as total_customers,
-            MIN(b.booking_date) as nearest_booking_date
+            MIN(b.booking_date) as nearest_booking_date,
+            COALESCE(SUM(b.total_price), 0) as total_booking_price
         FROM tours t
         INNER JOIN bookings b ON t.id = b.tour_id 
             AND b.status NOT IN ('hoan_tat', 'da_huy')
@@ -227,6 +228,31 @@ class TourAssignment extends BaseModel
 
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy danh sách ngày khởi hành của tour
+     * @param int $tourId
+     * @return array
+     */
+    public function getTourDepartureDates($tourId)
+    {
+        $sql = "SELECT 
+                id,
+                departure_date,
+                max_seats,
+                booked_seats,
+                (max_seats - booked_seats) as available_seats,
+                status
+            FROM tour_departures
+            WHERE tour_id = :tour_id
+                AND status = 'open'
+                AND departure_date >= CURDATE()
+            ORDER BY departure_date ASC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

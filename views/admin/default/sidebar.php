@@ -114,7 +114,7 @@ $isGuide = $userRole === 'guide';
                     </li>
                     <?php if (in_array($_SESSION['user']['role'] ?? '', ['guide', 'admin'])): ?>
                         <li class="nav-item">
-                            <a class="nav-link <?= isActive('guides/available-tours') ?>" href="<?= BASE_URL_ADMIN ?>&action=guides/available-tours">
+                            <a class="nav-link <?= isActive('available-tours') ?>" href="<?= BASE_URL_ADMIN ?>&action=available-tours">
                                 <i class="fas fa-hand-paper fa-fw me-2"></i> Tour Khả Dụng
                             </a>
                         </li>
