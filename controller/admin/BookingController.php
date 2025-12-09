@@ -153,6 +153,28 @@ class BookingController
             exit;
         }
 
+        // Handle price update from calculator widget
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_price'])) {
+            $calculatedTotal = $_POST['calculated_total'] ?? null;
+
+            if ($calculatedTotal) {
+                try {
+                    $this->model->update([
+                        'total_price' => $calculatedTotal,
+                        'final_price' => $calculatedTotal
+                    ], 'id = :id', ['id' => $id]);
+
+                    $_SESSION['success'] = 'Cập nhật giá thành công!';
+                } catch (Exception $e) {
+                    $_SESSION['error'] = 'Lỗi khi cập nhật giá: ' . $e->getMessage();
+                }
+            }
+
+            // Redirect to prevent form resubmission
+            header('Location: ' . BASE_URL_ADMIN . '&action=bookings/detail&id=' . $id);
+            exit;
+        }
+
         $booking = $this->model->getBookingWithDetails($id);
 
         if (!$booking) {
@@ -312,11 +334,14 @@ class BookingController
             // (addCompanion, updateCompanion, deleteCompanion)
             // Do NOT delete and recreate companions here to prevent data loss
 
-            // Recalculate total price based on current companions and their passenger types
+            // Recalculate total price based on version and companions
+            // NOTE: Customer (booker) is always counted as 1 adult by default
             $bookingCustomerModel = new BookingCustomer();
             $companions = $bookingCustomerModel->getByBooking($id);
 
-            if (!empty($companions)) {
+            // Always recalculate if version_id is set (even without companions)
+            // because customer (booker) counts as 1 adult
+            if ($version_id || !empty($companions)) {
                 $calculation = $bookingCustomerModel->calculateTotalPrice($id, $tour_id, $version_id);
 
                 // Update booking with calculated price
@@ -454,6 +479,7 @@ class BookingController
             'phone' => $_POST['phone'] ?? null,
             'id_card' => $_POST['id_card'] ?? null,
             'room_type' => $_POST['room_type'] ?? null,
+            'passenger_type' => $_POST['passenger_type'] ?? 'adult',
             'special_request' => $_POST['special_request'] ?? null
         ];
         // Validate
@@ -505,6 +531,7 @@ class BookingController
             'phone' => $_POST['phone'] ?? null,
             'id_card' => $_POST['id_card'] ?? null,
             'room_type' => $_POST['room_type'] ?? null,
+            'passenger_type' => $_POST['passenger_type'] ?? 'adult',
             'special_request' => $_POST['special_request'] ?? null
         ];
 
