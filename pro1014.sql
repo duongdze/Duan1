@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Dec 08, 2025 at 02:04 PM
+-- Generation Time: Dec 08, 2025 at 05:14 PM
 -- Server version: 8.4.3
 -- PHP Version: 8.3.16
 
@@ -31,7 +31,7 @@ CREATE TABLE `bookings` (
   `id` int NOT NULL,
   `tour_id` int NOT NULL,
   `customer_id` int DEFAULT NULL,
-  `driver_id` int DEFAULT NULL COMMENT 'ID tài xế',
+  `bus_company_id` int DEFAULT NULL,
   `version_id` int DEFAULT NULL,
   `booking_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `departure_date` date DEFAULT NULL,
@@ -52,7 +52,7 @@ CREATE TABLE `bookings` (
 -- Dumping data for table `bookings`
 --
 
-INSERT INTO `bookings` (`id`, `tour_id`, `customer_id`, `driver_id`, `version_id`, `booking_date`, `departure_date`, `original_price`, `final_price`, `total_price`, `discount_note`, `status`, `notes`, `internal_notes`, `created_by`, `created_at`, `updated_at`, `departure_id`) VALUES
+INSERT INTO `bookings` (`id`, `tour_id`, `customer_id`, `bus_company_id`, `version_id`, `booking_date`, `departure_date`, `original_price`, `final_price`, `total_price`, `discount_note`, `status`, `notes`, `internal_notes`, `created_by`, `created_at`, `updated_at`, `departure_id`) VALUES
 (32, 1, 5, NULL, 7, '2025-12-10 00:00:00', '2025-04-25', NULL, 116100000.00, 116100000.00, NULL, 'da_coc', '', NULL, 1, '2025-12-06 22:50:06', '2025-12-08 08:28:27', NULL),
 (33, 1, 6, NULL, NULL, '2025-12-11 14:30:00', '2025-04-25', NULL, 103200000.00, 103200000.00, NULL, 'da_coc', NULL, NULL, 1, '2025-12-06 22:50:06', '2025-12-06 22:50:06', NULL),
 (34, 2, 7, NULL, NULL, '2025-12-12 00:00:00', '2025-12-28', NULL, 62300000.00, 62300000.00, NULL, 'da_coc', '', NULL, 1, '2025-12-06 22:50:06', '2025-12-07 01:23:57', NULL),
@@ -66,7 +66,45 @@ INSERT INTO `bookings` (`id`, `tour_id`, `customer_id`, `driver_id`, `version_id
 (43, 7, 6, NULL, NULL, '2025-12-21 11:00:00', '2026-04-10', NULL, 47200000.00, 47200000.00, NULL, 'da_coc', NULL, NULL, 1, '2025-12-06 22:50:06', '2025-12-06 22:50:06', NULL),
 (44, 7, 7, NULL, NULL, '2025-12-22 13:45:00', '2026-04-10', NULL, 35400000.00, 35400000.00, NULL, 'da_coc', NULL, NULL, 1, '2025-12-06 22:50:06', '2025-12-07 00:52:03', NULL),
 (45, 7, 8, 1, NULL, '2025-12-23 00:00:00', '2026-04-10', NULL, 22125000.00, 22125000.00, NULL, 'da_coc', '', NULL, 1, '2025-12-06 22:50:07', '2025-12-08 07:46:02', NULL),
-(46, 2, 15, NULL, NULL, '2025-12-23 00:00:00', NULL, NULL, 8900000.00, 8900000.00, NULL, 'cho_xac_nhan', '', NULL, 1, '2025-12-08 08:18:48', '2025-12-08 08:18:48', NULL);
+(46, 2, 15, NULL, NULL, '2025-12-23 00:00:00', NULL, NULL, 8900000.00, 8900000.00, NULL, 'cho_xac_nhan', '', NULL, 1, '2025-12-08 08:18:48', '2025-12-08 08:18:48', NULL),
+(47, 1, 5, NULL, 1, '2025-01-05 10:00:00', '2025-02-15', 12000000.00, 11500000.00, 11500000.00, NULL, 'da_coc', 'Đã đặt cọc 50%', NULL, 1, '2025-01-05 10:00:00', '2025-01-05 10:00:00', NULL),
+(50, 1, 8, NULL, 1, '2025-02-02 09:15:00', '2025-03-05', 12000000.00, 11500000.00, 11500000.00, NULL, 'da_coc', 'Đã đặt cọc 30%', NULL, 1, '2025-02-02 09:15:00', '2025-02-02 09:15:00', NULL),
+(52, 2, 10, NULL, 2, '2025-03-08 13:45:00', '2025-04-20', 8000000.00, 7800000.00, 7800000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-03-08 13:45:00', '2025-03-08 13:45:00', NULL),
+(55, 3, 13, NULL, 3, '2025-04-15 15:10:00', '2025-06-05', 15000000.00, 14500000.00, 14500000.00, NULL, 'da_coc', 'Đặt cọc 40%', NULL, 1, '2025-04-15 15:10:00', '2025-04-15 15:10:00', NULL),
+(58, 1, 5, NULL, 1, '2025-06-07 10:30:00', '2025-07-20', 12000000.00, 11500000.00, 11500000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-06-07 10:30:00', '2025-06-07 10:30:00', NULL),
+(60, 2, 7, NULL, 2, '2025-07-03 11:45:00', '2025-08-15', 8000000.00, 7800000.00, 7800000.00, NULL, 'da_coc', 'Đặt cọc 30%', NULL, 1, '2025-07-03 11:45:00', '2025-07-03 11:45:00', NULL),
+(63, 3, 10, NULL, 3, '2025-08-25 10:15:00', '2025-10-10', 15000000.00, 14500000.00, 14500000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-08-25 10:15:00', '2025-08-25 10:15:00', NULL),
+(66, 1, 13, NULL, 1, '2025-10-03 09:45:00', '2025-11-15', 12000000.00, 11500000.00, 11500000.00, NULL, 'da_coc', 'Đặt cọc 40%', NULL, 1, '2025-10-03 09:45:00', '2025-10-03 09:45:00', NULL),
+(68, 2, 15, NULL, 2, '2025-11-08 13:25:00', '2025-12-20', 8000000.00, 8000000.00, 8000000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-11-08 13:25:00', '2025-11-08 13:25:00', NULL),
+(71, 3, 7, NULL, 3, '2025-12-15 15:30:00', '2026-02-10', 15000000.00, 14500000.00, 14500000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-12-15 15:30:00', '2025-12-15 15:30:00', NULL),
+(72, 2, 8, NULL, 2, '2025-12-20 09:20:00', '2026-02-05', 8000000.00, 7800000.00, 7800000.00, NULL, 'cho_xac_nhan', 'Chờ xác nhận', NULL, 1, '2025-12-20 09:20:00', '2025-12-20 09:20:00', NULL),
+(73, 4, 9, NULL, 4, '2025-12-28 14:45:00', '2026-03-15', 20000000.00, 19500000.00, 19500000.00, NULL, 'huy', 'Đã hủy tour', NULL, 1, '2025-12-28 14:45:00', '2025-12-29 10:30:00', NULL),
+(74, 1, 5, NULL, 1, '2025-01-05 10:00:00', '2025-02-15', 12000000.00, 11500000.00, 11500000.00, NULL, 'da_coc', 'Đã đặt cọc 50%', NULL, 1, '2025-01-05 10:00:00', '2025-01-05 10:00:00', NULL),
+(75, 2, 6, NULL, 2, '2025-01-10 11:30:00', '2025-02-20', 8000000.00, 7800000.00, 7800000.00, NULL, 'hoan_tat', 'Tour đã hoàn thành', NULL, 1, '2025-01-10 11:30:00', '2025-02-21 18:00:00', NULL),
+(76, 1, 8, NULL, 1, '2025-02-02 09:15:00', '2025-03-05', 12000000.00, 11500000.00, 11500000.00, NULL, 'da_coc', 'Đã đặt cọc 30%', NULL, 1, '2025-02-02 09:15:00', '2025-02-02 09:15:00', NULL),
+(77, 3, 9, NULL, 3, '2025-02-12 16:30:00', '2025-04-12', 15000000.00, 14500000.00, 14500000.00, NULL, 'cho_xac_nhan', 'Chờ xác nhận thông tin', NULL, 1, '2025-02-12 16:30:00', '2025-02-12 16:30:00', NULL),
+(78, 2, 10, NULL, 2, '2025-03-08 13:45:00', '2025-04-20', 8000000.00, 7800000.00, 7800000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-03-08 13:45:00', '2025-03-08 13:45:00', NULL),
+(79, 4, 11, NULL, 4, '2025-03-20 10:30:00', '2025-05-15', 20000000.00, 19500000.00, 19500000.00, NULL, 'hoan_tat', 'Tour đã hoàn thành', NULL, 1, '2025-03-20 10:30:00', '2025-05-16 17:30:00', NULL),
+(80, 1, 12, NULL, 1, '2025-04-03 11:20:00', '2025-05-10', 12000000.00, 12000000.00, 12000000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-04-03 11:20:00', '2025-04-03 11:20:00', NULL),
+(81, 3, 13, NULL, 3, '2025-04-15 15:10:00', '2025-06-05', 15000000.00, 14500000.00, 14500000.00, NULL, 'cho_xac_nhan', 'Chờ xác nhận', NULL, 1, '2025-04-15 15:10:00', '2025-04-15 15:10:00', NULL),
+(82, 2, 14, NULL, 2, '2025-05-10 09:45:00', '2025-06-25', 8000000.00, 8000000.00, 8000000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-05-10 09:45:00', '2025-05-10 09:45:00', NULL),
+(83, 4, 15, NULL, 4, '2025-05-22 14:20:00', '2025-07-15', 20000000.00, 19500000.00, 19500000.00, NULL, 'hoan_tat', 'Tour đã hoàn thành', NULL, 1, '2025-05-22 14:20:00', '2025-07-16 18:15:00', NULL),
+(84, 1, 5, NULL, 1, '2025-06-07 10:30:00', '2025-07-20', 12000000.00, 11500000.00, 11500000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-06-07 10:30:00', '2025-06-07 10:30:00', NULL),
+(85, 3, 6, NULL, 3, '2025-06-18 16:15:00', '2025-08-10', 15000000.00, 14500000.00, 14500000.00, NULL, 'da_huy', 'Khách hủy tour', NULL, 1, '2025-06-18 16:15:00', '2025-06-19 10:20:00', NULL),
+(86, 2, 7, NULL, 2, '2025-07-03 11:45:00', '2025-08-15', 8000000.00, 7800000.00, 7800000.00, NULL, 'da_coc', 'Đặt cọc 30%', NULL, 1, '2025-07-03 11:45:00', '2025-07-03 11:45:00', NULL),
+(87, 4, 8, NULL, 4, '2025-07-20 09:30:00', '2025-09-05', 20000000.00, 19500000.00, 19500000.00, NULL, 'hoan_tat', 'Tour đã hoàn thành', NULL, 1, '2025-07-20 09:30:00', '2025-09-06 17:45:00', NULL),
+(88, 1, 9, NULL, 1, '2025-08-12 14:20:00', '2025-09-25', 12000000.00, 12000000.00, 12000000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-08-12 14:20:00', '2025-08-12 14:20:00', NULL),
+(89, 3, 10, NULL, 3, '2025-08-25 10:15:00', '2025-10-10', 15000000.00, 14500000.00, 14500000.00, NULL, 'cho_xac_nhan', 'Chờ xác nhận thông tin', NULL, 1, '2025-08-25 10:15:00', '2025-08-25 10:15:00', NULL),
+(90, 2, 11, NULL, 2, '2025-09-05 16:30:00', '2025-10-20', 8000000.00, 7800000.00, 7800000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-09-05 16:30:00', '2025-09-05 16:30:00', NULL),
+(91, 4, 12, NULL, 4, '2025-09-18 11:20:00', '2025-11-05', 20000000.00, 19500000.00, 19500000.00, NULL, 'hoan_tat', 'Tour đã hoàn thành', NULL, 1, '2025-09-18 11:20:00', '2025-11-06 18:30:00', NULL),
+(92, 1, 13, NULL, 1, '2025-10-03 09:45:00', '2025-11-15', 12000000.00, 11500000.00, 11500000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-10-03 09:45:00', '2025-10-03 09:45:00', NULL),
+(93, 3, 14, NULL, 3, '2025-10-22 14:10:00', '2025-12-10', 15000000.00, 14500000.00, 14500000.00, NULL, 'da_huy', 'Khách đổi lịch', NULL, 1, '2025-10-22 14:10:00', '2025-10-23 09:15:00', NULL),
+(94, 2, 15, NULL, 2, '2025-11-08 13:25:00', '2025-12-20', 8000000.00, 8000000.00, 8000000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-11-08 13:25:00', '2025-11-08 13:25:00', NULL),
+(95, 4, 5, NULL, 4, '2025-11-19 10:40:00', '2026-01-05', 20000000.00, 19500000.00, 19500000.00, NULL, 'hoan_tat', 'Tour đã hoàn thành', NULL, 1, '2025-11-19 10:40:00', '2026-01-06 17:15:00', NULL),
+(96, 1, 6, NULL, 1, '2025-12-01 11:15:00', '2026-01-15', 12000000.00, 12000000.00, 12000000.00, NULL, 'da_coc', 'Đặt cọc 50%', NULL, 1, '2025-12-01 11:15:00', '2025-12-01 11:15:00', NULL),
+(97, 3, 7, NULL, 3, '2025-12-15 15:30:00', '2026-02-10', 15000000.00, 14500000.00, 14500000.00, NULL, 'cho_xac_nhan', 'Chờ xác nhận thông tin', NULL, 1, '2025-12-15 15:30:00', '2025-12-15 15:30:00', NULL),
+(98, 2, 8, NULL, 2, '2025-12-20 09:20:00', '2026-02-05', 8000000.00, 7800000.00, 7800000.00, NULL, 'cho_xac_nhan', 'Chờ xác nhận', NULL, 1, '2025-12-20 09:20:00', '2025-12-20 09:20:00', NULL),
+(99, 4, 9, NULL, 4, '2025-12-28 14:45:00', '2026-03-15', 20000000.00, 19500000.00, 19500000.00, NULL, 'da_huy', 'Khách bận việc đột xuất', NULL, 1, '2025-12-28 14:45:00', '2025-12-29 10:30:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -233,35 +271,36 @@ INSERT INTO `booking_suppliers_assignment` (`id`, `booking_id`, `supplier_id`, `
 -- --------------------------------------------------------
 
 --
--- Table structure for table `drivers`
+-- Table structure for table `bus_companies`
 --
 
-CREATE TABLE `drivers` (
+CREATE TABLE `bus_companies` (
   `id` int NOT NULL,
-  `full_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Họ tên tài xế',
-  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Số điện thoại',
-  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Email',
-  `license_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Số bằng lái',
-  `license_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Loại bằng lái (B1, B2, C, D, E...)',
-  `vehicle_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Loại xe (4 chỗ, 7 chỗ, 16 chỗ, 29 chỗ, 45 chỗ...)',
-  `vehicle_plate` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Biển số xe',
-  `vehicle_brand` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Hãng xe (Toyota, Ford, Hyundai...)',
-  `status` enum('active','inactive','busy') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'active' COMMENT 'Trạng thái: active=sẵn sàng, inactive=nghỉ, busy=đang có tour',
-  `rating` decimal(3,2) DEFAULT '5.00' COMMENT 'Đánh giá (0-5 sao)',
-  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Ghi chú',
+  `company_code` varchar(50) NOT NULL,
+  `company_name` varchar(255) NOT NULL,
+  `contact_person` varchar(255) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `address` text,
+  `business_license` varchar(100) DEFAULT NULL,
+  `vehicle_type` text,
+  `vehicle_brand` varchar(100) DEFAULT NULL,
+  `total_vehicles` int DEFAULT '0',
+  `status` enum('active','inactive') DEFAULT 'active',
+  `rating` decimal(3,2) DEFAULT '5.00',
+  `notes` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng quản lý tài xế';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `drivers`
+-- Dumping data for table `bus_companies`
 --
 
-INSERT INTO `drivers` (`id`, `full_name`, `phone`, `email`, `license_number`, `license_type`, `vehicle_type`, `vehicle_plate`, `vehicle_brand`, `status`, `rating`, `notes`, `created_at`, `updated_at`) VALUES
-(1, 'Nguyễn Văn An', '0901234567', 'nguyenvanan@example.com', 'B1-123456', 'B2', '7 chỗ', '30A-12345', 'Toyota Innova', 'active', 5.00, NULL, '2025-12-01 15:21:10', '2025-12-01 15:21:10'),
-(2, 'Trần Văn Bình', '0912345678', 'tranvanbinh@example.com', 'B1-234567', 'C', '16 chỗ', '30B-23456', 'Ford Transit', 'active', 5.00, NULL, '2025-12-01 15:21:10', '2025-12-01 15:21:10'),
-(3, 'Lê Văn Cường', '0923456789', 'levancuong@example.com', 'B1-345678', 'D', '29 chỗ', '30C-34567', 'Hyundai County', 'active', 5.00, NULL, '2025-12-01 15:21:10', '2025-12-01 15:21:10'),
-(4, 'Phạm Văn Dũng', '0934567890', 'phamvandung@example.com', 'B1-456789', 'D', '45 chỗ', '30D-45678', 'Thaco Universe', 'active', 5.00, NULL, '2025-12-01 15:21:10', '2025-12-01 15:21:10');
+INSERT INTO `bus_companies` (`id`, `company_code`, `company_name`, `contact_person`, `phone`, `email`, `address`, `business_license`, `vehicle_type`, `vehicle_brand`, `total_vehicles`, `status`, `rating`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 'NX0001', 'Nhà xe Phương Trang', 'Nguyễn Văn A', '0901234567', 'phuongtrang@example.com', NULL, NULL, NULL, NULL, 50, 'active', 5.00, NULL, '2025-12-08 16:21:09', '2025-12-08 16:21:09'),
+(2, 'NX0002', 'Nhà xe Mai Linh', 'Trần Thị B', '0912345678', 'mailinh@example.com', NULL, NULL, NULL, NULL, 30, 'active', 5.00, NULL, '2025-12-08 16:21:09', '2025-12-08 16:21:09'),
+(3, 'NX0003', 'Nhà xe Kumho', 'Lê Văn C', '0923456789', 'kumho@example.com', NULL, NULL, NULL, NULL, 40, 'active', 5.00, NULL, '2025-12-08 16:21:09', '2025-12-08 16:21:09');
 
 -- --------------------------------------------------------
 
@@ -341,12 +380,12 @@ INSERT INTO `itineraries` (`id`, `tour_id`, `day_label`, `day_number`, `time_sta
 (42, 1, 'Ngày 3', 3, '08:00:00', '16:00:00', 'Sapa – Hạ Long', '', '', ''),
 (43, 1, 'Ngày 4', 4, '06:30:00', '16:00:00', 'Khám phá Vịnh Hạ Long', '', '', ''),
 (44, 1, 'Ngày 5', 5, '07:00:00', '11:00:00', 'Hạ Long – Hà Nội', '', '', ''),
-(55, 14, '', 1, '06:00:00', '08:00:00', 'Đón ở sân bay', '', '', ''),
 (56, 9, 'Ngày 1', 1, '07:00:00', '15:00:00', 'Hà Nội - Lạng Sơn - Cao Bằng: \"Chạm vào di sản\"', 'Xe và hướng dẫn viên Vietravel đón đoàn tại điểm hẹn, khởi hành cho hành trình “Tinh hoa cực Bắc - Sắc màu vùng cao” - khám phá trọn vẹn vẻ đẹp Việt Nam từ kinh đô ngàn năm văn hiến đến địa đầu Tổ quốc, với những di tích văn hóa lịch sử và cảnh quan thiên nhiên hùng vĩ.\"\n\n07:30 : Đón Quý khách tại điểm hẹn số 1 - Vietravel Hà Nội (03 Hai Bà Trưng).\n07:45 : Đón Quý khách tại điểm hẹn số 2 - Khách sạn (đối với đoàn khách đi Xuyên Việt và đoàn khách đến trước 1 đêm).\nXe khởi hành đưa Quý khách đi tham quan:\n\nHoàng Thành Thăng Long: Một quần thể kiến ​​trúc đồ họa được xây dựng bởi các triều vua trong nhiều giai đoạn lịch sử, nơi đây đã trở thành di tích quan trọng bậc nhất trong hệ thống các di tích Việt Nam và được UNESCO công nhận là di sản văn hóa thế giới vào năm 2010. Quý khách có thể trải nghiệm ảnh chụp trong các bộ trang phục cổ của Việt Nam (chi phí thuê trang phục tự túc).\nTrên đường đi Lạng Sơn - Công viên địa chất toàn cầu vừa được Unesco công nhận tháng 6/2025, Quý khách sẽ dừng chân nghỉ ngơi tại Trạm dừng nghỉ Hoa Hồi, Chi Lăng - không gian thoáng đãng và trưng bày nhiều sản vật địa phương, đặc biệt nổi tiếng về tinh dầu hoa hồi.\nThưởng thức các đặc sản nổi tiếng của Lạng Sơn như phở chua, vịt quay, …\nChụp ảnh lưu niệm bên cột mốc 1116 tại cửa khẩu Hữu Nghị (tên cũ là Ải Nam Quan), một trong những cửa khẩu quan trọng trong giao thương với Trung Quốc ở phía Bắc.\nTiếp tục hành trình đến Cao Bằng, Quý khách nhận phòng khách sạn nghỉ ngơi và dùng cơm chiều. Vào buổi tối, Quý khách có thể tự do dạo chơi tại phố đi bộ Kim Đồng (mở cửa vào thứ 6 và thứ 7 hàng tuần), mua sắm các đặc sản như: thạch đen, miến dong, hồng hương,... hoặc thư giãn với dịch vụ massage chân, cổ vai gáy.\n\nNghỉ đêm tại Cao Bằng', 'Xe và hướng dẫn viên Vietravel đón đoàn tại điểm hẹn, khởi hành cho hành trình “Tinh hoa cực Bắc - Sắc màu vùng cao” - khám phá trọn vẹn vẻ đẹp Việt Nam từ kinh đô ngàn năm văn hiến đến địa đầu Tổ quốc, với những di tích văn hóa lịch sử và cảnh quan thiên nhiên hùng vĩ.\"\n\n07:30 : Đón Quý khách tại điểm hẹn số 1 - Vietravel Hà Nội (03 Hai Bà Trưng).\n07:45 : Đón Quý khách tại điểm hẹn số 2 - Khách sạn (đối với đoàn khách đi Xuyên Việt và đoàn khách đến trước 1 đêm).\nXe khởi hành đưa Quý khách đi tham quan:\n\nHoàng Thành Thăng Long: Một quần thể kiến ​​trúc đồ họa được xây dựng bởi các triều vua trong nhiều giai đoạn lịch sử, nơi đây đã trở thành di tích quan trọng bậc nhất trong hệ thống các di tích Việt Nam và được UNESCO công nhận là di sản văn hóa thế giới vào năm 2010. Quý khách có thể trải nghiệm ảnh chụp trong các bộ trang phục cổ của Việt Nam (chi phí thuê trang phục tự túc).\nTrên đường đi Lạng Sơn - Công viên địa chất toàn cầu vừa được Unesco công nhận tháng 6/2025, Quý khách sẽ dừng chân nghỉ ngơi tại Trạm dừng nghỉ Hoa Hồi, Chi Lăng - không gian thoáng đãng và trưng bày nhiều sản vật địa phương, đặc biệt nổi tiếng về tinh dầu hoa hồi.\nThưởng thức các đặc sản nổi tiếng của Lạng Sơn như phở chua, vịt quay, …\nChụp ảnh lưu niệm bên cột mốc 1116 tại cửa khẩu Hữu Nghị (tên cũ là Ải Nam Quan), một trong những cửa khẩu quan trọng trong giao thương với Trung Quốc ở phía Bắc.\nTiếp tục hành trình đến Cao Bằng, Quý khách nhận phòng khách sạn nghỉ ngơi và dùng cơm chiều. Vào buổi tối, Quý khách có thể tự do dạo chơi tại phố đi bộ Kim Đồng (mở cửa vào thứ 6 và thứ 7 hàng tuần), mua sắm các đặc sản như: thạch đen, miến dong, hồng hương,... hoặc thư giãn với dịch vụ massage chân, cổ vai gáy.\n\nNghỉ đêm tại Cao Bằng', ''),
 (57, 9, 'Ngày 2', 2, '07:00:00', '13:00:00', 'Non nước Cao Bằng - Trùng Khánh', '', '', ''),
 (58, 9, 'Ngày 3', 3, '07:30:00', '12:00:00', 'Cao Bằng - Mèo Vạc - Đồng Văn', '', '', ''),
 (59, 9, 'Ngày 4', 4, '07:00:00', '17:00:00', 'Đồng Văn - Yên Minh - Quản Bạ - Hà Giang', '', '', ''),
-(60, 9, 'Ngày 5', 5, '00:00:00', '00:00:00', 'Hà Giang - Tuyên Quang - Hà Nội', '', '', '');
+(60, 9, 'Ngày 5', 5, '00:00:00', '00:00:00', 'Hà Giang - Tuyên Quang - Hà Nội', '', '', ''),
+(70, 14, 'Ngày 1', 1, '06:00:00', '08:00:00', 'Đón ở sân bay', '', '', '');
 
 -- --------------------------------------------------------
 
@@ -481,7 +520,7 @@ INSERT INTO `tours` (`id`, `name`, `category_id`, `supplier_id`, `description`, 
 (5, 'Hà Nội - Hà Giang - Lũng Cú - Đồng Văn - Mèo Vạc 4N3Đ', 1, NULL, 'Vòng cung cực Bắc, mùa hoa tam giác mạch', 7900000.00, '2025-11-26 12:06:20', '2025-12-06 14:34:00'),
 (7, 'Sapa – Fansipan 3N2Đ', 1, 1, '', 5900000.00, '2025-11-29 00:14:38', '2025-12-07 03:53:39'),
 (9, 'Hà Nội - Lạng Sơn - Cao Bằng - Hà Giang 5N4Đ', 1, 4, '', 11590000.00, '2025-12-07 17:28:45', '2025-12-07 16:27:42'),
-(14, 'TP HCM', 3, NULL, '', 1900000.00, '2025-12-07 21:22:13', '2025-12-07 21:22:13');
+(14, 'TP HCM', 3, 1, '', 1900000.00, '2025-12-07 21:22:13', '2025-12-08 16:35:01');
 
 -- --------------------------------------------------------
 
@@ -493,7 +532,7 @@ CREATE TABLE `tour_assignments` (
   `id` int NOT NULL,
   `tour_id` int NOT NULL,
   `guide_id` int NOT NULL,
-  `driver_name` varchar(255) DEFAULT NULL,
+  `bus_company_id` int DEFAULT NULL,
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL
@@ -503,7 +542,7 @@ CREATE TABLE `tour_assignments` (
 -- Dumping data for table `tour_assignments`
 --
 
-INSERT INTO `tour_assignments` (`id`, `tour_id`, `guide_id`, `driver_name`, `start_date`, `end_date`, `status`) VALUES
+INSERT INTO `tour_assignments` (`id`, `tour_id`, `guide_id`, `bus_company_id`, `start_date`, `end_date`, `status`) VALUES
 (8, 1, 2, NULL, '2025-12-10', NULL, 'active');
 
 -- --------------------------------------------------------
@@ -563,7 +602,16 @@ INSERT INTO `tour_departures` (`id`, `tour_id`, `version_id`, `departure_date`, 
 (10, 1, NULL, '2025-04-25', 40, 0, 0.00, 0.00, NULL, 'open', NULL, '2025-12-07 10:07:14', '2025-12-07 17:07:14'),
 (11, 1, NULL, '2025-04-30', 35, 0, 0.00, 0.00, NULL, 'open', NULL, '2025-12-07 10:07:14', '2025-12-07 17:07:14'),
 (12, 1, NULL, '2025-06-15', 40, 0, 0.00, 0.00, NULL, 'open', NULL, '2025-12-07 10:07:14', '2025-12-07 17:07:14'),
-(13, 2, NULL, '2025-12-23', 40, 0, 0.00, 0.00, NULL, 'open', NULL, '2025-12-08 01:29:34', '2025-12-08 08:29:34');
+(13, 2, NULL, '2025-12-23', 40, 0, 0.00, 0.00, NULL, 'open', NULL, '2025-12-08 01:29:34', '2025-12-08 08:29:34'),
+(34, 1, NULL, '2025-12-13', 20, 5, 12900000.00, 10320000.00, 500000.00, 'open', NULL, '2025-12-08 22:16:40', '2025-12-08 22:16:40'),
+(35, 2, NULL, '2025-12-15', 15, 3, 8900000.00, 7120000.00, 400000.00, 'open', NULL, '2025-12-08 22:16:40', '2025-12-08 22:16:40'),
+(36, 3, NULL, '2025-12-18', 25, 8, 10900000.00, 8720000.00, 800000.00, 'open', NULL, '2025-12-08 22:16:40', '2025-12-08 22:16:40'),
+(37, 1, NULL, '2025-12-20', 18, 6, 12900000.00, 10320000.00, 500000.00, 'open', NULL, '2025-12-08 22:16:40', '2025-12-08 22:16:40'),
+(38, 2, NULL, '2025-12-22', 20, 2, 8900000.00, 7120000.00, 400000.00, 'open', NULL, '2025-12-08 22:16:40', '2025-12-08 22:16:40'),
+(39, 3, NULL, '2025-12-11', 15, 4, 10900000.00, 8720000.00, 800000.00, 'open', NULL, '2025-12-08 22:16:40', '2025-12-08 22:16:40'),
+(40, 1, NULL, '2025-12-28', 25, 10, 12900000.00, 10320000.00, 500000.00, 'open', NULL, '2025-12-08 22:16:40', '2025-12-08 22:16:40'),
+(41, 2, NULL, '2026-01-02', 15, 8, 8900000.00, 7120000.00, 400000.00, 'open', NULL, '2025-12-08 22:16:40', '2025-12-08 22:16:40'),
+(42, 3, NULL, '2025-12-09', 12, 6, 10900000.00, 8720000.00, 800000.00, 'open', NULL, '2025-12-08 22:16:40', '2025-12-08 22:16:40');
 
 -- --------------------------------------------------------
 
@@ -679,7 +727,6 @@ CREATE TABLE `tour_partner_services` (
 INSERT INTO `tour_partner_services` (`id`, `tour_id`, `service_type`, `partner_name`, `contact`, `notes`, `created_at`) VALUES
 (7, 3, 'restaurant', 'Vinpearl Resort Phú Quốc', '02973888888', '', '2025-12-06 10:18:39'),
 (8, 1, 'hotel', 'Khách sạn Sunflower Hà Nội', '', '', '2025-12-07 10:07:14'),
-(9, 14, 'restaurant', '', '02033845888', '', '2025-12-07 14:22:13'),
 (10, 2, 'hotel', 'Silk Path Grand Huế', '', '', '2025-12-08 01:29:34');
 
 -- --------------------------------------------------------
@@ -741,10 +788,6 @@ INSERT INTO `tour_policy_assignments` (`id`, `tour_id`, `policy_id`, `created_at
 (64, 1, 2, '2025-12-07 10:07:14'),
 (65, 1, 3, '2025-12-07 10:07:14'),
 (66, 1, 4, '2025-12-07 10:07:14'),
-(75, 14, 1, '2025-12-07 14:22:13'),
-(76, 14, 2, '2025-12-07 14:22:13'),
-(77, 14, 3, '2025-12-07 14:22:13'),
-(78, 14, 4, '2025-12-07 14:22:13'),
 (79, 9, 1, '2025-12-07 16:27:42'),
 (80, 9, 2, '2025-12-07 16:27:42'),
 (81, 9, 3, '2025-12-07 16:27:42'),
@@ -752,7 +795,11 @@ INSERT INTO `tour_policy_assignments` (`id`, `tour_id`, `policy_id`, `created_at
 (83, 2, 1, '2025-12-08 01:29:34'),
 (84, 2, 2, '2025-12-08 01:29:34'),
 (85, 2, 3, '2025-12-08 01:29:34'),
-(86, 2, 4, '2025-12-08 01:29:34');
+(86, 2, 4, '2025-12-08 01:29:34'),
+(95, 14, 1, '2025-12-08 16:35:01'),
+(96, 14, 2, '2025-12-08 16:35:01'),
+(97, 14, 3, '2025-12-08 16:35:01'),
+(98, 14, 4, '2025-12-08 16:35:01');
 
 -- --------------------------------------------------------
 
@@ -775,6 +822,28 @@ CREATE TABLE `tour_pricing_options` (
 INSERT INTO `tour_pricing_options` (`id`, `tour_id`, `label`, `description`, `created_at`) VALUES
 (25, 3, 'Gói nghỉ dưỡng', 'Resort 4 sao ven biển', '2025-12-06 10:18:39'),
 (26, 7, 'Người khuyế tật', 'Miễn phí', '2025-12-07 03:53:39');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tour_vehicles`
+--
+
+CREATE TABLE `tour_vehicles` (
+  `id` int NOT NULL,
+  `tour_assignment_id` int NOT NULL,
+  `bus_company_id` int NOT NULL,
+  `vehicle_plate` varchar(20) NOT NULL,
+  `vehicle_type` varchar(100) DEFAULT NULL,
+  `vehicle_brand` varchar(100) DEFAULT NULL,
+  `driver_name` varchar(255) DEFAULT NULL,
+  `driver_phone` varchar(20) DEFAULT NULL,
+  `driver_license` varchar(50) DEFAULT NULL,
+  `notes` text,
+  `status` enum('assigned','confirmed','completed','cancelled') DEFAULT 'assigned',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -948,7 +1017,7 @@ ALTER TABLE `bookings`
   ADD KEY `created_by` (`created_by`),
   ADD KEY `bookings_ibfk_3` (`version_id`),
   ADD KEY `fk_bookings_departure` (`departure_id`),
-  ADD KEY `driver_id` (`driver_id`);
+  ADD KEY `driver_id` (`bus_company_id`);
 
 --
 -- Indexes for table `booking_customers`
@@ -974,13 +1043,14 @@ ALTER TABLE `booking_suppliers_assignment`
   ADD KEY `supplier_id` (`supplier_id`);
 
 --
--- Indexes for table `drivers`
+-- Indexes for table `bus_companies`
 --
-ALTER TABLE `drivers`
+ALTER TABLE `bus_companies`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `phone` (`phone`),
-  ADD UNIQUE KEY `license_number` (`license_number`),
-  ADD KEY `status` (`status`);
+  ADD UNIQUE KEY `company_code` (`company_code`),
+  ADD KEY `idx_company_code` (`company_code`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_rating` (`rating`);
 
 --
 -- Indexes for table `financial_reports`
@@ -1045,7 +1115,8 @@ ALTER TABLE `tours`
 ALTER TABLE `tour_assignments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `tour_id` (`tour_id`),
-  ADD KEY `guide_id` (`guide_id`);
+  ADD KEY `guide_id` (`guide_id`),
+  ADD KEY `fk_tour_assignments_bus_company` (`bus_company_id`);
 
 --
 -- Indexes for table `tour_categories`
@@ -1116,6 +1187,16 @@ ALTER TABLE `tour_pricing_options`
   ADD KEY `tour_id` (`tour_id`);
 
 --
+-- Indexes for table `tour_vehicles`
+--
+ALTER TABLE `tour_vehicles`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_tour_assignment` (`tour_assignment_id`),
+  ADD KEY `idx_bus_company` (`bus_company_id`),
+  ADD KEY `idx_vehicle_plate` (`vehicle_plate`),
+  ADD KEY `idx_status` (`status`);
+
+--
 -- Indexes for table `tour_versions`
 --
 ALTER TABLE `tour_versions`
@@ -1159,7 +1240,7 @@ ALTER TABLE `version_dynamic_pricing`
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT for table `booking_customers`
@@ -1180,10 +1261,10 @@ ALTER TABLE `booking_suppliers_assignment`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
--- AUTO_INCREMENT for table `drivers`
+-- AUTO_INCREMENT for table `bus_companies`
 --
-ALTER TABLE `drivers`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+ALTER TABLE `bus_companies`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `financial_reports`
@@ -1201,7 +1282,7 @@ ALTER TABLE `guides`
 -- AUTO_INCREMENT for table `itineraries`
 --
 ALTER TABLE `itineraries`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -1249,7 +1330,7 @@ ALTER TABLE `tour_categories`
 -- AUTO_INCREMENT for table `tour_departures`
 --
 ALTER TABLE `tour_departures`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `tour_feedbacks`
@@ -1285,13 +1366,19 @@ ALTER TABLE `tour_policies`
 -- AUTO_INCREMENT for table `tour_policy_assignments`
 --
 ALTER TABLE `tour_policy_assignments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
 
 --
 -- AUTO_INCREMENT for table `tour_pricing_options`
 --
 ALTER TABLE `tour_pricing_options`
   MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+
+--
+-- AUTO_INCREMENT for table `tour_vehicles`
+--
+ALTER TABLE `tour_vehicles`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `tour_versions`
@@ -1335,8 +1422,8 @@ ALTER TABLE `bookings`
   ADD CONSTRAINT `bookings_ibfk_2` FOREIGN KEY (`customer_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
   ADD CONSTRAINT `bookings_ibfk_3` FOREIGN KEY (`version_id`) REFERENCES `tour_versions` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `bookings_ibfk_4` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT,
-  ADD CONSTRAINT `fk_bookings_departure` FOREIGN KEY (`departure_id`) REFERENCES `tour_departures` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_bookings_driver` FOREIGN KEY (`driver_id`) REFERENCES `drivers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_bookings_bus_company` FOREIGN KEY (`bus_company_id`) REFERENCES `bus_companies` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_bookings_departure` FOREIGN KEY (`departure_id`) REFERENCES `tour_departures` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `booking_customers`
@@ -1406,6 +1493,7 @@ ALTER TABLE `tours`
 -- Constraints for table `tour_assignments`
 --
 ALTER TABLE `tour_assignments`
+  ADD CONSTRAINT `fk_tour_assignments_bus_company` FOREIGN KEY (`bus_company_id`) REFERENCES `bus_companies` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `tour_assignments_ibfk_1` FOREIGN KEY (`tour_id`) REFERENCES `tours` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `tour_assignments_ibfk_2` FOREIGN KEY (`guide_id`) REFERENCES `guides` (`id`) ON DELETE RESTRICT;
 
@@ -1455,6 +1543,13 @@ ALTER TABLE `tour_policy_assignments`
 --
 ALTER TABLE `tour_pricing_options`
   ADD CONSTRAINT `tour_pricing_options_ibfk_1` FOREIGN KEY (`tour_id`) REFERENCES `tours` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `tour_vehicles`
+--
+ALTER TABLE `tour_vehicles`
+  ADD CONSTRAINT `tour_vehicles_ibfk_1` FOREIGN KEY (`tour_assignment_id`) REFERENCES `tour_assignments` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `tour_vehicles_ibfk_2` FOREIGN KEY (`bus_company_id`) REFERENCES `bus_companies` (`id`) ON DELETE RESTRICT;
 
 --
 -- Constraints for table `tour_version_prices`

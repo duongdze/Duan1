@@ -79,11 +79,6 @@ $currentAction = $_GET['action'] ?? '';
                             <i class="fas fa-handshake fa-fw me-2"></i> Nhà cung cấp
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= isActive('tours_history') ?>" href="<?= BASE_URL_ADMIN ?>&action=tours_history">
-                            <i class="fas fa-history fa-fw me-2"></i> Lịch sử Tour
-                        </a>
-                    </li>
                 </ul>
             </div>
         </li>
