@@ -298,7 +298,7 @@ class BookingController
                 'total_price' => $total_price,
                 'final_price' => $total_price,
                 'status' => $status,
-                'driver_id' => !empty($_POST['driver_id']) ? $_POST['driver_id'] : null,
+                'bus_company_id' => !empty($_POST['bus_company_id']) ? $_POST['bus_company_id'] : null,
                 'notes' => $notes
             ], 'id = :id', ['id' => $id]);
 

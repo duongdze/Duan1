@@ -227,7 +227,7 @@ class TourVersionController
             header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
         } catch (Exception $e) {
             error_log('Error updating tour version: ' . $e->getMessage());
-            $_SESSION['error'] = 'Có lỗi xảy ra khi cập nhật phiên bản. Vui lòng thử lại.';
+            $_SESSION['error'] = 'Lỗi khi cập nhật phiên bản: ' . $e->getMessage();
             $_SESSION['old_input'] = $data;
             header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions/edit&id=' . $id);
         }

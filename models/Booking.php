@@ -10,7 +10,7 @@ class Booking extends BaseModel
         'departure_id',
         'version_id',
         'customer_id',
-        'driver_id',
+        'bus_company_id',
         'original_price',
         'final_price',
         'status',
