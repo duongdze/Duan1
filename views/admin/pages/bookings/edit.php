@@ -323,57 +323,29 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                     <!-- Step 2: Staff Assignment -->
                     <div class="form-step" id="step-2">
-                        <!-- Guide Assignment -->
+                        <!-- Bus Company Assignment -->
                         <div class="card mb-4">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-user-tie text-info me-2"></i>
-                                    Phân công Hướng dẫn viên
+                                    <i class="fas fa-bus text-primary me-2"></i>
+                                    Phân công Nhà xe
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <div class="form-floating">
-                                    <select class="form-select" id="guide_id" name="guide_id">
+                                    <select class="form-select" id="bus_company_id" name="bus_company_id">
                                         <option value="">-- Chưa phân công --</option>
-                                        <?php if (!empty($guides)): ?>
-                                            <?php foreach ($guides as $guide): ?>
-                                                <option value="<?= $guide['id'] ?>"
-                                                    <?= ($guide['id'] == ($booking['guide_id'] ?? '')) ? 'selected' : '' ?>>
-                                                    <?= htmlspecialchars($guide['full_name']) ?>
-                                                    (<?= htmlspecialchars($guide['phone']) ?> - <?= htmlspecialchars($guide['languages'] ?? 'N/A') ?>)
+                                        <?php if (!empty($busCompanies)): ?>
+                                            <?php foreach ($busCompanies as $company): ?>
+                                                <option value="<?= $company['id'] ?>"
+                                                    <?= ($company['id'] == ($booking['bus_company_id'] ?? '')) ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($company['company_name']) ?>
+                                                    (<?= htmlspecialchars($company['phone']) ?> - <?= number_format($company['total_vehicles']) ?> xe)
                                                 </option>
                                             <?php endforeach; ?>
                                         <?php endif; ?>
                                     </select>
-                                    <label for="guide_id">Hướng dẫn viên</label>
-                                </div>
-                                <small class="text-muted d-block mt-2">Có thể để trống nếu chưa phân công</small>
-                            </div>
-                        </div>
-
-                        <!-- Driver Assignment -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">
-                                    <i class="fas fa-car text-secondary me-2"></i>
-                                    Phân công Tài xế
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-floating">
-                                    <select class="form-select" id="driver_id" name="driver_id">
-                                        <option value="">-- Chưa phân công --</option>
-                                        <?php if (!empty($drivers)): ?>
-                                            <?php foreach ($drivers as $driver): ?>
-                                                <option value="<?= $driver['id'] ?>"
-                                                    <?= ($driver['id'] == ($booking['driver_id'] ?? '')) ? 'selected' : '' ?>>
-                                                    <?= htmlspecialchars($driver['full_name']) ?>
-                                                    (<?= htmlspecialchars($driver['phone']) ?> - <?= htmlspecialchars($driver['vehicle_plate'] ?? 'Chưa có xe') ?>)
-                                                </option>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                    </select>
-                                    <label for="driver_id">Tài xế</label>
+                                    <label for="bus_company_id">Nhà xe</label>
                                 </div>
                                 <small class="text-muted d-block mt-2">Có thể để trống nếu chưa phân công</small>
                             </div>
@@ -419,14 +391,10 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                     </div>
 
                                     <hr>
-                                    <h6 class="mb-3">Phân công nhân sự</h6>
+                                    <h6 class="mb-3">Phân công nhà xe</h6>
                                     <div class="row mb-2">
-                                        <div class="col-4"><strong>Hướng dẫn viên:</strong></div>
-                                        <div class="col-8" id="summary-guide">Chưa phân công</div>
-                                    </div>
-                                    <div class="row mb-2">
-                                        <div class="col-4"><strong>Tài xế:</strong></div>
-                                        <div class="col-8" id="summary-driver">Chưa phân công</div>
+                                        <div class="col-4"><strong>Nhà xe:</strong></div>
+                                        <div class="col-8" id="summary-bus-company">Chưa phân công</div>
                                     </div>
 
                                     <hr>
@@ -570,7 +538,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         }
 
         // Update summary on field changes
-        ['customer_id', 'tour_id', 'version_id', 'booking_date', 'status', 'total_price', 'guide_id', 'driver_id'].forEach(id => {
+        ['customer_id', 'tour_id', 'version_id', 'booking_date', 'status', 'total_price', 'bus_company_id'].forEach(id => {
             const element = document.getElementById(id);
             if (element) {
                 element.addEventListener('change', updateSummary);
@@ -648,14 +616,12 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         const dateInput = document.getElementById('booking_date');
         const statusSelect = document.getElementById('status');
         const priceInput = document.getElementById('total_price');
-        const guideSelect = document.getElementById('guide_id');
-        const driverSelect = document.getElementById('driver_id');
+        const busCompanySelect = document.getElementById('bus_company_id');
 
         // Update quick summary
         const customerText = customerSelect.options[customerSelect.selectedIndex]?.text || '--';
         const tourText = tourSelect.options[tourSelect.selectedIndex]?.text || '--';
-        const guideText = guideSelect.options[guideSelect.selectedIndex]?.text || 'Chưa phân công';
-        const driverText = driverSelect.options[driverSelect.selectedIndex]?.text || 'Chưa phân công';
+        const busCompanyText = busCompanySelect?.options[busCompanySelect.selectedIndex]?.text || 'Chưa phân công';
         const price = priceInput.value || '0';
 
         document.getElementById('quick-customer').textContent = customerText.split('(')[0].trim();
@@ -667,8 +633,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         document.getElementById('summary-tour').textContent = tourText;
         document.getElementById('summary-date').textContent = dateInput.value || '--';
         document.getElementById('summary-status').textContent = statusSelect.options[statusSelect.selectedIndex]?.text || '--';
-        document.getElementById('summary-guide').textContent = guideText;
-        document.getElementById('summary-driver').textContent = driverText;
+        if (document.getElementById('summary-bus-company')) {
+            document.getElementById('summary-bus-company').textContent = busCompanyText;
+        }
         document.getElementById('summary-price').textContent = new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
     }
 

@@ -24,11 +24,9 @@ $statusMap = [
 
 $currentStatus = $statusMap[$booking['status']] ?? ['text' => 'Unknown', 'class' => 'secondary', 'icon' => 'question'];
 
-// Check edit permission
+// Check edit permission - Chỉ admin mới được edit
 $userRole = $_SESSION['user']['role'] ?? 'customer';
-$userId = $_SESSION['user']['user_id'] ?? null;
-$bookingModel = new Booking();
-$canEdit = $bookingModel->canUserEditBooking($booking['id'], $userId, $userRole);
+$canEdit = ($userRole === 'admin');
 ?>
 
 <main class="dashboard booking-detail-page">
@@ -228,14 +226,14 @@ $canEdit = $bookingModel->canUserEditBooking($booking['id'], $userId, $userRole)
                             <div class="guest-header">
                                 <span class="badge bg-primary">Khách chính</span>
                                 <h6 class="mb-0 ms-2">
-                                    <?php 
-                                        if (!empty($booking['customer_name'])) {
-                                            echo htmlspecialchars($booking['customer_name']);
-                                        } elseif (!empty($companions[0]['full_name'])) {
-                                            echo htmlspecialchars($companions[0]['full_name']) . ' (Khách vãng lai)';
-                                        } else {
-                                            echo 'N/A';
-                                        }
+                                    <?php
+                                    if (!empty($booking['customer_name'])) {
+                                        echo htmlspecialchars($booking['customer_name']);
+                                    } elseif (!empty($companions[0]['full_name'])) {
+                                        echo htmlspecialchars($companions[0]['full_name']) . ' (Khách vãng lai)';
+                                    } else {
+                                        echo 'N/A';
+                                    }
                                     ?>
                                 </h6>
                             </div>
@@ -244,28 +242,28 @@ $canEdit = $bookingModel->canUserEditBooking($booking['id'], $userId, $userRole)
                                     <div class="col-md-6">
                                         <small class="text-muted">Email:</small>
                                         <div>
-                                            <?php 
-                                                if (!empty($booking['customer_email'])) {
-                                                    echo htmlspecialchars($booking['customer_email']);
-                                                } else {
-                                                    // Try to match email from notes
-                                                    preg_match('/Email: (.*)/', $booking['notes'] ?? '', $matches);
-                                                    echo !empty($matches[1]) ? htmlspecialchars(trim($matches[1])) : 'Xem ghi chú';
-                                                }
+                                            <?php
+                                            if (!empty($booking['customer_email'])) {
+                                                echo htmlspecialchars($booking['customer_email']);
+                                            } else {
+                                                // Try to match email from notes
+                                                preg_match('/Email: (.*)/', $booking['notes'] ?? '', $matches);
+                                                echo !empty($matches[1]) ? htmlspecialchars(trim($matches[1])) : 'Xem ghi chú';
+                                            }
                                             ?>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <small class="text-muted">Điện thoại:</small>
                                         <div>
-                                            <?php 
-                                                if (!empty($booking['customer_phone'])) {
-                                                    echo htmlspecialchars($booking['customer_phone']);
-                                                } elseif (!empty($companions[0]['phone'])) {
-                                                    echo htmlspecialchars($companions[0]['phone']);
-                                                } else {
-                                                    echo 'N/A';
-                                                }
+                                            <?php
+                                            if (!empty($booking['customer_phone'])) {
+                                                echo htmlspecialchars($booking['customer_phone']);
+                                            } elseif (!empty($companions[0]['phone'])) {
+                                                echo htmlspecialchars($companions[0]['phone']);
+                                            } else {
+                                                echo 'N/A';
+                                            }
                                             ?>
                                         </div>
                                     </div>

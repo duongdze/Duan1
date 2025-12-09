@@ -656,7 +656,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             </div>
             <div class="modal-body text-center">
                 <h6 id="qr-tour-name" class="mb-3 fw-bold text-primary"></h6>
-                
+
                 <div class="qr-code-wrapper mb-4 p-3 border rounded bg-light d-inline-block">
                     <div id="qrcode"></div>
                 </div>
@@ -668,7 +668,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         <i class="fas fa-copy"></i> Copy
                     </button>
                 </div>
-                
+
                 <div class="alert alert-success d-none" id="copy-success-alert">
                     <small><i class="fas fa-check-circle me-1"></i> Đã sao chép liên kết vào bộ nhớ tạm!</small>
                 </div>
@@ -1098,9 +1098,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     text: publicUrl,
                     width: 180,
                     height: 180,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
                 });
 
                 // Show Modal

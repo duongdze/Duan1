@@ -203,22 +203,27 @@ class TourAssignmentController
         }
 
         $tourAssignmentModel = new TourAssignment();
-        $availableTours = $tourAssignmentModel->getAvailableTours();
+        $rawTours = $tourAssignmentModel->getAvailableTours();
 
-        // Loại bỏ duplicate tours (nếu có)
-        $uniqueTours = [];
+        // Loại bỏ duplicate tours dựa trên ID
+        $availableTours = [];
         $seenIds = [];
-        foreach ($availableTours as $tour) {
-            if (!in_array($tour['id'], $seenIds)) {
-                $seenIds[] = $tour['id'];
-                $uniqueTours[] = $tour;
+
+        foreach ($rawTours as $tour) {
+            $tourId = $tour['id'];
+            if (!isset($seenIds[$tourId])) {
+                $seenIds[$tourId] = true;
+                // Thêm version breakdown
+                $tour['version_breakdown'] = $tourAssignmentModel->getTourVersionBreakdown($tourId);
+                $availableTours[] = $tour;
             }
         }
-        $availableTours = $uniqueTours;
 
-        // Thêm chi tiết version breakdown cho mỗi tour
-        foreach ($availableTours as &$tour) {
-            $tour['version_breakdown'] = $tourAssignmentModel->getTourVersionBreakdown($tour['id']);
+        // Nếu là admin, lấy danh sách HDV để phân công
+        $guides = [];
+        if ($userRole === 'admin') {
+            $guideModel = new Guide();
+            $guides = $guideModel->getAll();
         }
 
         include_once PATH_VIEW_ADMIN . 'pages/guides/available-tours.php';
@@ -330,6 +335,72 @@ class TourAssignmentController
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không thể nhận tour']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Admin phân công HDV cho tour (AJAX endpoint)
+     */
+    public function adminAssignGuide()
+    {
+        header('Content-Type: application/json');
+
+        // Chỉ admin mới được phân công
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if ($userRole !== 'admin') {
+            echo json_encode(['success' => false, 'message' => 'Bạn không có quyền thực hiện thao tác này']);
+            exit;
+        }
+
+        $guideId = $_POST['guide_id'] ?? null;
+        $tourId = $_POST['tour_id'] ?? null;
+
+        if (!$guideId || !$tourId) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin HDV hoặc Tour']);
+            exit;
+        }
+
+        try {
+            $tourAssignmentModel = new TourAssignment();
+
+            // Kiểm tra tour đã có HDV chưa
+            if ($tourAssignmentModel->tourHasGuide($tourId)) {
+                echo json_encode(['success' => false, 'message' => 'Tour này đã có HDV phụ trách']);
+                exit;
+            }
+
+            // Lấy ngày khởi hành sớm nhất
+            $bookingModel = new Booking();
+            $pdo = $bookingModel->getPDO();
+            $sql = "SELECT MIN(booking_date) as start_date 
+                FROM bookings 
+                WHERE tour_id = :tour_id 
+                AND status NOT IN ('hoan_tat', 'da_huy')";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(['tour_id' => $tourId]);
+            $dateInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+            $startDate = $dateInfo['start_date'] ?? date('Y-m-d');
+
+            // Gán tour cho HDV
+            $result = $tourAssignmentModel->insert([
+                'guide_id' => $guideId,
+                'tour_id' => $tourId,
+                'start_date' => $startDate,
+                'status' => 'active'
+            ]);
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Phân công HDV thành công!'
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể phân công HDV']);
             }
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);

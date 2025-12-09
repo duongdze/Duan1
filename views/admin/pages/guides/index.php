@@ -156,7 +156,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     </h3>
                 </div>
 
-                <form method="GET" action="<?= BASE_URL_ADMIN . '&action=guides' ?>" class="filter-form">
+                <form id="guide-filters" method="GET" action="<?= BASE_URL_ADMIN . '&action=guides' ?>" class="filter-form" onsubmit="return false;">
                     <input type="hidden" name="action" value="guides">
 
                     <div class="filter-row">
@@ -182,14 +182,14 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         </div>
 
                         <div class="filter-group filter-actions-group">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="button" onclick="filterGuides()" class="btn btn-primary">
                                 <i class="fas fa-search me-2"></i>
                                 Tìm kiếm
                             </button>
-                            <a href="<?= BASE_URL_ADMIN . '&action=guides' ?>" class="btn btn-outline-secondary">
+                            <button type="button" onclick="resetFilters()" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-2"></i>
                                 Xóa lọc
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -333,7 +333,68 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
+
+        // Add Enter key handler to keyword input
+        const keywordInput = document.querySelector('#guide-filters [name="keyword"]');
+        if (keywordInput) {
+            keywordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    filterGuides();
+                }
+            });
+        }
     });
+
+    function filterGuides() {
+        const keyword = document.querySelector('[name="keyword"]').value.toLowerCase();
+        const ratingMin = parseFloat(document.querySelector('[name="rating_min"]').value) || 0;
+
+        const tbody = document.querySelector('.table-modern tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        // Filter rows
+        let visibleCount = 0;
+        rows.forEach(row => {
+            // Get row data
+            const guideName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const contactInfo = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+
+            // Get rating
+            const ratingElement = row.querySelector('.rating-value');
+            const guideRating = ratingElement ? parseFloat(ratingElement.textContent) : 0;
+
+            // Check filters
+            let show = true;
+
+            // Filter by keyword (search in name, email, phone)
+            if (keyword && !guideName.includes(keyword) && !contactInfo.includes(keyword)) {
+                show = false;
+            }
+
+            // Filter by rating
+            if (ratingMin > 0 && guideRating < ratingMin) {
+                show = false;
+            }
+
+            // Show/hide row
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+
+        // Update count
+        const countElement = document.querySelector('.count-info');
+        if (countElement) {
+            countElement.textContent = visibleCount + ' HDV';
+        }
+    }
+
+    function resetFilters() {
+        document.getElementById('guide-filters').reset();
+        filterGuides();
+    }
 </script>
 
 <?php

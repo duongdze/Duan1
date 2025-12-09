@@ -35,13 +35,13 @@ class Booking extends BaseModel
                     B.*, 
                     T.name AS tour_name, 
                     COALESCE((SELECT full_name FROM booking_customers WHERE booking_id = B.id LIMIT 1), U.full_name) AS customer_name,
-                    D.full_name AS driver_name,
-                    D.phone AS driver_phone,
-                    D.vehicle_plate AS driver_vehicle
+                    BC.company_name AS bus_company_name,
+                    BC.phone AS bus_company_phone,
+                    BC.total_vehicles AS bus_company_vehicles
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
                 LEFT JOIN users AS U ON B.customer_id = U.user_id
-                LEFT JOIN drivers AS D ON B.driver_id = D.id
+                LEFT JOIN bus_companies AS BC ON B.bus_company_id = BC.id
                 ORDER BY B.booking_date DESC, B.id DESC";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
@@ -182,16 +182,16 @@ class Booking extends BaseModel
                     U.full_name AS customer_name,
                     U.email AS customer_email,
                     U.phone AS customer_phone,
-                    D.id AS driver_id,
-                    D.full_name AS driver_name,
-                    D.phone AS driver_phone,
-                    D.vehicle_type AS driver_vehicle_type,
-                    D.vehicle_plate AS driver_vehicle_plate,
-                    D.vehicle_brand AS driver_vehicle_brand
+                    BC.id AS bus_company_id,
+                    BC.company_name AS bus_company_name,
+                    BC.phone AS bus_company_phone,
+                    BC.total_vehicles AS bus_company_vehicles,
+                    BC.vehicle_brand AS bus_company_vehicle_brand,
+                    BC.address AS bus_company_address
                 FROM bookings AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
                 LEFT JOIN users AS U ON B.customer_id = U.user_id AND U.role = 'customer'
-                LEFT JOIN drivers AS D ON B.driver_id = D.id
+                LEFT JOIN bus_companies AS BC ON B.bus_company_id = BC.id
                 WHERE B.id = :id";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['id' => $id]);

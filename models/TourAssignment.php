@@ -197,12 +197,19 @@ class TourAssignment extends BaseModel
      */
     public function getAvailableTours()
     {
-        $sql = "SELECT DISTINCT t.id, t.name, t.category_id, t.description, t.base_price, t.created_at, t.updated_at,
-        COUNT(DISTINCT b.id) as booking_count,
-        COALESCE(SUM(bc_count.total), 0) + COUNT(DISTINCT b.id) as total_customers,
-        MIN(b.booking_date) as nearest_booking_date
+        $sql = "SELECT 
+            t.id, 
+            t.name, 
+            t.category_id, 
+            t.description, 
+            t.base_price, 
+            t.created_at, 
+            t.updated_at,
+            COUNT(DISTINCT b.id) as booking_count,
+            COALESCE(SUM(CASE WHEN bc_count.total IS NOT NULL THEN bc_count.total ELSE 0 END), 0) + COUNT(DISTINCT b.id) as total_customers,
+            MIN(b.booking_date) as nearest_booking_date
         FROM tours t
-        LEFT JOIN bookings b ON t.id = b.tour_id 
+        INNER JOIN bookings b ON t.id = b.tour_id 
             AND b.status NOT IN ('hoan_tat', 'da_huy')
         LEFT JOIN (
             SELECT booking_id, COUNT(*) as total 
@@ -214,12 +221,8 @@ class TourAssignment extends BaseModel
             FROM tour_assignments 
             WHERE status = 'active'
         )
-        AND EXISTS (
-            SELECT 1 FROM bookings 
-            WHERE tour_id = t.id 
-            AND status NOT IN ('hoan_tat', 'da_huy')
-        )
         GROUP BY t.id, t.name, t.category_id, t.description, t.base_price, t.created_at, t.updated_at
+        HAVING COUNT(DISTINCT b.id) > 0
         ORDER BY nearest_booking_date ASC";
 
         $stmt = self::$pdo->prepare($sql);

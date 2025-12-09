@@ -136,7 +136,37 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <?php endif; ?>
 
                                 <div class="mt-3">
-                                    <?php if ($isEligible): ?>
+                                    <?php
+                                    $userRole = $_SESSION['user']['role'] ?? 'customer';
+                                    if ($userRole === 'admin' && !empty($guides)):
+                                    ?>
+                                        <!-- Admin: Guide Assignment Dropdown -->
+                                        <div class="mb-3">
+                                            <label class="form-label small text-muted">
+                                                <i class="fas fa-user-tie me-1"></i>
+                                                Phân công HDV
+                                            </label>
+                                            <select class="form-select form-select-sm" id="guide-select-<?= $tour['id'] ?>">
+                                                <option value="">-- Chọn HDV --</option>
+                                                <?php foreach ($guides as $guide): ?>
+                                                    <option value="<?= $guide['id'] ?>">
+                                                        <?= htmlspecialchars($guide['full_name']) ?>
+                                                        <?php if (!empty($guide['languages'])): ?>
+                                                            (<?= htmlspecialchars($guide['languages']) ?>)
+                                                        <?php endif; ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <button
+                                            class="btn btn-success w-100 admin-assign-guide-btn"
+                                            data-tour-id="<?= $tour['id'] ?>"
+                                            data-tour-name="<?= htmlspecialchars($tour['name']) ?>">
+                                            <i class="fas fa-user-check me-2"></i>
+                                            Phân công HDV
+                                        </button>
+                                    <?php elseif ($isEligible): ?>
+                                        <!-- HDV: Claim Tour Button -->
                                         <button
                                             class="btn btn-primary w-100 claim-tour-btn"
                                             data-tour-id="<?= $tour['id'] ?>"
@@ -171,7 +201,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle claim tour buttons
+        // Handle claim tour buttons (for HDV)
         document.querySelectorAll('.claim-tour-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const tourId = this.dataset.tourId;
@@ -209,6 +239,56 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             // Re-enable button
                             this.disabled = false;
                             this.innerHTML = '<i class="fas fa-hand-paper me-2"></i>Nhận Tour';
+                        });
+                }
+            });
+        });
+
+        // Handle admin assign guide buttons
+        document.querySelectorAll('.admin-assign-guide-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tourId = this.dataset.tourId;
+                const tourName = this.dataset.tourName;
+                const guideSelect = document.getElementById(`guide-select-${tourId}`);
+                const guideId = guideSelect.value;
+
+                if (!guideId) {
+                    alert('⚠️ Vui lòng chọn HDV trước khi phân công!');
+                    guideSelect.focus();
+                    return;
+                }
+
+                const guideName = guideSelect.options[guideSelect.selectedIndex].text;
+
+                if (confirm(`Phân công HDV "${guideName}" cho tour "${tourName}"?`)) {
+                    // Disable button và hiển thị loading
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang phân công...';
+
+                    // Send AJAX request
+                    fetch('<?= BASE_URL_ADMIN ?>&action=guides/admin-assign-guide', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: `tour_id=${tourId}&guide_id=${guideId}`
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('✅ ' + data.message);
+                                window.location.reload();
+                            } else {
+                                alert('❌ ' + data.message);
+                                this.disabled = false;
+                                this.innerHTML = '<i class="fas fa-user-check me-2"></i>Phân công HDV';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('❌ Có lỗi xảy ra khi phân công HDV!');
+                            this.disabled = false;
+                            this.innerHTML = '<i class="fas fa-user-check me-2"></i>Phân công HDV';
                         });
                 }
             });

@@ -1,6 +1,11 @@
 <?php
 include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
+
+// Lấy role của user
+$userRole = $_SESSION['user']['role'] ?? 'customer';
+$isAdmin = $userRole === 'admin';
+$isGuide = $userRole === 'guide';
 ?>
 <main class="dashboard">
     <div class="dashboard-container">
@@ -26,12 +31,14 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         <p class="page-subtitle">Quản lý toàn bộ các booking và đặt tour trong hệ thống</p>
                     </div>
                 </div>
-                <div class="header-right">
-                    <button class="btn btn-modern btn-primary btn-lg" onclick="window.location.href='<?= BASE_URL_ADMIN . '&action=bookings/create' ?>'">
-                        <i class="fas fa-plus-circle me-2"></i>
-                        Tạo Booking Mới
-                    </button>
-                </div>
+                <?php if ($isAdmin): ?>
+                    <div class="header-right">
+                        <button class="btn btn-modern btn-primary btn-lg" onclick="window.location.href='<?= BASE_URL_ADMIN . '&action=bookings/create' ?>'">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Tạo Booking Mới
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
         </header>
 
@@ -320,6 +327,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                     title="Xem chi tiết">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
+                                                <?php if ($isAdmin): ?>
                                                 <a href="<?= BASE_URL_ADMIN . '&action=bookings/edit&id=' . $booking['id'] ?>"
                                                     class="btn-action btn-edit"
                                                     data-bs-toggle="tooltip"
@@ -334,6 +342,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                     title="Xóa">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>
