@@ -69,8 +69,8 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value"><?= number_format($stats['total'] ?? 0) ?></div>
-                        <div class="stat-label">Tổng User</div>
+                        <div class="stat-value"><?= number_format($stats['customers'] ?? 0) ?></div>
+                        <div class="stat-label">Tổng Khách hàng</div>
                     </div>
                     <div class="stat-trend">
                         <i class="fas fa-arrow-up"></i>
@@ -80,31 +80,11 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
 
                 <div class="stat-card stat-success">
                     <div class="stat-icon-wrapper">
-                        <i class="fas fa-user"></i>
+                        <i class="fas fa-user-check"></i>
                     </div>
                     <div class="stat-content">
                         <div class="stat-value"><?= number_format($stats['customers'] ?? 0) ?></div>
                         <div class="stat-label">Khách hàng</div>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-info">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-user-tie"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value"><?= number_format($stats['guides'] ?? 0) ?></div>
-                        <div class="stat-label">Hướng dẫn viên</div>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-warning">
-                    <div class="stat-icon-wrapper">
-                        <i class="fas fa-user-shield"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value"><?= number_format($stats['admins'] ?? 0) ?></div>
-                        <div class="stat-label">Admin</div>
                     </div>
                 </div>
             </div>
@@ -123,19 +103,7 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
                     <form method="GET" action="<?= BASE_URL_ADMIN ?>&action=users" class="row g-3">
                         <input type="hidden" name="action" value="users">
 
-                        <?php if ($currentUserRole === 'admin'): ?>
-                            <div class="col-md-3">
-                                <label class="form-label">Vai trò</label>
-                                <select name="role" class="form-select">
-                                    <option value="">Tất cả</option>
-                                    <option value="customer" <?= ($_GET['role'] ?? '') === 'customer' ? 'selected' : '' ?>>Khách hàng</option>
-                                    <option value="guide" <?= ($_GET['role'] ?? '') === 'guide' ? 'selected' : '' ?>>Hướng dẫn viên</option>
-                                    <option value="admin" <?= ($_GET['role'] ?? '') === 'admin' ? 'selected' : '' ?>>Admin</option>
-                                </select>
-                            </div>
-                        <?php endif; ?>
-
-                        <div class="col-md-6">
+                        <div class="col-md-9">
                             <label class="form-label">Tìm kiếm</label>
                             <input type="text" name="search" class="form-control" placeholder="Tìm theo tên hoặc email..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                         </div>
@@ -223,7 +191,7 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
                                                         title="Chỉnh sửa">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <?php 
+                                                    <?php
                                                     $canDelete = false;
                                                     if ($currentUserRole === 'admin') {
                                                         $canDelete = ($user['role'] !== 'admin');
@@ -233,14 +201,14 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
                                                     if ($user['user_id'] == $_SESSION['user']['user_id']) {
                                                         $canDelete = false;
                                                     }
-                                                    
-                                                    if ($canDelete): 
+
+                                                    if ($canDelete):
                                                     ?>
-                                                        <button class="btn btn-sm btn-danger delete-user-btn" 
-                                                                data-id="<?= $user['user_id'] ?>" 
-                                                                data-name="<?= htmlspecialchars($user['full_name']) ?>"
-                                                                data-bs-toggle="tooltip" 
-                                                                title="Xóa">
+                                                        <button class="btn btn-sm btn-danger delete-user-btn"
+                                                            data-id="<?= $user['user_id'] ?>"
+                                                            data-name="<?= htmlspecialchars($user['full_name']) ?>"
+                                                            data-bs-toggle="tooltip"
+                                                            title="Xóa">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     <?php endif; ?>

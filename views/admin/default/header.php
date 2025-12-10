@@ -118,10 +118,10 @@
                     <div class="user-profile-section d-flex align-items-center gap-3">
                         <?php
                         // safe user vars
-                        $user = $_SESSION['user'] ?? null;
-                        $avatarUrl = !empty($user['avatar']) ? BASE_ASSETS_UPLOADS . $user['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['full_name'] ?? 'User') . '&background=0D6EFD&color=fff&size=40';
-                        $userName = $user['full_name'] ?? 'Guest';
-                        $userRole = $user['role'] ?? 'user';
+                        $loggedInUser = $_SESSION['user'] ?? null;
+                        $avatarUrl = !empty($loggedInUser['avatar']) ? BASE_ASSETS_UPLOADS . $loggedInUser['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($loggedInUser['full_name'] ?? 'User') . '&background=0D6EFD&color=fff&size=40';
+                        $userName = $loggedInUser['full_name'] ?? 'Guest';
+                        $userRole = $loggedInUser['role'] ?? 'user';
                         $roleLabel = match ((string)$userRole) {
                             'admin' => 'Quản trị viên',
                             'guide' => 'Hướng dẫn viên',

@@ -103,21 +103,15 @@ $isOwnProfile = ($user['user_id'] == $currentUserId);
 
                                 <div class="col-md-6">
                                     <div class="form-floating">
-                                        <select class="form-select" id="role" name="role" required <?= $currentUserRole !== 'admin' ? 'disabled' : '' ?>>
-                                            <option value="customer" <?= $user['role'] === 'customer' ? 'selected' : '' ?>>Khách hàng</option>
-                                            <?php if ($currentUserRole === 'admin'): ?>
-                                                <option value="guide" <?= $user['role'] === 'guide' ? 'selected' : '' ?>>Hướng dẫn viên</option>
-                                                <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>Admin</option>
-                                            <?php endif; ?>
+                                        <select class="form-select" id="role" name="role" required disabled>
+                                            <option value="customer" selected>Khách hàng</option>
                                         </select>
                                         <label for="role">Vai trò <span class="text-danger">*</span></label>
                                     </div>
-                                    <?php if ($currentUserRole !== 'admin'): ?>
-                                        <small class="text-muted d-block mt-2">
-                                            <i class="fas fa-info-circle"></i>
-                                            Chỉ Admin mới có thể thay đổi vai trò
-                                        </small>
-                                    <?php endif; ?>
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="fas fa-info-circle"></i>
+                                        Vai trò không thể thay đổi
+                                    </small>
                                 </div>
                             </div>
                         </div>

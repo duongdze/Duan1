@@ -261,28 +261,6 @@ $rating = $guide['rating'] ?? 4.5;
                         </div>
                     </div>
                 </div>
-
-                <!-- Quick Actions Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-bolt text-warning me-2"></i>
-                            Thao tác nhanh
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <a href="<?= BASE_URL_ADMIN ?>&action=guides/edit&id=<?= $guide['id'] ?>" class="btn btn-primary">
-                                <i class="fas fa-edit me-2"></i>
-                                Chỉnh sửa thông tin
-                            </a>
-                            <a href="<?= BASE_URL_ADMIN ?>&action=bookings/create&guide_id=<?= $guide['id'] ?>" class="btn btn-success">
-                                <i class="fas fa-calendar-plus me-2"></i>
-                                Tạo booking
-                            </a>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

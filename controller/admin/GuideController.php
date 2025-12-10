@@ -89,11 +89,7 @@ class GuideController
                 'experience_years' => (int)$experience_years,
                 'rating' => 0,
                 'health_status' => $health_status,
-                'notes' => $notes,
-                'guide_type' => $guide_type,
-                'specialization' => $specialization,
-                'total_tours' => 0,
-                'performance_score' => 0.00
+                'notes' => $notes
             ];
 
             // Create guide
@@ -230,9 +226,7 @@ class GuideController
                 'languages' => $languages,
                 'experience_years' => (int)$experience_years,
                 'health_status' => $health_status,
-                'notes' => $notes,
-                'guide_type' => $guide_type,
-                'specialization' => $specialization
+                'notes' => $notes
             ];
 
             // Update guide
