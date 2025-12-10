@@ -46,7 +46,7 @@ class FinancialReport extends BaseModel
                 FROM bookings B 
                 LEFT JOIN tours T ON B.tour_id = T.id
                 $whereClause 
-                AND B.status IN ('completed', 'paid')";
+                AND B.status IN ('completed', 'paid', 'hoan_tat', 'da_thanh_toan')";
 
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute($params);
@@ -151,7 +151,7 @@ class FinancialReport extends BaseModel
                 LEFT JOIN tour_categories TC ON T.category_id = TC.id
                 LEFT JOIN bookings B ON T.id = B.tour_id
                 {$whereClause}
-                AND B.status IN ('completed', 'paid')
+                AND B.status IN ('completed', 'paid', 'hoan_tat', 'da_thanh_toan')
                 GROUP BY T.id, T.name, TC.name
                 HAVING revenue > 0
                 ORDER BY revenue DESC
@@ -209,7 +209,7 @@ class FinancialReport extends BaseModel
                 FROM bookings B 
                 LEFT JOIN tours T ON B.tour_id = T.id
                 {$whereClause} 
-                AND B.status IN ('completed', 'paid')
+                AND B.status IN ('completed', 'paid', 'hoan_tat', 'da_thanh_toan')
                 GROUP BY MONTH(B.booking_date)
                 ORDER BY month
                 LIMIT 12";

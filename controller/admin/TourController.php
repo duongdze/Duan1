@@ -632,6 +632,16 @@ class TourController
         }
 
         try {
+            // Check for existing bookings
+            $bookingModel = new Booking();
+            $bookingCount = $bookingModel->count('tour_id = :id', ['id' => $id]);
+
+            if ($bookingCount > 0) {
+                $_SESSION['error'] = 'Không thể xóa tour này vì đã có ' . $bookingCount . ' booking liên quan.';
+                header('Location:' . BASE_URL_ADMIN . '&action=tours');
+                return;
+            }
+
             $result = $this->model->removeTour($id);
             if ($result) {
                 $_SESSION['success'] = 'Xóa tour thành công!';

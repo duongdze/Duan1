@@ -1,4 +1,6 @@
 <?php
+
+
 // Include controllers
 require_once 'controller/admin/AuthorController.php';
 require_once 'controller/admin/DashboardController.php';
@@ -9,6 +11,14 @@ require_once 'controller/admin/GuideController.php';
 require_once 'controller/admin/SupplierController.php';
 require_once 'controller/admin/BusCompanyController.php';
 require_once 'controller/admin/ReportController.php';
+require_once 'controller/admin/PolicyController.php';
+require_once 'controller/admin/TourCategoryController.php';
+require_once 'controller/admin/ItineraryController.php';
+require_once 'controller/admin/TourLogController.php';
+require_once 'controller/admin/TourAssignmentController.php';
+require_once 'controller/admin/GuideWorkController.php';
+
+require_once 'controller/admin/UserController.php';
 
 $action = $_GET['action'] ?? '/';
 
@@ -145,11 +155,6 @@ match ($action) {
     'users/update'                          => (new UserController)->update(),
     'users/delete'                          => (new UserController)->delete(),
     'users/detail'                          => (new UserController)->detail(),
-
-    // Suppliers
-    'suppliers'                             => (new SupplierController)->index(),
-    'suppliers/create'                      => (new SupplierController)->create(),
-    'suppliers/store'                       => (new SupplierController)->store(),
 
     // Reports
     'reports'              => (new ReportController)->index(),

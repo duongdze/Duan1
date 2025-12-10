@@ -1018,6 +1018,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         });
     });
 
+
     // Helper functions
     function toggleAdvancedFilters() {
         const advancedFilters = document.querySelector('.advanced-filters');

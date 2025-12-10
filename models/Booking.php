@@ -59,7 +59,10 @@ class Booking extends BaseModel
 
     public function getMonthlyRevenue($month, $year)
     {
-        $sql = "SELECT SUM(final_price) as revenue FROM {$this->table} WHERE MONTH(booking_date) = :month AND YEAR(booking_date) = :year AND status IN ('completed', 'paid')";
+        $sql = "SELECT SUM(final_price) as revenue FROM {$this->table} 
+                WHERE MONTH(booking_date) = :month 
+                AND YEAR(booking_date) = :year 
+                AND status IN ('da_coc', 'da_thanh_toan', 'completed', 'paid')";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute(['month' => $month, 'year' => $year]);
 
@@ -88,12 +91,10 @@ class Booking extends BaseModel
 
         // Format status names
         $statusNames = [
-            'pending' => 'Chờ xác nhận',
-            'confirmed' => 'Đã xác nhận',
-            'deposited' => 'Đã đặt cọc',
-            'paid' => 'Đã thanh toán',
-            'completed' => 'Hoàn thành',
-            'cancelled' => 'Đã hủy'
+            'cho_xac_nhan' => 'Chờ xác nhận',
+            'da_coc' => 'Đã cọc',
+            'hoan_tat' => 'Hoàn tất',
+            'da_huy' => 'Đã hủy'
         ];
 
         $totalBookings = array_sum(array_column($results, 'count'));
@@ -147,7 +148,7 @@ class Booking extends BaseModel
                 FROM {$this->table} AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
                 LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id
-                WHERE B.status = 'pending'
+                WHERE B.status = 'cho_xac_nhan'
                 ORDER BY B.booking_date DESC, B.id DESC
                 LIMIT " . (int)$limit;
         $stmt = self::$pdo->prepare($sql);

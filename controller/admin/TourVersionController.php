@@ -1,6 +1,8 @@
 <?php
 require_once 'models/TourVersion.php';
 require_once 'models/TourVersionPrice.php';
+require_once 'models/Booking.php';
+require_once 'models/TourDeparture.php';
 
 class TourVersionController
 {
@@ -89,7 +91,7 @@ class TourVersionController
             'status' => isset($_POST['status']) && in_array($_POST['status'], ['active', 'inactive']) ?
                 $_POST['status'] : 'inactive',
             'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
+            // 'updated_at' => date('Y-m-d H:i:s')
         ];
 
         // Validate data
@@ -193,7 +195,7 @@ class TourVersionController
             'description' => trim($_POST['description'] ?? ''),
             'status' => isset($_POST['status']) && in_array($_POST['status'], ['active', 'inactive']) ?
                 $_POST['status'] : 'inactive',
-            'updated_at' => date('Y-m-d H:i:s')
+            // 'updated_at' => date('Y-m-d H:i:s')
         ];
 
         // Validate data
@@ -254,13 +256,20 @@ class TourVersionController
         }
 
         try {
-            // Check if version has any bookings
-            require_once 'models/Booking.php';
+            // 1. Check for existing bookings
             $bookingModel = new Booking();
-            $bookingCount = $bookingModel->count('version_id = :version_id', ['version_id' => $id]);
-
+            $bookingCount = $bookingModel->count('version_id = :id', ['id' => $id]);
             if ($bookingCount > 0) {
-                $_SESSION['error'] = "Không thể xóa phiên bản '{$version['name']}' vì đã có {$bookingCount} booking sử dụng phiên bản này.";
+                $_SESSION['error'] = "Không thể xóa phiên bản này vì đang có $bookingCount booking sử dụng.";
+                header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
+                return;
+            }
+
+            // 2. Check for existing tour departures
+            $departureModel = new TourDeparture();
+            $departureCount = $departureModel->count('version_id = :id', ['id' => $id]);
+            if ($departureCount > 0) {
+                $_SESSION['error'] = "Không thể xóa phiên bản này vì đang có $departureCount lịch khởi hành sử dụng.";
                 header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
                 return;
             }
@@ -307,7 +316,7 @@ class TourVersionController
 
             $this->model->updateById($id, [
                 'status' => $status,
-                'updated_at' => date('Y-m-d H:i:s')
+                // 'updated_at' => date('Y-m-d H:i:s')
             ]);
 
             echo json_encode(['success' => true]);

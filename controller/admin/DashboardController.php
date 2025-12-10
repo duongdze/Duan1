@@ -82,18 +82,9 @@ class DashboardController
     private function getRevenueLast12Months()
     {
         $revenueData = [];
-        $currentMonth = (int)date('m');
-        $currentYear = (int)date('Y');
+        $year = 2025; // Cố định năm 2025
 
-        for ($i = 11; $i >= 0; $i--) {
-            $month = $currentMonth - $i;
-            $year = $currentYear;
-
-            if ($month < 1) {
-                $month += 12;
-                $year--;
-            }
-
+        for ($month = 1; $month <= 12; $month++) {
             $revenue = $this->bookingModel->getMonthlyRevenue($month, $year);
             $revenueData[] = [
                 'month' => $this->getMonthName($month) . ' ' . $year,

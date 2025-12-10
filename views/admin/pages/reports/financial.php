@@ -50,16 +50,16 @@ $filterOptions = $data['filterOptions'] ?? [];
             <div class="card-body">
                 <form method="GET" action="<?= BASE_URL_ADMIN ?>" class="row g-3">
                     <input type="hidden" name="action" value="reports/financial">
-                    
+
                     <div class="col-12 col-md-3">
                         <label class="form-label text-muted small">Từ ngày</label>
-                        <input type="date" class="form-control" name="date_from" 
+                        <input type="date" class="form-control" name="date_from"
                             value="<?= htmlspecialchars($filters['date_from'] ?? date('Y-m-01')) ?>">
                     </div>
 
                     <div class="col-12 col-md-3">
                         <label class="form-label text-muted small">Đến ngày</label>
-                        <input type="date" class="form-control" name="date_to" 
+                        <input type="date" class="form-control" name="date_to"
                             value="<?= htmlspecialchars($filters['date_to'] ?? date('Y-m-d')) ?>">
                     </div>
 
@@ -69,7 +69,7 @@ $filterOptions = $data['filterOptions'] ?? [];
                             <option value="">Tất cả</option>
                             <?php if (!empty($filterOptions['tours'])): ?>
                                 <?php foreach ($filterOptions['tours'] as $tour): ?>
-                                    <option value="<?= $tour['id'] ?>" 
+                                    <option value="<?= $tour['id'] ?>"
                                         <?= ($filters['tour_id'] ?? '') == $tour['id'] ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($tour['name']) ?>
                                     </option>
@@ -84,7 +84,7 @@ $filterOptions = $data['filterOptions'] ?? [];
                             <option value="">Tất cả</option>
                             <?php if (!empty($filterOptions['categories'])): ?>
                                 <?php foreach ($filterOptions['categories'] as $category): ?>
-                                    <option value="<?= $category['id'] ?>" 
+                                    <option value="<?= $category['id'] ?>"
                                         <?= ($filters['category_id'] ?? '') == $category['id'] ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($category['name']) ?>
                                     </option>
@@ -184,7 +184,7 @@ $filterOptions = $data['filterOptions'] ?? [];
                     </div>
                 </div>
             </div>
-            
+
             <!-- Profit Pie Chart -->
             <div class="col-12 col-lg-4">
                 <div class="card border-0 shadow-sm h-100">
@@ -259,23 +259,23 @@ $filterOptions = $data['filterOptions'] ?? [];
                             <?php endif; ?>
                         </tbody>
                         <?php if (!empty($tourFinancials)): ?>
-                        <tfoot class="bg-light fw-bold">
-                            <tr>
-                                <td colspan="3" class="text-end ps-3">TỔNG CỘNG</td>
-                                <td class="text-end"><?= number_format(array_sum(array_column($tourFinancials, 'booking_count'))) ?></td>
-                                <td class="text-end text-success"><?= number_format(array_sum(array_column($tourFinancials, 'revenue')), 0, ',', '.') ?> ₫</td>
-                                <td class="text-end text-danger"><?= number_format(array_sum(array_column($tourFinancials, 'expense')), 0, ',', '.') ?> ₫</td>
-                                <td class="text-end text-primary"><?= number_format(array_sum(array_column($tourFinancials, 'profit')), 0, ',', '.') ?> ₫</td>
-                                <td class="text-end pe-3">
-                                    <?php 
-                                    $totalRevenue = array_sum(array_column($tourFinancials, 'revenue'));
-                                    $totalProfit = array_sum(array_column($tourFinancials, 'profit'));
-                                    $avgMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
-                                    echo number_format($avgMargin, 1) . '%';
-                                    ?>
-                                </td>
-                            </tr>
-                        </tfoot>
+                            <tfoot class="bg-light fw-bold">
+                                <tr>
+                                    <td colspan="3" class="text-end ps-3">TỔNG CỘNG</td>
+                                    <td class="text-end"><?= number_format(array_sum(array_column($tourFinancials, 'booking_count'))) ?></td>
+                                    <td class="text-end text-success"><?= number_format(array_sum(array_column($tourFinancials, 'revenue')), 0, ',', '.') ?> ₫</td>
+                                    <td class="text-end text-danger"><?= number_format(array_sum(array_column($tourFinancials, 'expense')), 0, ',', '.') ?> ₫</td>
+                                    <td class="text-end text-primary"><?= number_format(array_sum(array_column($tourFinancials, 'profit')), 0, ',', '.') ?> ₫</td>
+                                    <td class="text-end pe-3">
+                                        <?php
+                                        $totalRevenue = array_sum(array_column($tourFinancials, 'revenue'));
+                                        $totalProfit = array_sum(array_column($tourFinancials, 'profit'));
+                                        $avgMargin = $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0;
+                                        echo number_format($avgMargin, 1) . '%';
+                                        ?>
+                                    </td>
+                                </tr>
+                            </tfoot>
                         <?php endif; ?>
                     </table>
                 </div>
@@ -287,130 +287,132 @@ $filterOptions = $data['filterOptions'] ?? [];
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Re-use data from PHP
-    const monthlyLabels = <?= json_encode($data['monthlyLabels'] ?? []) ?>;
-    const monthlyRevenue = <?= json_encode($data['monthlyRevenue'] ?? []) ?>;
-    const monthlyExpense = <?= json_encode($data['monthlyExpense'] ?? []) ?>;
-    const monthlyProfit = <?= json_encode($data['monthlyProfit'] ?? []) ?>;
-    
-    const tourNames = <?= json_encode($data['tourNames'] ?? []) ?>;
-    const tourProfits = <?= json_encode($data['tourProfits'] ?? []) ?>;
+    document.addEventListener('DOMContentLoaded', function() {
+        // Re-use data from PHP
+        const monthlyLabels = <?= json_encode($data['monthlyLabels'] ?? []) ?>;
+        const monthlyRevenue = <?= json_encode($data['monthlyRevenue'] ?? []) ?>;
+        const monthlyExpense = <?= json_encode($data['monthlyExpense'] ?? []) ?>;
+        const monthlyProfit = <?= json_encode($data['monthlyProfit'] ?? []) ?>;
 
-    // Monthly Financial Chart
-    const monthlyCtx = document.getElementById('monthlyFinancialChart');
-    if (monthlyCtx && monthlyLabels.length > 0) {
-        new Chart(monthlyCtx, {
-            type: 'bar',
-            data: {
-                labels: monthlyLabels,
-                datasets: [{
-                    label: 'Doanh Thu',
-                    data: monthlyRevenue,
-                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                    borderColor: '#10b981',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }, {
-                    label: 'Chi Phí',
-                    data: monthlyExpense,
-                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
-                    borderColor: '#ef4444',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }, {
-                    label: 'Lợi Nhuận',
-                    data: monthlyProfit,
-                    backgroundColor: 'rgba(102, 126, 234, 0.7)',
-                    borderColor: '#667eea',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + 
-                                    new Intl.NumberFormat('vi-VN').format(context.raw) + ' ₫';
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                if (value >= 1000000) return (value/1000000).toFixed(0) + 'tr';
-                                if (value >= 1000) return (value/1000).toFixed(0) + 'k';
-                                return value;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
+        const tourNames = <?= json_encode($data['tourNames'] ?? []) ?>;
+        const tourProfits = <?= json_encode($data['tourProfits'] ?? []) ?>;
 
-    // Tour Profit Pie Chart
-    const profitCtx = document.getElementById('tourProfitChart');
-    if (profitCtx && tourNames.length > 0) {
-        new Chart(profitCtx, {
-            type: 'doughnut',
-            data: {
-                labels: tourNames,
-                datasets: [{
-                    data: tourProfits,
-                    backgroundColor: [
-                        '#667eea',
-                        '#10b981',
-                        '#f59e0b',
-                        '#ef4444',
-                        '#8b5cf6',
-                        '#ec4899'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { 
-                        position: 'right',
-                        labels: {
-                            boxWidth: 12,
-                            padding: 15
+        // Monthly Financial Chart
+        const monthlyCtx = document.getElementById('monthlyFinancialChart');
+        if (monthlyCtx && monthlyLabels.length > 0) {
+            new Chart(monthlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'Doanh Thu',
+                        data: monthlyRevenue,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: '#10b981',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }, {
+                        label: 'Chi Phí',
+                        data: monthlyExpense,
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                        borderColor: '#ef4444',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }, {
+                        label: 'Lợi Nhuận',
+                        data: monthlyProfit,
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                        borderColor: '#667eea',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' +
+                                        new Intl.NumberFormat('vi-VN').format(context.raw) + ' ₫';
+                                }
+                            }
                         }
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const value = new Intl.NumberFormat('vi-VN').format(context.raw) + ' ₫';
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((context.raw / total) * 100).toFixed(1) + '%';
-                                return value + ' (' + percentage + ')';
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000000) return (value / 1000000).toFixed(0) + 'tr';
+                                    if (value >= 1000) return (value / 1000).toFixed(0) + 'k';
+                                    return value;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-    }
-});
+            });
+        }
 
-function resetFilters() {
-    window.location.href = '<?= BASE_URL_ADMIN ?>&action=reports/financial';
-}
+        // Tour Profit Pie Chart
+        const profitCtx = document.getElementById('tourProfitChart');
+        if (profitCtx && tourNames.length > 0) {
+            new Chart(profitCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: tourNames,
+                    datasets: [{
+                        data: tourProfits,
+                        backgroundColor: [
+                            '#667eea',
+                            '#10b981',
+                            '#f59e0b',
+                            '#ef4444',
+                            '#8b5cf6',
+                            '#ec4899'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = new Intl.NumberFormat('vi-VN').format(context.raw) + ' ₫';
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.raw / total) * 100).toFixed(1) + '%';
+                                    return value + ' (' + percentage + ')';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    function resetFilters() {
+        window.location.href = '<?= BASE_URL_ADMIN ?>&action=reports/financial';
+    }
 </script>
 
 <?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>

@@ -205,14 +205,10 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     <i class="fas fa-times me-2"></i>
                     Hủy
                 </button>
-                <form id="delete-form" method="GET" style="display: inline;">
-                    <input type="hidden" name="action" value="policies/delete">
-                    <input type="hidden" name="id" id="delete-policy-id">
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-2"></i>
-                        Xóa
-                    </button>
-                </form>
+                <button type="button" class="btn btn-danger">
+                    <i class="fas fa-trash me-2"></i>
+                    Xóa
+                </button>
             </div>
         </div>
     </div>
@@ -228,9 +224,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
         // Delete policy functionality
         const deleteButtons = document.querySelectorAll('.delete-policy');
-        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        const deleteForm = document.getElementById('delete-form');
-        const deletePolicyId = document.getElementById('delete-policy-id');
+        const deleteModalEl = document.getElementById('deleteModal');
+        const deleteModal = new bootstrap.Modal(deleteModalEl);
         const deletePolicyName = document.getElementById('delete-policy-name');
         const tourCountWarning = document.getElementById('tour-count-warning');
         const tourCountText = document.getElementById('tour-count-text');
@@ -241,16 +236,23 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 const name = this.dataset.name;
                 const tourCount = parseInt(this.dataset.tourCount);
 
-                deletePolicyId.value = id;
                 deletePolicyName.textContent = name;
 
                 if (tourCount > 0) {
                     tourCountWarning.style.display = 'block';
                     tourCountText.textContent = `Chính sách này đang được sử dụng bởi ${tourCount} tour. Bạn không thể xóa chính sách đang được sử dụng.`;
-                    deleteForm.querySelector('button[type="submit"]').disabled = true;
+                    // Hide delete button or disable
+                    const confirmBtn = deleteModalEl.querySelector('.btn-danger');
+                    if (confirmBtn) confirmBtn.disabled = true;
                 } else {
                     tourCountWarning.style.display = 'none';
-                    deleteForm.querySelector('button[type="submit"]').disabled = false;
+                    const confirmBtn = deleteModalEl.querySelector('.btn-danger');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.onclick = function() {
+                            window.location.href = '<?= BASE_URL_ADMIN ?>&action=policies/delete&id=' + id;
+                        };
+                    }
                 }
 
                 deleteModal.show();
