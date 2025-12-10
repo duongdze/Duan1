@@ -497,6 +497,18 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     function initializeForm() {
         updateStepDisplay();
         updateNavigationButtons();
+        
+        // Auto-select "Bình thường" version (ID=10) if no version is selected
+        const versionSelect = document.getElementById('version_id');
+        if (versionSelect && !versionSelect.value) {
+            // Try to find and select version with ID=10
+            const defaultOption = versionSelect.querySelector('option[value="10"]');
+            if (defaultOption) {
+                versionSelect.value = '10';
+                // Trigger change event to update price
+                versionSelect.dispatchEvent(new Event('change'));
+            }
+        }
     }
 
     function setupEventListeners() {
