@@ -154,21 +154,41 @@ extract($data);
                                     </thead>
                                     <tbody>
                                         <?php if (!empty($pendingBookings)): ?>
-                                            <?php foreach ($pendingBookings as $booking): ?>
+                                            <?php foreach ($pendingBookings as $booking): 
+                                                // Get first letter for avatar
+                                                $customerName = $booking['customer_name'] ?? 'Khách lẻ';
+                                                $firstLetter = mb_substr($customerName, 0, 1, 'UTF-8');
+                                                $bgColors = ['primary', 'success', 'danger', 'warning', 'info', 'dark'];
+                                                $randomColor = $bgColors[array_rand($bgColors)];
+                                            ?>
                                                 <tr>
                                                     <td><span class="badge bg-light text-dark border">#<?= $booking['id'] ?></span></td>
                                                     <td>
-                                                        <div class="fw-bold"><?= htmlspecialchars($booking['customer_name'] ?? 'Khách lẻ') ?></div>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="avatar-sm bg-<?= $randomColor ?>-subtle text-<?= $randomColor ?> rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                                                <span class="fw-bold"><?= strtoupper($firstLetter) ?></span>
+                                                            </div>
+                                                            <div>
+                                                                <div class="fw-bold text-dark"><?= htmlspecialchars($customerName) ?></div>
+                                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill" style="font-size: 0.7em;">
+                                                                    <i class="fas fa-clock me-1"></i>Chờ xử lý
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                     <td>
-                                                        <div class="text-truncate" style="max-width: 250px;" title="<?= htmlspecialchars($booking['tour_name']) ?>">
+                                                        <div class="text-truncate" style="max-width: 200px;" title="<?= htmlspecialchars($booking['tour_name']) ?>">
+                                                            <i class="fas fa-map-marker-alt text-muted me-1"></i>
                                                             <?= htmlspecialchars($booking['tour_name']) ?>
                                                         </div>
                                                     </td>
-                                                    <td><?= date('d/m/Y H:i', strtotime($booking['booking_date'])) ?></td>
+                                                    <td class="text-muted small">
+                                                        <i class="far fa-calendar me-1"></i>
+                                                        <?= date('d/m/Y H:i', strtotime($booking['booking_date'])) ?>
+                                                    </td>
                                                     <td>
-                                                        <a href="<?= BASE_URL_ADMIN ?>&action=bookings/edit&id=<?= $booking['id'] ?>" class="btn btn-sm btn-primary">
-                                                            <i class="fas fa-edit"></i> Xử lý
+                                                        <a href="<?= BASE_URL_ADMIN ?>&action=bookings/edit&id=<?= $booking['id'] ?>" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                                            <i class="fas fa-arrow-right me-1"></i> Xử lý
                                                         </a>
                                                     </td>
                                                 </tr>
