@@ -528,12 +528,17 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             if (confirm(`Bạn có chắc muốn ${actionText.toLowerCase()} phiên bản này?`)) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = '<?= BASE_URL_ADMIN ?>&action=tours_versions/toggleStatus&id=' + id;
+                form.action = '<?= BASE_URL_ADMIN ?>&action=tours_versions/toggle-status';
 
                 const methodInput = document.createElement('input');
                 methodInput.type = 'hidden';
                 methodInput.name = '_method';
                 methodInput.value = 'PATCH';
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = id;
 
                 const statusInput = document.createElement('input');
                 statusInput.type = 'hidden';
@@ -541,6 +546,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 statusInput.value = newStatus;
 
                 form.appendChild(methodInput);
+                form.appendChild(idInput);
                 form.appendChild(statusInput);
                 document.body.appendChild(form);
                 form.submit();

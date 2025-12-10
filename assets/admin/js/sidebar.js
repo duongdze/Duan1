@@ -106,7 +106,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!collapseEl) return;
 
         // Auto-open if current action matches this menu
-        if (currentAction && currentAction.startsWith(menuKey)) {
+        // Check exact match OR starts with menuKey followed by slash (e.g., "tours/edit" matches "tours" but "tours_logs" does not)
+        const isExactMatch = currentAction === menuKey;
+        const isSubAction = currentAction.startsWith(menuKey + '/');
+        
+        if (currentAction && (isExactMatch || isSubAction)) {
             console.log('Auto-opening dropdown:', menuKey);
             new bootstrap.Collapse(collapseEl, {toggle: false}).show();
             toggle.setAttribute('aria-expanded', 'true');

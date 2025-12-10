@@ -100,23 +100,31 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form method="GET" action="<?= BASE_URL_ADMIN ?>&action=users" class="row g-3">
-                        <input type="hidden" name="action" value="users">
-
-                        <div class="col-md-9">
+                    <form id="user-filters" onsubmit="return false;" class="row g-3">
+                        <div class="col-md-6">
                             <label class="form-label">Tìm kiếm</label>
                             <input type="text" name="search" class="form-control" placeholder="Tìm theo tên hoặc email..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                         </div>
 
+                        <div class="col-md-3">
+                            <label class="form-label">Vai trò</label>
+                            <select name="role" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="customer">Khách hàng</option>
+                                <option value="guide">HDV</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+
                         <div class="col-md-3 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary me-2">
+                            <button type="button" onclick="filterUsers()" class="btn btn-primary me-2">
                                 <i class="fas fa-search me-1"></i>
                                 Tìm kiếm
                             </button>
-                            <a href="<?= BASE_URL_ADMIN ?>&action=users" class="btn btn-secondary">
+                            <button type="button" onclick="resetFilters()" class="btn btn-secondary">
                                 <i class="fas fa-redo me-1"></i>
                                 Reset
-                            </a>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -294,6 +302,61 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
     var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    // Client-side filtering functions
+    function filterUsers() {
+        const searchTerm = document.querySelector('[name="search"]').value.toLowerCase();
+        const roleFilter = document.querySelector('[name="role"]').value;
+
+        const tbody = document.querySelector('.table tbody');
+        if (!tbody) return;
+
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const fullName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            const roleBadge = row.querySelector('td:nth-child(5) .badge');
+
+            // Get role value from badge class
+            let userRole = '';
+            if (roleBadge.classList.contains('bg-success')) userRole = 'customer';
+            else if (roleBadge.classList.contains('bg-info')) userRole = 'guide';
+            else if (roleBadge.classList.contains('bg-danger')) userRole = 'admin';
+
+            // Filter by search term
+            const matchesSearch = !searchTerm ||
+                fullName.includes(searchTerm) ||
+                email.includes(searchTerm);
+
+            // Filter by role
+            const matchesRole = !roleFilter || userRole === roleFilter;
+
+            // Show/hide row
+            if (matchesSearch && matchesRole) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update count
+        const countElement = document.querySelector('.card-title');
+        if (countElement) {
+            countElement.innerHTML = '<i class="fas fa-list me-2"></i>Danh sách User (' + visibleCount + ')';
+        }
+    }
+
+    function resetFilters() {
+        document.getElementById('user-filters').reset();
+        filterUsers();
+    }
+
+    // Add event listeners to filter inputs
+    document.querySelector('[name="search"]').addEventListener('input', filterUsers);
+    document.querySelector('[name="role"]').addEventListener('change', filterUsers);
 </script>
 
 <?php

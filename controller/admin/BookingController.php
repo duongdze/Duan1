@@ -231,6 +231,30 @@ class BookingController
         $tours = $tourModel->select('*', null, [], 'name ASC');
         $versions = $versionModel->getActiveVersionsWithPrices();
 
+        // If booking has an inactive version, add it to the list so it can be displayed
+        if ($booking['version_id']) {
+            $currentVersion = $versionModel->findById($booking['version_id']);
+            if ($currentVersion && $currentVersion['status'] === 'inactive') {
+                // Check if version is not already in the list
+                $versionExists = false;
+                foreach ($versions as $v) {
+                    if ($v['id'] == $booking['version_id']) {
+                        $versionExists = true;
+                        break;
+                    }
+                }
+
+                if (!$versionExists) {
+                    // Get version with prices
+                    $versionPriceModel = new TourVersionPrice();
+                    $priceInfo = $versionPriceModel->getByVersionId($booking['version_id']);
+                    $currentVersion = array_merge($currentVersion, $priceInfo ?: []);
+                    $currentVersion['is_inactive'] = true; // Mark as inactive for UI
+                    $versions[] = $currentVersion;
+                }
+            }
+        }
+
         // Get bus companies list
         $busCompanyModel = new BusCompany();
         $busCompanies = $busCompanyModel->getActiveBusCompanies();

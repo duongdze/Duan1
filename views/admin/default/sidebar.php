@@ -18,7 +18,13 @@ function isParentActive($actions)
 
     // Check nếu current action nằm trong danh sách hoặc bắt đầu bằng một trong các prefix
     foreach ($actions as $action) {
-        if ($currentAction === $action || strpos($currentAction, $action) === 0) {
+        // Exact match
+        if ($currentAction === $action) {
+            return 'show';
+        }
+
+        // Match with slash separator (e.g., "tours/edit" matches "tours" but "tours_logs" does not)
+        if (strpos($currentAction, $action . '/') === 0) {
             return 'show';
         }
     }

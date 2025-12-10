@@ -173,6 +173,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </div>
                                     </div>
 
+
                                     <div class="col-12">
                                         <div class="form-floating">
                                             <select class="form-select" id="version_id" name="version_id">
@@ -185,6 +186,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                             data-price-infant="<?= htmlspecialchars($v['price_infant'] ?? 0) ?>"
                                                             <?= ($v['id'] == ($booking['version_id'] ?? '')) ? 'selected' : '' ?>>
                                                             <?= htmlspecialchars($v['name']) ?>
+                                                            <?php if (!empty($v['is_inactive'])): ?>
+                                                                (Đã tạm dừng)
+                                                            <?php endif; ?>
                                                             <?php if (!empty($v['description'])): ?>
                                                                 - <?= htmlspecialchars($v['description']) ?>
                                                             <?php endif; ?>
@@ -194,6 +198,23 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                             </select>
                                             <label for="version_id">Phiên bản Tour</label>
                                         </div>
+                                        <?php if (!empty($booking['version_id'])): ?>
+                                            <?php
+                                            $currentVersionInactive = false;
+                                            foreach ($versions as $v) {
+                                                if ($v['id'] == $booking['version_id'] && !empty($v['is_inactive'])) {
+                                                    $currentVersionInactive = true;
+                                                    break;
+                                                }
+                                            }
+                                            ?>
+                                            <?php if ($currentVersionInactive): ?>
+                                                <div class="alert alert-warning mt-2 mb-0" role="alert">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    Phiên bản tour hiện tại đã bị tạm dừng. Bạn có thể giữ nguyên hoặc chọn phiên bản khác đang hoạt động.
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
                                         <small class="text-muted d-block mt-2">
                                             <i class="fas fa-info-circle me-1"></i>
                                             Chọn phiên bản để áp dụng giá theo mùa/sự kiện (tùy chọn)
@@ -497,7 +518,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     function initializeForm() {
         updateStepDisplay();
         updateNavigationButtons();
-        
+
         // Auto-select "Bình thường" version (ID=10) if no version is selected
         const versionSelect = document.getElementById('version_id');
         if (versionSelect && !versionSelect.value) {
