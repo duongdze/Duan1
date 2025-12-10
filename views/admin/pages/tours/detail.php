@@ -317,43 +317,50 @@ if (empty($galleryUrls)) {
                 <!-- Gallery Card -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="fas fa-images text-primary me-2"></i>
-                            Thư viện ảnh
-                            <span class="badge bg-secondary ms-2"><?= count($galleryUrls) ?> ảnh</span>
-                        </h5>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-images text-primary me-2"></i>
+                                Thư viện ảnh
+                                <span class="badge bg-secondary ms-2"><?= count($galleryUrls) ?> ảnh</span>
+                            </h5>
+                            <?php if (count($galleryUrls) > 6): ?>
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-3" onclick="openLightbox(0)">
+                                    <i class="fas fa-images me-2"></i>Xem tất cả
+                                </button>
+                            <?php endif; ?>
+                        </div>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($galleryUrls)): ?>
-                            <div class="row g-3" id="tour-gallery" data-gallery='<?= json_encode($galleryUrls) ?>'>
-                                <?php foreach ($galleryUrls as $index => $url): ?>
+                            <div class="row g-3">
+                                <?php 
+                                $displayImages = array_slice($galleryUrls, 0, 6);
+                                foreach ($displayImages as $index => $url): 
+                                    $isLast = ($index === 5 && count($galleryUrls) > 6);
+                                ?>
                                     <div class="col-md-6 col-lg-4">
-                                        <div class="gallery-item-wrapper" onclick="openLightbox(<?= $index ?>)">
-                                            <div class="gallery-item">
-                                                <img src="<?= $url ?>" alt="Tour Gallery Image <?= $index + 1 ?>" class="img-fluid">
-                                                <div class="gallery-overlay">
-                                                    <div class="gallery-overlay-content">
-                                                        <i class="fas fa-search-plus"></i>
-                                                        <span>Xem ảnh</span>
-                                                    </div>
+                                        <div class="gallery-item-wrapper position-relative overflow-hidden rounded shadow-sm" style="cursor: pointer; aspect-ratio: 16/9;" onclick="openLightbox(<?= $index ?>)">
+                                            <img src="<?= $url ?>" alt="Tour Gallery Image <?= $index + 1 ?>" class="img-fluid w-100 h-100" style="object-fit: cover; transition: transform 0.3s;">
+                                            
+                                            <div class="gallery-overlay">
+                                                <div class="gallery-overlay-content">
+                                                    <i class="fas fa-search-plus"></i>
+                                                    <span>Xem ảnh</span>
                                                 </div>
                                             </div>
-                                            <div class="gallery-caption">
-                                                <small class="text-muted">Ảnh #<?= $index + 1 ?></small>
-                                            </div>
+
+                                            <?php if ($isLast): ?>
+                                                <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-75 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.6); z-index: 2;">
+                                                    <div class="text-center text-white">
+                                                        <span class="h4 fw-bold mb-0 d-block">+<?= count($galleryUrls) - 6 ?></span>
+                                                        <span class="small">Xem thêm</span>
+                                                    </div>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
-
-                            <?php if (count($galleryUrls) > 6): ?>
-                                <div class="text-center mt-3">
-                                    <button class="btn btn-outline-primary btn-sm" onclick="showAllImages()">
-                                        <i class="fas fa-images me-2"></i>
-                                        Xem tất cả <?= count($galleryUrls) ?> ảnh
-                                    </button>
-                                </div>
-                            <?php endif; ?>
                         <?php else: ?>
                             <div class="text-center text-muted py-5">
                                 <div class="gallery-empty-state">
@@ -370,6 +377,30 @@ if (empty($galleryUrls)) {
                     </div>
                 </div>
 
+                <!-- Lightbox Modal -->
+                <div id="galleryLightbox" class="lightbox-overlay">
+                    <div class="lightbox-content">
+                        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+                        
+                        <div class="lightbox-main">
+                            <button class="lightbox-nav prev" onclick="moveSlide(-1)"><i class="fas fa-chevron-left"></i></button>
+                            <img id="lightboxImage" src="" alt="Gallery Image">
+                            <button class="lightbox-nav next" onclick="moveSlide(1)"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+
+                        <div class="lightbox-caption">
+                            <span id="currentIndex">1</span> / <span id="totalImages">0</span>
+                        </div>
+                        
+                        <!-- Thumbnails Strip -->
+                        <div class="lightbox-thumbnails">
+                            <div class="thumbnails-track" id="thumbnailsTrack">
+                                <!-- Thumbnails injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Sidebar (Right) -->
@@ -383,8 +414,16 @@ if (empty($galleryUrls)) {
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="main-image-container">
+                        <div class="main-image-container gallery-item-wrapper" 
+                             style="cursor: pointer; position: relative;"
+                             onclick="openMainImageLightbox(this)">
                             <img src="<?= $mainImage ?>" alt="Tour Main Image" class="img-fluid rounded" style="width: 100%; height: auto; object-fit: cover;">
+                            <div class="gallery-overlay rounded">
+                                <div class="gallery-overlay-content">
+                                    <i class="fas fa-search-plus"></i>
+                                    <span>Xem ảnh</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -471,275 +510,295 @@ if (empty($galleryUrls)) {
                 <style>
                     /* Gallery Styles */
                     .gallery-item-wrapper {
-                        cursor: pointer;
                         transition: transform 0.3s ease;
                     }
-
                     .gallery-item-wrapper:hover {
                         transform: translateY(-2px);
                     }
-
-                    .gallery-item {
-                        position: relative;
-                        border-radius: 8px;
-                        overflow: hidden;
-                        aspect-ratio: 16/9;
-                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    .gallery-item-wrapper:hover img {
+                         transform: scale(1.05);
                     }
-
-                    .gallery-item img {
-                        width: 100%;
-                        height: 100%;
-                        object-fit: cover;
-                        transition: transform 0.3s ease;
-                    }
-
+                    
                     .gallery-overlay {
                         position: absolute;
-                        top: 0;
-                        left: 0;
-                        right: 0;
-                        bottom: 0;
-                        background: rgba(0, 0, 0, 0.7);
+                        top: 0; left: 0; right: 0; bottom: 0;
+                        background: rgba(0, 0, 0, 0.5);
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         opacity: 0;
                         transition: opacity 0.3s ease;
+                        z-index: 1;
                     }
-
+                    
                     .gallery-item-wrapper:hover .gallery-overlay {
                         opacity: 1;
                     }
-
-                    .gallery-item-wrapper:hover img {
-                        transform: scale(1.05);
-                    }
-
+                    
                     .gallery-overlay-content {
                         text-align: center;
                         color: white;
                     }
-
                     .gallery-overlay-content i {
                         font-size: 24px;
-                        margin-bottom: 8px;
+                        margin-bottom: 5px;
                         display: block;
-                    }
-
-                    .gallery-overlay-content span {
-                        font-size: 14px;
-                        font-weight: 500;
-                    }
-
-                    .gallery-caption {
-                        text-align: center;
-                        margin-top: 8px;
-                    }
-
-                    .gallery-empty-state {
-                        padding: 40px 20px;
-                    }
-
-                    /* Responsive Gallery */
-                    @media (max-width: 768px) {
-                        .gallery-item {
-                            aspect-ratio: 4/3;
-                        }
-
-                        .gallery-overlay-content i {
-                            font-size: 20px;
-                        }
-
-                        .gallery-overlay-content span {
-                            font-size: 12px;
-                        }
                     }
 
                     /* Lightbox Styles */
                     .lightbox-overlay {
+                        display: none;
                         position: fixed;
+                        z-index: 9999;
                         top: 0;
                         left: 0;
-                        right: 0;
-                        bottom: 0;
-                        background: rgba(0, 0, 0, 0.9);
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        z-index: 9999;
-                        padding: 20px;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, 0.95);
+                        backdrop-filter: blur(5px);
                     }
 
                     .lightbox-content {
                         position: relative;
-                        max-width: 90vw;
-                        max-height: 90vh;
+                        width: 100%;
+                        height: 100%;
                         display: flex;
                         flex-direction: column;
+                        justify-content: center;
                         align-items: center;
                     }
 
-                    .lightbox-image {
+                    .lightbox-main {
+                        position: relative;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 100%;
+                        height: 80%;
+                        padding: 0 50px;
+                    }
+
+                    #lightboxImage {
                         max-width: 100%;
-                        max-height: 80vh;
+                        max-height: 100%;
                         object-fit: contain;
-                        border-radius: 8px;
+                        border-radius: 4px;
+                        box-shadow: 0 5px 25px rgba(0,0,0,0.5);
                     }
 
                     .lightbox-close {
                         position: absolute;
-                        top: -40px;
-                        right: 0;
+                        top: 20px;
+                        right: 30px;
+                        color: #fff;
                         background: none;
                         border: none;
-                        color: white;
-                        font-size: 32px;
+                        font-size: 40px;
                         cursor: pointer;
+                        z-index: 10001;
                         padding: 0;
+                        line-height: 1;
                         width: 40px;
                         height: 40px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
+                        transition: color 0.2s;
                     }
+                    .lightbox-close:hover { color: #dc3545; }
 
-                    .lightbox-close:hover {
-                        opacity: 0.8;
-                    }
-
-                    .lightbox-controls {
+                    .lightbox-nav {
+                        background: rgba(255, 255, 255, 0.1);
+                        border: none;
+                        color: white;
+                        width: 50px;
+                        height: 50px;
+                        border-radius: 50%;
+                        font-size: 20px;
+                        cursor: pointer;
+                        transition: all 0.2s;
                         display: flex;
                         align-items: center;
-                        gap: 20px;
-                        margin-top: 20px;
+                        justify-content: center;
+                        position: absolute;
                     }
-
-                    .lightbox-btn {
+                    .lightbox-nav:hover {
                         background: rgba(255, 255, 255, 0.2);
-                        border: 1px solid rgba(255, 255, 255, 0.3);
-                        color: white;
-                        padding: 10px 15px;
-                        border-radius: 6px;
-                        cursor: pointer;
-                        transition: background 0.3s ease;
+                        transform: scale(1.1);
                     }
+                    .lightbox-nav.prev { left: 20px; }
+                    .lightbox-nav.next { right: 20px; }
 
-                    .lightbox-btn:hover:not(:disabled) {
-                        background: rgba(255, 255, 255, 0.3);
-                    }
-
-                    .lightbox-btn:disabled {
-                        opacity: 0.3;
-                        cursor: not-allowed;
-                    }
-
-                    .lightbox-counter {
-                        color: white;
+                    .lightbox-caption {
+                        color: #ccc;
+                        margin-top: 10px;
+                        font-family: monospace;
                         font-size: 14px;
-                        font-weight: 500;
                     }
+
+                    .lightbox-thumbnails {
+                        height: 80px;
+                        width: 100%;
+                        margin-top: 20px;
+                        overflow-x: auto;
+                        display: flex;
+                        justify-content: center;
+                        padding: 10px 0;
+                        background: rgba(0,0,0,0.3);
+                    }
+
+                    .thumbnails-track {
+                        display: flex;
+                        gap: 10px;
+                        padding: 0 20px;
+                    }
+
+                    .lightbox-thumb {
+                        height: 60px;
+                        width: 90px;
+                        object-fit: cover;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        opacity: 0.5;
+                        transition: all 0.2s;
+                        border: 2px solid transparent;
+                    }
+                    .lightbox-thumb.active {
+                        opacity: 1;
+                        border-color: #0d6efd;
+                    }
+                    .lightbox-thumb:hover { opacity: 0.8; }
 
                     @media (max-width: 768px) {
-                        .lightbox-controls {
-                            gap: 15px;
-                        }
-
-                        .lightbox-btn {
-                            padding: 8px 12px;
-                            font-size: 12px;
-                        }
-
-                        .lightbox-counter {
-                            font-size: 12px;
-                        }
+                        .lightbox-main { padding: 0; }
+                        .lightbox-nav { width: 40px; height: 40px; font-size: 16px; }
+                        .lightbox-nav.prev { left: 10px; }
+                        .lightbox-nav.next { right: 10px; }
+                        .lightbox-thumbnails { display: none; } /* Hide thumbs on mobile */
                     }
                 </style>
 
                 <script>
-                    // Initialize gallery data when DOM is ready
-                    document.addEventListener('DOMContentLoaded', function() {
-                        const galleryElement = document.getElementById('tour-gallery');
-                        if (galleryElement) {
-                            try {
-                                window.galleryData = JSON.parse(galleryElement.getAttribute('data-gallery'));
-                                console.log('Gallery data initialized:', window.galleryData);
-                            } catch (e) {
-                                console.error('Failed to parse gallery data:', e);
-                                window.galleryData = [];
-                            }
-                        } else {
-                            console.warn('Gallery element not found');
-                            window.galleryData = [];
-                        }
-                    });
+                    // Prepare Gallery Data
+                    const galleryImages = <?= json_encode($galleryUrls) ?>;
+                    
+                    let currentImageIndex = 0;
 
                     function openLightbox(index) {
-                        console.log('openLightbox called with index:', index);
-                        console.log('window.galleryData:', window.galleryData);
-
-                        if (!window.galleryData || !window.galleryData.length) {
-                            console.error('Gallery data not available');
-                            return;
-                        }
-
-                        const lightbox = document.createElement('div');
-                        lightbox.className = 'lightbox-overlay';
-                        lightbox.innerHTML = `
-                        <div class="lightbox-content">
-                            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
-                            <img src="${window.galleryData[index]}" alt="Gallery Image ${index + 1}" class="lightbox-image">
-                            <div class="lightbox-controls">
-                                <button class="lightbox-btn lightbox-prev" onclick="navigateLightbox(-1)" ${index===0 ? 'disabled' : '' }>
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <span class="lightbox-counter">${index + 1} / ${window.galleryData.length}</span>
-                                <button class="lightbox-btn lightbox-next" onclick="navigateLightbox(1)" ${index===window.galleryData.length - 1 ? 'disabled' : '' }>
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                        `;
-
-                        document.body.appendChild(lightbox);
-                        document.body.style.overflow = 'hidden';
-                        window.currentLightboxIndex = index;
-
-                        document.addEventListener('keydown', handleLightboxKeydown);
-                        lightbox.addEventListener('click', function(e) {
-                            if (e.target === lightbox) closeLightbox();
+                        if (galleryImages.length === 0) return;
+                        currentImageIndex = index;
+                        
+                        const lightbox = document.getElementById('galleryLightbox');
+                        const totalImages = document.getElementById('totalImages');
+                        const thumbnailsTrack = document.getElementById('thumbnailsTrack');
+                        
+                        // Render Thumbnails
+                        thumbnailsTrack.innerHTML = '';
+                        galleryImages.forEach((src, idx) => {
+                            const thumb = document.createElement('img');
+                            thumb.src = src;
+                            thumb.className = `lightbox-thumb ${idx === index ? 'active' : ''}`;
+                            thumb.onclick = () => showImage(idx);
+                            thumbnailsTrack.appendChild(thumb);
                         });
+
+                        totalImages.innerText = galleryImages.length;
+                        showImage(index);
+                        
+                        lightbox.style.display = 'block';
+                        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                        
+                        // Keyboard Nav
+                        document.addEventListener('keydown', handleKeyboardNav);
                     }
 
                     function closeLightbox() {
-                        const lightbox = document.querySelector('.lightbox-overlay');
-                        if (lightbox) {
-                            lightbox.remove();
-                            document.body.style.overflow = '';
-                            document.removeEventListener('keydown', handleLightboxKeydown);
-                        }
+                        const lightbox = document.getElementById('galleryLightbox');
+                        if(lightbox) lightbox.style.display = 'none';
+                        document.body.style.overflow = '';
+                        document.removeEventListener('keydown', handleKeyboardNav);
                     }
 
-                    function navigateLightbox(direction) {
-                        const newIndex = window.currentLightboxIndex + direction;
-                        if (newIndex >= 0 && newIndex < window.galleryData.length) {
-                            window.currentLightboxIndex = newIndex;
-                            const img = document.querySelector('.lightbox-image');
-                            const counter = document.querySelector('.lightbox-counter');
-                            const prevBtn = document.querySelector('.lightbox-prev');
-                            const nextBtn = document.querySelector('.lightbox-next');
+                    function showImage(index) {
+                        if (index >= galleryImages.length) index = 0;
+                        if (index < 0) index = galleryImages.length - 1;
+                        
+                        currentImageIndex = index;
+                        
+                        const imgEnd = document.getElementById('lightboxImage');
+                        const currentIndexEl = document.getElementById('currentIndex');
+                        
+                        // Update Image
+                        imgEnd.style.opacity = '0';
+                        setTimeout(() => {
+                            imgEnd.src = galleryImages[index];
+                            imgEnd.style.opacity = '1';
+                        }, 200);
 
-                            img.src = window.galleryData[newIndex];
-                            counter.textContent = `${newIndex + 1} / ${window.galleryData.length}`;
-                            prevBtn.disabled = newIndex === 0;
-                            nextBtn.disabled = newIndex === window.galleryData.length - 1;
-                        }
+                        // Update Counter
+                        currentIndexEl.innerText = index + 1;
+
+                        // Update Thumbnails
+                        document.querySelectorAll('.lightbox-thumb').forEach((thumb, idx) => {
+                            if (idx === index) {
+                                thumb.classList.add('active');
+                                thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                            } else {
+                                thumb.classList.remove('active');
+                            }
+                        });
                     }
 
-                    function handleLightboxKeydown(e) {
+                    function moveSlide(step) {
+                        showImage(currentImageIndex + step);
+                    }
+
+                    function handleKeyboardNav(e) {
                         if (e.key === 'Escape') closeLightbox();
-                        else if (e.key === 'ArrowLeft') navigateLightbox(-1);
-                        else if (e.key === 'ArrowRight') navigateLightbox(1);
+                        if (e.key === 'ArrowRight') moveSlide(1);
+                        if (e.key === 'ArrowLeft') moveSlide(-1);
+                    }
+
+                    // Close on click outside
+                    const lightboxEl = document.getElementById('galleryLightbox');
+                    if(lightboxEl) {
+                        lightboxEl.addEventListener('click', (e) => {
+                            if (e.target.id === 'galleryLightbox' || e.target.classList.contains('lightbox-content')) {
+                                closeLightbox();
+                            }
+                        });
+                    }
+                    function openMainImageLightbox(element) {
+                        const img = element.querySelector('img');
+                        if (!img) return;
+                        
+                        const src = img.getAttribute('src');
+                        
+                        // Check against galleryImages variable defined above
+                        if (!galleryImages || !galleryImages.length) {
+                             console.warn('No gallery data available');
+                             return;
+                        }
+
+                        // Try to find index
+                        let index = -1;
+                        
+                        for(let i=0; i < galleryImages.length; i++) {
+                            // Compare src with gallery image URL. 
+                            // Using includes to be safe about relative/absolute path differences
+                            if (src.includes(galleryImages[i]) || galleryImages[i].includes(src)) {
+                                index = i;
+                                break;
+                            }
+                        }
+                        
+                        if (index !== -1) {
+                            openLightbox(index);
+                        } else {
+                            // Fallback: If main image is not in gallery list, just open the first gallery image
+                            // This allows user to enter the lightbox view.
+                            openLightbox(0);
+                        }
                     }
 
                     function showAllImages() {

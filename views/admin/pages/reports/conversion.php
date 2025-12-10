@@ -39,7 +39,7 @@ $filters = $data['filters'] ?? [];
         <!-- KPI Cards -->
         <div class="row g-3 mb-4">
             <!-- Total Inquiries -->
-            <div class="col-12 col-sm-6 col-xl-3">
+            <div class="col-12 col-sm-6 col-xl-6">
                 <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
                     <div class="card-body">
                         <div class="d-flex align-items-center mb-2">
@@ -53,40 +53,8 @@ $filters = $data['filters'] ?? [];
                 </div>
             </div>
 
-            <!-- Total Bookings -->
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card border-0 shadow-sm h-100 border-start border-4 border-warning">
-                    <div class="card-body">
-                         <div class="d-flex align-items-center mb-2">
-                           <div class="bg-warning-subtle text-warning rounded p-2 me-3">
-                                <i class="fas fa-calendar-check fa-lg"></i>
-                            </div>
-                            <h6 class="text-muted mb-0">Tổng Booking</h6>
-                        </div>
-                        <h3 class="fw-bold mb-1"><?= number_format($conversionData['total_bookings'] ?? 0) ?></h3>
-                        <small class="text-muted">Conversion: <?= number_format($conversionData['conversion_rates']['inquiry_to_booking'] ?? 0, 1) ?>%</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Payment -->
-            <div class="col-12 col-sm-6 col-xl-3">
-                <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-2">
-                           <div class="bg-success-subtle text-success rounded p-2 me-3">
-                                <i class="fas fa-dollar-sign fa-lg"></i>
-                            </div>
-                            <h6 class="text-muted mb-0">Đã Thanh Toán</h6>
-                        </div>
-                        <h3 class="fw-bold mb-1"><?= number_format($conversionData['total_payments'] ?? 0) ?></h3>
-                        <small class="text-success">Conversion: <?= number_format($conversionData['conversion_rates']['booking_to_payment'] ?? 0, 1) ?>%</small>
-                    </div>
-                </div>
-            </div>
-
             <!-- Overall Rate -->
-            <div class="col-12 col-sm-6 col-xl-3">
+            <div class="col-12 col-sm-6 col-xl-6">
                 <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
                     <div class="card-body">
                          <div class="d-flex align-items-center mb-2">
@@ -96,7 +64,7 @@ $filters = $data['filters'] ?? [];
                             <h6 class="text-muted mb-0">Tỷ Lệ Tổng Thể</h6>
                         </div>
                         <h3 class="fw-bold mb-1"><?= number_format($conversionData['conversion_rates']['overall'] ?? 0, 1) ?>%</h3>
-                        <small class="text-muted">Inquiry → Payment</small>
+                        <small class="text-muted">Liên hệ → Thanh toán</small>
                     </div>
                 </div>
             </div>
@@ -125,9 +93,9 @@ $filters = $data['filters'] ?? [];
                         <tr>
                             <th class="ps-3 border-0">#</th>
                             <th class="border-0">Tên Tour</th>
-                            <th class="border-0 text-center">Inquiry</th>
-                            <th class="border-0 text-center">Booking</th>
-                            <th class="border-0 text-center">Payment</th>
+                            <th class="border-0 text-center">Liên hệ</th>
+                            <th class="border-0 text-center">Đặt tour</th>
+                            <th class="border-0 text-center">Thanh toán</th>
                             <th class="border-0 text-end pe-3">Tỷ Lệ Chuyển Đổi</th>
                         </tr>
                     </thead>
@@ -164,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(document.getElementById('funnelChart'), {
         type: 'bar',
         data: {
-            labels: ['Inquiry', 'Booking', 'Payment', 'Completed'],
+            labels: ['Liên hệ', 'Đặt tour', 'Thanh toán', 'Hoàn tất'],
             datasets: [{
                 label: 'Số lượng',
                 data: [

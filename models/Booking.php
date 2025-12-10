@@ -360,8 +360,8 @@ class Booking extends BaseModel
         // Tổng booking
         $sql = "SELECT 
                     COUNT(B.id) as total_bookings,
-                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) as successful_bookings,
-                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN B.final_price ELSE 0 END) as total_revenue,
+                    SUM(CASE WHEN B.status IN ('completed', 'hoan_tat') THEN 1 ELSE 0 END) as successful_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'hoan_tat') THEN B.final_price ELSE 0 END) as total_revenue,
                     COALESCE(SUM(customer_counts.total_customers), 0) as total_customers
                 FROM bookings B 
                 LEFT JOIN (
@@ -471,14 +471,19 @@ class Booking extends BaseModel
                     T.id,
                     T.name AS tour_name,
                     COUNT(B.id) AS booking_count,
-                    COALESCE(SUM(B.final_price), 0) AS revenue,
-                    COALESCE(AVG(B.final_price), 0) AS avg_price
+                    COALESCE(SUM(B.final_price), 0) AS total_revenue,
+                    COALESCE(SUM(customer_counts.count), 0) AS total_passengers
                 FROM tours T
-                LEFT JOIN bookings B ON T.id = B.tour_id
+                JOIN bookings B ON T.id = B.tour_id
+                LEFT JOIN (
+                    SELECT booking_id, COUNT(id) as count 
+                    FROM booking_customers 
+                    GROUP BY booking_id
+                ) customer_counts ON B.id = customer_counts.booking_id
                 WHERE B.booking_date BETWEEN :date_from AND :date_to
-                AND B.status IN ('completed', 'paid')
+                AND B.status IN ('completed', 'hoan_tat')
                 GROUP BY T.id, T.name
-                ORDER BY booking_count DESC, revenue DESC
+                ORDER BY booking_count DESC, total_revenue DESC
                 LIMIT " . (int)$limit;
 
         $stmt = self::$pdo->prepare($sql);
@@ -497,7 +502,7 @@ class Booking extends BaseModel
         $sql = "SELECT 
                     B.source,
                     COUNT(B.id) AS booking_count,
-                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) AS successful_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'hoan_tat') THEN 1 ELSE 0 END) AS successful_bookings,
                     COALESCE(SUM(B.final_price), 0) AS revenue
                 FROM bookings B
                 WHERE B.booking_date BETWEEN :date_from AND :date_to
@@ -544,8 +549,8 @@ class Booking extends BaseModel
         $sql = "SELECT 
                     MONTH(B.booking_date) as month,
                     COUNT(B.id) as total_bookings,
-                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN 1 ELSE 0 END) as successful_bookings,
-                    SUM(CASE WHEN B.status IN ('completed', 'paid') THEN B.final_price ELSE 0 END) as revenue,
+                    SUM(CASE WHEN B.status IN ('completed', 'hoan_tat') THEN 1 ELSE 0 END) as successful_bookings,
+                    SUM(CASE WHEN B.status IN ('completed', 'hoan_tat') THEN B.final_price ELSE 0 END) as revenue,
                     COALESCE(SUM(customer_counts.total_customers), 0) as total_customers
                 FROM bookings B 
                 LEFT JOIN (
@@ -571,7 +576,9 @@ class Booking extends BaseModel
             });
 
             if (!empty($monthData)) {
-                $result[] = reset($monthData);
+                $row = reset($monthData);
+                $row['month_name'] = "Tháng " . $month;
+                $result[] = $row;
             } else {
                 $result[] = [
                     'month' => $month,

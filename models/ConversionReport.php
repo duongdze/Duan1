@@ -87,6 +87,7 @@ class ConversionReport extends BaseModel
         return [
             'total_inquiries' => $totalInquiries,
             'total_bookings' => $totalBookings,
+            'total_payments' => ($data['paid_count'] ?? 0) + ($data['completed_count'] ?? 0),
             'conversion_rates' => $conversionRates,
             'stage_counts' => [
                 'pending' => $data['pending_count'] ?? 0,

@@ -216,11 +216,7 @@ $isGuide = $userRole === 'guide';
                                 <i class="fas fa-calendar-check fa-fw me-2"></i> Báo cáo booking
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?= isActive('reports/conversion') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports/conversion">
-                                <i class="fas fa-chart-pie fa-fw me-2"></i> Báo cáo chuyển đổi
-                            </a>
-                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link <?= isActive('reports/feedback') ?>" href="<?= BASE_URL_ADMIN ?>&action=reports/feedback">
                                 <i class="fas fa-comments fa-fw me-2"></i> Báo cáo phản hồi

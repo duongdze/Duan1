@@ -161,7 +161,7 @@ match ($action) {
     'reports/financial'    => (new ReportController)->financial(),
     'reports/bookings'     => (new ReportController)->bookings(),
     'reports/feedback'     => (new ReportController)->feedback(),
-    'reports/conversion'   => (new ReportController)->conversion(),
+
     'reports/dashboard'    => (new ReportController)->dashboard(),
 
     // Chính sách 
