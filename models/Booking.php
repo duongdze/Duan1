@@ -42,7 +42,16 @@ class Booking extends BaseModel
                 LEFT JOIN tours AS T ON B.tour_id = T.id
                 LEFT JOIN users AS U ON B.customer_id = U.user_id
                 LEFT JOIN bus_companies AS BC ON B.bus_company_id = BC.id
-                ORDER BY B.booking_date DESC, B.id DESC";
+                ORDER BY 
+                    CASE B.status
+                        WHEN 'cho_xac_nhan' THEN 1
+                        WHEN 'da_coc' THEN 2
+                        WHEN 'hoan_tat' THEN 3
+                        WHEN 'da_huy' THEN 4
+                        ELSE 5
+                    END,
+                    B.booking_date DESC, 
+                    B.id DESC";
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

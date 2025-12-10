@@ -254,6 +254,17 @@ class TourVersionController
         }
 
         try {
+            // Check if version has any bookings
+            require_once 'models/Booking.php';
+            $bookingModel = new Booking();
+            $bookingCount = $bookingModel->count('version_id = :version_id', ['version_id' => $id]);
+
+            if ($bookingCount > 0) {
+                $_SESSION['error'] = "Không thể xóa phiên bản '{$version['name']}' vì đã có {$bookingCount} booking sử dụng phiên bản này.";
+                header('Location: ' . BASE_URL_ADMIN . '&action=tours_versions');
+                return;
+            }
+
             // Delete prices first (cascade)
             $this->priceModel->deleteByVersionId($id);
 
