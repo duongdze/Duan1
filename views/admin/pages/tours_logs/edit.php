@@ -55,7 +55,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <select class="form-select" id="tour_id" name="tour_id" required>
                                     <?php foreach ($tours as $tour): ?>
                                         <option value="<?= $tour['id'] ?>" <?= ($log['tour_id'] == $tour['id']) ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($tour['name']) ?> (#<?= htmlspecialchars($tour['id']) ?>)
+                                            <?= htmlspecialchars($tour['name'] ?? '') ?> (#<?= htmlspecialchars($tour['id'] ?? '') ?>)
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -65,7 +65,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
                                     <label for="date" class="form-label fw-medium">Ngày ghi nhận <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control" id="date" name="date" value="<?= $log['date'] ?>" required>
+                                    <input type="date" class="form-control" id="date" name="date" value="<?= date('Y-m-d', strtotime($log['date'])) ?>" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-medium">Hướng dẫn viên</label>
@@ -77,36 +77,36 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             <!-- Main Content -->
                             <div class="mb-4">
                                 <label for="description" class="form-label fw-medium">Mô tả hoạt động <span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="description" name="description" rows="4" required><?= htmlspecialchars($log['description']) ?></textarea>
+                                <textarea class="form-control" id="description" name="description" rows="4" required><?= htmlspecialchars($log['description'] ?? '') ?></textarea>
                             </div>
 
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
                                     <label for="weather" class="form-label fw-medium">Thời tiết</label>
-                                    <input type="text" class="form-control" id="weather" name="weather" value="<?= htmlspecialchars($log['weather']) ?>">
+                                    <input type="text" class="form-control" id="weather" name="weather" value="<?= htmlspecialchars($log['weather'] ?? '') ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label for="health_status" class="form-label fw-medium">Tình trạng sức khỏe đoàn</label>
-                                    <input type="text" class="form-control" id="health_status" name="health_status" value="<?= htmlspecialchars($log['health_status']) ?>">
+                                    <input type="text" class="form-control" id="health_status" name="health_status" value="<?= htmlspecialchars($log['health_status'] ?? '') ?>">
                                 </div>
                             </div>
 
                             <!-- Issues -->
                             <div class="mb-4">
                                 <label for="issue" class="form-label fw-medium text-danger">Vấn đề phát sinh</label>
-                                <textarea class="form-control border-danger bg-danger bg-opacity-10" id="issue" name="issue" rows="2"><?= htmlspecialchars($log['issue']) ?></textarea>
+                                <textarea class="form-control border-danger bg-danger bg-opacity-10" id="issue" name="issue" rows="2"><?= htmlspecialchars($log['issue'] ?? '') ?></textarea>
                             </div>
 
                             <div class="mb-4">
                                 <label for="solution" class="form-label fw-medium text-success">Giải pháp đã thực hiện</label>
-                                <textarea class="form-control border-success bg-success bg-opacity-10" id="solution" name="solution" rows="2"><?= htmlspecialchars($log['solution']) ?></textarea>
+                                <textarea class="form-control border-success bg-success bg-opacity-10" id="solution" name="solution" rows="2"><?= htmlspecialchars($log['solution'] ?? '') ?></textarea>
                             </div>
 
                             <!-- Feedback & Rating -->
                             <div class="row g-3 mb-4">
                                 <div class="col-md-8">
                                     <label for="customer_feedback" class="form-label fw-medium">Phản hồi của khách</label>
-                                    <input type="text" class="form-control" id="customer_feedback" name="customer_feedback" value="<?= htmlspecialchars($log['customer_feedback']) ?>">
+                                    <input type="text" class="form-control" id="customer_feedback" name="customer_feedback" value="<?= htmlspecialchars($log['customer_feedback'] ?? '') ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label for="guide_rating" class="form-label fw-medium">Tự đánh giá (1-5)</label>

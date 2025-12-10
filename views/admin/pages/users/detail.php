@@ -3,11 +3,9 @@ include_once PATH_VIEW_ADMIN . 'default/header.php';
 include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
 $roleMap = [
-    'customer' => ['text' => 'Khách hàng', 'class' => 'success', 'icon' => 'user'],
-    'guide' => ['text' => 'Hướng dẫn viên', 'class' => 'info', 'icon' => 'user-tie'],
-    'admin' => ['text' => 'Admin', 'class' => 'danger', 'icon' => 'user-shield']
+    'customer' => ['text' => 'Khách hàng', 'class' => 'success', 'icon' => 'user']
 ];
-$roleInfo = $roleMap[$user['role']] ?? ['text' => $user['role'], 'class' => 'secondary', 'icon' => 'user'];
+$roleInfo = $roleMap[$user['role']] ?? ['text' => 'Khách hàng', 'class' => 'success', 'icon' => 'user'];
 ?>
 
 <main class="dashboard user-detail-page">

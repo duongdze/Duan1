@@ -466,81 +466,7 @@ if (empty($galleryUrls)) {
                     </div>
                 <?php endif; ?>
 
-                <script>
-                    function openLightbox(index) {
-                        // Create lightbox overlay
-                        const lightbox = document.createElement('div');
-                        lightbox.className = 'lightbox-overlay';
-                        lightbox.innerHTML = `
-                        <div class="lightbox-content">
-                            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
-                            <img src="${galleryData[index]}" alt="Gallery Image ${index + 1}" class="lightbox-image">
-                            <div class="lightbox-controls">
-                                <button class="lightbox-btn" onclick="navigateLightbox(-1)" ${index===0 ? 'disabled' : '' }>
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                                <span class="lightbox-counter">${index + 1} / ${galleryData.length}</span>
-                                <button class="lightbox-btn" onclick="navigateLightbox(1)" ${index===galleryData.length - 1 ? 'disabled' : '' }>
-                                    <i class="fas fa-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                        `;
 
-                        document.body.appendChild(lightbox);
-                        document.body.style.overflow = 'hidden';
-
-                        // Store current index
-                        window.currentLightboxIndex = index;
-                        window.galleryData = galleryData;
-
-                        // Close on escape key
-                        document.addEventListener('keydown', handleLightboxKeydown);
-
-                        // Close on background click
-                        lightbox.addEventListener('click', function(e) {
-                            if (e.target === lightbox) {
-                                closeLightbox();
-                            }
-                        });
-                    }
-
-                    function closeLightbox() {
-                        const lightbox = document.querySelector('.lightbox-overlay');
-                        if (lightbox) {
-                            lightbox.remove();
-                            document.body.style.overflow = '';
-                            document.removeEventListener('keydown', handleLightboxKeydown);
-                        }
-                    }
-
-                    function navigateLightbox(direction) {
-                        const newIndex = window.currentLightboxIndex + direction;
-                        if (newIndex >= 0 && newIndex < window.galleryData.length) {
-                            window.currentLightboxIndex = newIndex;
-                            const img = document.querySelector('.lightbox-image');
-                            const counter = document.querySelector('.lightbox-counter');
-                            const prevBtn = document.querySelector('.lightbox-btn:first-child');
-                            const nextBtn = document.querySelector('.lightbox-btn:last-child');
-
-                            img.src = window.galleryData[newIndex];
-                            counter.textContent = `${newIndex + 1} / ${window.galleryData.length}`;
-
-                            prevBtn.disabled = newIndex === 0;
-                            nextBtn.disabled = newIndex === window.galleryData.length - 1;
-                        }
-                    }
-
-                    function handleLightboxKeydown(e) {
-                        if (e.key === 'Escape') {
-                            closeLightbox();
-                        } else if (e.key === 'ArrowLeft') {
-                            navigateLightbox(-1);
-                        } else if (e.key === 'ArrowRight') {
-                            navigateLightbox(1);
-                        }
-                    }
-                </script>
 
                 <style>
                     /* Gallery Styles */
@@ -731,16 +657,92 @@ if (empty($galleryUrls)) {
                 </style>
 
                 <script>
-                    // Initialize gallery data
+                    // Initialize gallery data when DOM is ready
                     document.addEventListener('DOMContentLoaded', function() {
                         const galleryElement = document.getElementById('tour-gallery');
                         if (galleryElement) {
-                            window.galleryData = JSON.parse(galleryElement.getAttribute('data-gallery'));
+                            try {
+                                window.galleryData = JSON.parse(galleryElement.getAttribute('data-gallery'));
+                                console.log('Gallery data initialized:', window.galleryData);
+                            } catch (e) {
+                                console.error('Failed to parse gallery data:', e);
+                                window.galleryData = [];
+                            }
+                        } else {
+                            console.warn('Gallery element not found');
+                            window.galleryData = [];
                         }
                     });
 
+                    function openLightbox(index) {
+                        console.log('openLightbox called with index:', index);
+                        console.log('window.galleryData:', window.galleryData);
+
+                        if (!window.galleryData || !window.galleryData.length) {
+                            console.error('Gallery data not available');
+                            return;
+                        }
+
+                        const lightbox = document.createElement('div');
+                        lightbox.className = 'lightbox-overlay';
+                        lightbox.innerHTML = `
+                        <div class="lightbox-content">
+                            <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+                            <img src="${window.galleryData[index]}" alt="Gallery Image ${index + 1}" class="lightbox-image">
+                            <div class="lightbox-controls">
+                                <button class="lightbox-btn lightbox-prev" onclick="navigateLightbox(-1)" ${index===0 ? 'disabled' : '' }>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="lightbox-counter">${index + 1} / ${window.galleryData.length}</span>
+                                <button class="lightbox-btn lightbox-next" onclick="navigateLightbox(1)" ${index===window.galleryData.length - 1 ? 'disabled' : '' }>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        `;
+
+                        document.body.appendChild(lightbox);
+                        document.body.style.overflow = 'hidden';
+                        window.currentLightboxIndex = index;
+
+                        document.addEventListener('keydown', handleLightboxKeydown);
+                        lightbox.addEventListener('click', function(e) {
+                            if (e.target === lightbox) closeLightbox();
+                        });
+                    }
+
+                    function closeLightbox() {
+                        const lightbox = document.querySelector('.lightbox-overlay');
+                        if (lightbox) {
+                            lightbox.remove();
+                            document.body.style.overflow = '';
+                            document.removeEventListener('keydown', handleLightboxKeydown);
+                        }
+                    }
+
+                    function navigateLightbox(direction) {
+                        const newIndex = window.currentLightboxIndex + direction;
+                        if (newIndex >= 0 && newIndex < window.galleryData.length) {
+                            window.currentLightboxIndex = newIndex;
+                            const img = document.querySelector('.lightbox-image');
+                            const counter = document.querySelector('.lightbox-counter');
+                            const prevBtn = document.querySelector('.lightbox-prev');
+                            const nextBtn = document.querySelector('.lightbox-next');
+
+                            img.src = window.galleryData[newIndex];
+                            counter.textContent = `${newIndex + 1} / ${window.galleryData.length}`;
+                            prevBtn.disabled = newIndex === 0;
+                            nextBtn.disabled = newIndex === window.galleryData.length - 1;
+                        }
+                    }
+
+                    function handleLightboxKeydown(e) {
+                        if (e.key === 'Escape') closeLightbox();
+                        else if (e.key === 'ArrowLeft') navigateLightbox(-1);
+                        else if (e.key === 'ArrowRight') navigateLightbox(1);
+                    }
+
                     function showAllImages() {
-                        // This function can be implemented to show all images in a modal or expand the gallery
                         const galleryItems = document.querySelectorAll('.gallery-item-wrapper');
                         galleryItems.forEach(item => item.style.display = 'block');
                     }

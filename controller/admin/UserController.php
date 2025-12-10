@@ -24,15 +24,11 @@ class UserController
 
         // Get filters
         $filters = [
-            'role' => $_GET['role'] ?? '',
             'search' => $_GET['search'] ?? ''
         ];
 
-        // Get users based on role
-        if ($currentUserRole === 'guide') {
-            // Guides can only see customers
-            $filters['role'] = 'customer';
-        }
+        // Force filter to only show customers (admin and guide users are managed separately)
+        $filters['role'] = 'customer';
 
         $users = $this->model->getAll($filters);
         $stats = $this->model->getStats();
@@ -145,9 +141,9 @@ class UserController
         $currentUserId = $_SESSION['user']['user_id'] ?? null;
         $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
 
-        // Check permission
-        if (!$this->model->canEdit($currentUserId, $currentUserRole, $user['id'], $user['role'])) {
-            $_SESSION['error'] = 'Bạn không có quyền chỉnh sửa người dùng này';
+        // Only allow editing customer users (admin and guide users are managed separately)
+        if ($user['role'] !== 'customer') {
+            $_SESSION['error'] = 'Không thể chỉnh sửa user này. Vui lòng sử dụng trang quản lý tương ứng.';
             header('Location: ' . BASE_URL_ADMIN . '&action=users');
             exit;
         }
@@ -284,6 +280,12 @@ class UserController
     public function detail()
     {
         $id = $_GET['id'] ?? null;
+
+        // Debug: Check what ID we received
+        error_log("=== USER DETAIL DEBUG ===");
+        error_log("Received ID from GET: " . var_export($id, true));
+        error_log("Full GET params: " . var_export($_GET, true));
+
         if (!$id) {
             $_SESSION['error'] = 'Không tìm thấy người dùng';
             header('Location: ' . BASE_URL_ADMIN . '&action=users');
@@ -291,6 +293,10 @@ class UserController
         }
 
         $user = $this->model->getById($id);
+
+        // Debug: Check what user was retrieved
+        error_log("Retrieved user: " . var_export($user, true));
+
         if (!$user) {
             $_SESSION['error'] = 'Không tìm thấy người dùng';
             header('Location: ' . BASE_URL_ADMIN . '&action=users');
@@ -299,9 +305,9 @@ class UserController
 
         $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
 
-        // Guides can only view customers
-        if ($currentUserRole === 'guide' && $user['role'] !== 'customer') {
-            $_SESSION['error'] = 'Bạn không có quyền xem thông tin này';
+        // Only allow viewing customer users (admin and guide users are managed separately)
+        if ($user['role'] !== 'customer') {
+            $_SESSION['error'] = 'Không thể xem thông tin user này. Vui lòng sử dụng trang quản lý tương ứng.';
             header('Location: ' . BASE_URL_ADMIN . '&action=users');
             exit;
         }

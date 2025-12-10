@@ -174,7 +174,7 @@ class AvailableToursController
             $bookingModel = new Booking();
             $sql = "SELECT 
                     COUNT(DISTINCT b.id) as booking_count,
-                    COALESCE(SUM(bc_count.total), COUNT(DISTINCT b.id)) as total_customers
+                    COUNT(DISTINCT b.id) + COALESCE(SUM(bc_count.total), 0) as total_customers
                 FROM bookings b
                 LEFT JOIN (
                     SELECT booking_id, COUNT(*) as total 

@@ -282,7 +282,18 @@ $canEdit = ($userRole === 'admin');
                                             <h6 class="mb-0 ms-2"><?= htmlspecialchars($companion['full_name']) ?></h6>
                                             <?php if ($canEdit): ?>
                                                 <div class="ms-auto">
-                                                    <button class="btn btn-sm btn-outline-primary edit-companion-btn me-1" data-companion-id="<?= $companion['id'] ?>">
+                                                    <button class="btn btn-sm btn-outline-primary edit-companion-btn me-1"
+                                                        data-companion-id="<?= $companion['id'] ?>"
+                                                        data-companion='<?= json_encode([
+                                                                            "name" => $companion["full_name"] ?? "",
+                                                                            "gender" => $companion["gender"] ?? "",
+                                                                            "birth_date" => $companion["birth_date"] ?? "",
+                                                                            "phone" => $companion["phone"] ?? "",
+                                                                            "id_card" => $companion["id_card"] ?? "",
+                                                                            "room_type" => $companion["room_type"] ?? "",
+                                                                            "passenger_type" => $companion["passenger_type"] ?? "adult",
+                                                                            "special_request" => $companion["special_request"] ?? ""
+                                                                        ]) ?>'>
                                                         <i class="fas fa-edit"></i>
                                                     </button>
                                                     <button class="btn btn-sm btn-outline-danger delete-companion-btn" data-companion-id="<?= $companion['id'] ?>" data-booking-id="<?= $booking['id'] ?>">
@@ -356,6 +367,83 @@ $canEdit = ($userRole === 'admin');
                         <?php endif; ?>
                     </div>
                 </div>
+
+                <!-- Price Calculator Card -->
+                <?php if ($canEdit && !empty($booking['version_id'])): ?>
+                    <?php
+                    // Calculate current pricing
+                    $bookingCustomerModel = new BookingCustomer();
+                    $calculation = $bookingCustomerModel->calculateTotalPrice($booking['id'], $booking['tour_id'], $booking['version_id']);
+                    $breakdown = $calculation['breakdown'];
+                    ?>
+                    <div class="card mb-4" style="background-color: #fff9e6; border-left: 4px solid #ffc107;">
+                        <div class="card-header" style="background-color: #fff3cd; border-bottom: 1px solid #ffc107;">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-calculator text-warning me-2"></i>
+                                Tính giá theo phiên bản tour
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="price-breakdown">
+                                <?php if ($breakdown['adults']['count'] > 0): ?>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 p-2" style="background-color: #fff;">
+                                        <span>
+                                            <i class="fas fa-user text-primary me-2"></i>
+                                            <strong>Người lớn</strong> × <?= $breakdown['adults']['count'] ?>
+                                        </span>
+                                        <span class="text-muted">
+                                            <?= number_format($breakdown['adults']['price']) ?> ₫ × <?= $breakdown['adults']['count'] ?> =
+                                            <strong class="text-primary"><?= number_format($breakdown['adults']['subtotal']) ?> ₫</strong>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($breakdown['children']['count'] > 0): ?>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 p-2" style="background-color: #fff;">
+                                        <span>
+                                            <i class="fas fa-child text-info me-2"></i>
+                                            <strong>Trẻ em</strong> × <?= $breakdown['children']['count'] ?>
+                                        </span>
+                                        <span class="text-muted">
+                                            <?= number_format($breakdown['children']['price']) ?> ₫ × <?= $breakdown['children']['count'] ?> =
+                                            <strong class="text-info"><?= number_format($breakdown['children']['subtotal']) ?> ₫</strong>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($breakdown['infants']['count'] > 0): ?>
+                                    <div class="d-flex justify-content-between align-items-center mb-2 p-2" style="background-color: #fff;">
+                                        <span>
+                                            <i class="fas fa-baby text-success me-2"></i>
+                                            <strong>Em bé</strong> × <?= $breakdown['infants']['count'] ?>
+                                        </span>
+                                        <span class="text-muted">
+                                            <?= number_format($breakdown['infants']['price']) ?> ₫ × <?= $breakdown['infants']['count'] ?> =
+                                            <strong class="text-success"><?= number_format($breakdown['infants']['subtotal']) ?> ₫</strong>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <hr style="border-color: #ffc107;">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="text-muted">Tổng cộng:</strong>
+                                    <h4 class="mb-0 text-danger"><?= number_format($calculation['total']) ?> ₫</h4>
+                                </div>
+                                <form method="POST" action="<?= BASE_URL_ADMIN ?>&action=bookings/detail&id=<?= $booking['id'] ?>" style="display: inline;">
+                                    <input type="hidden" name="update_price" value="1">
+                                    <input type="hidden" name="calculated_total" value="<?= $calculation['total'] ?>">
+                                    <button type="submit" class="btn btn-warning" onclick="return confirm('Cập nhật giá booking thành <?= number_format($calculation['total']) ?> ₫?')">
+                                        <i class="fas fa-sync-alt me-1"></i>
+                                        Cập nhật giá
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Notes Card -->
                 <?php if (!empty($booking['notes'])): ?>
@@ -639,6 +727,15 @@ $canEdit = ($userRole === 'admin');
                                     <option value="ghép">Ghép phòng</option>
                                 </select>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Loại khách <span class="text-danger">*</span></label>
+                                <select class="form-select" id="companion-passenger-type" name="passenger_type" required>
+                                    <option value="">Chọn loại khách</option>
+                                    <option value="adult" selected>Người lớn</option>
+                                    <option value="child">Trẻ em</option>
+                                    <option value="infant">Em bé</option>
+                                </select>
+                            </div>
                             <div class="col-12">
                                 <label class="form-label fw-bold">Yêu cầu đặc biệt</label>
                                 <textarea class="form-control" id="companion-special-request" name="special_request" rows="3"></textarea>
@@ -751,6 +848,168 @@ $canEdit = ($userRole === 'admin');
                     alert('Có lỗi xảy ra khi cập nhật');
                 });
         });
+    });
+</script>
+
+<script>
+    // Companion Management
+    document.addEventListener('DOMContentLoaded', function() {
+        const companionModalEl = document.getElementById('companionModal');
+        const companionModal = new bootstrap.Modal(companionModalEl, {
+            backdrop: true, // Allow closing by clicking backdrop
+            keyboard: true // Allow closing with ESC key
+        });
+
+        // Close button listeners (X button and Cancel button)
+        const closeButtons = companionModalEl.querySelectorAll('[data-bs-dismiss="modal"]');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                companionModal.hide();
+            });
+        });
+
+        // Add companion button
+        const addBtn = document.getElementById('add-companion-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                // Reset form for adding
+                document.getElementById('companionModalTitle').textContent = 'Thêm Khách Đi Kèm';
+                document.getElementById('companionForm').reset();
+                document.getElementById('companion-id').value = '';
+                companionModal.show();
+            });
+        }
+
+        // Edit companion buttons
+        document.querySelectorAll('.edit-companion-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const companionId = this.dataset.companionId;
+                const data = JSON.parse(this.dataset.companion);
+
+                // Set modal title
+                document.getElementById('companionModalTitle').textContent = 'Chỉnh Sửa Khách Đi Kèm';
+
+                // Set companion ID for update
+                document.getElementById('companion-id').value = companionId;
+
+                // Populate form with companion data
+                document.getElementById('companion-name').value = data.name || '';
+                document.getElementById('companion-gender').value = data.gender || '';
+                document.getElementById('companion-birth-date').value = data.birth_date || '';
+                document.getElementById('companion-phone').value = data.phone || '';
+                document.getElementById('companion-id-card').value = data.id_card || '';
+                document.getElementById('companion-room-type').value = data.room_type || '';
+                document.getElementById('companion-passenger-type').value = data.passenger_type || 'adult';
+                document.getElementById('companion-special-request').value = data.special_request || '';
+
+                // Show modal
+                companionModal.show();
+            });
+        });
+
+        // Delete companion buttons
+        document.querySelectorAll('.delete-companion-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const companionId = this.dataset.companionId;
+                const bookingId = this.dataset.bookingId;
+                const card = this.closest('.guest-item');
+                const name = card.querySelector('h6').textContent.trim();
+
+                if (!confirm(`Bạn có chắc muốn xóa khách "${name}"?`)) {
+                    return;
+                }
+
+                // Delete via AJAX
+                fetch('<?= BASE_URL_ADMIN ?>&action=bookings/deleteCompanion', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            companion_id: companionId,
+                            booking_id: bookingId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra khi xóa khách');
+                    });
+            });
+        });
+
+        // Save companion button
+        const saveBtn = document.getElementById('saveCompanionBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function() {
+                const companionId = document.getElementById('companion-id').value;
+                const bookingId = document.getElementById('companion-booking-id').value;
+                const name = document.getElementById('companion-name').value.trim();
+                const passengerType = document.getElementById('companion-passenger-type').value;
+
+                if (!name) {
+                    alert('Vui lòng nhập họ tên khách');
+                    return;
+                }
+
+                if (!passengerType) {
+                    alert('Vui lòng chọn loại khách');
+                    return;
+                }
+
+                const formData = new URLSearchParams({
+                    booking_id: bookingId,
+                    name: name,
+                    gender: document.getElementById('companion-gender').value,
+                    birth_date: document.getElementById('companion-birth-date').value,
+                    phone: document.getElementById('companion-phone').value,
+                    id_card: document.getElementById('companion-id-card').value,
+                    room_type: document.getElementById('companion-room-type').value,
+                    passenger_type: passengerType,
+                    special_request: document.getElementById('companion-special-request').value
+                });
+
+                const url = companionId ?
+                    '<?= BASE_URL_ADMIN ?>&action=bookings/updateCompanion' :
+                    '<?= BASE_URL_ADMIN ?>&action=bookings/addCompanion';
+
+                if (companionId) {
+                    formData.append('companion_id', companionId);
+                }
+
+                fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Don't show alert here, page reload will show session message
+                            companionModal.hide();
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Even if JSON parse fails, the update likely succeeded
+                        // Just reload the page to show updated data
+                        location.reload();
+                    });
+            });
+        }
     });
 </script>
 

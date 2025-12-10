@@ -82,9 +82,22 @@ class TourLogController
             'guide_rating'      => $_POST['guide_rating'] ?? null,
         ];
 
-        // enforce guide_id from session to prevent spoofing
+        // Get guide_id from user_id in session
         if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-        $data['guide_id'] = $_SESSION['guide_id'] ?? $data['guide_id'];
+
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if ($userRole === 'guide') {
+            $guideModel = new Guide();
+            $guide = $guideModel->getByUserId($_SESSION['user']['user_id']);
+            if ($guide) {
+                $data['guide_id'] = $guide['id'];
+            }
+        }
+
+        // If guide_id is still empty, use the posted value or set to null
+        if (empty($data['guide_id'])) {
+            $data['guide_id'] = !empty($_POST['guide_id']) ? $_POST['guide_id'] : null;
+        }
 
         $this->model->create($data);
         // Redirect back to tour detail if tour_id is present
@@ -160,9 +173,22 @@ class TourLogController
             'guide_rating'      => $_POST['guide_rating'] ?? null,
         ];
 
-        // enforce guide_id from session
+        // Get guide_id from user_id in session
         if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-        $data['guide_id'] = $_SESSION['guide_id'] ?? $data['guide_id'];
+
+        $userRole = $_SESSION['user']['role'] ?? 'customer';
+        if ($userRole === 'guide') {
+            $guideModel = new Guide();
+            $guide = $guideModel->getByUserId($_SESSION['user']['user_id']);
+            if ($guide) {
+                $data['guide_id'] = $guide['id'];
+            }
+        }
+
+        // If guide_id is still empty, use the posted value or set to null
+        if (empty($data['guide_id'])) {
+            $data['guide_id'] = !empty($_POST['guide_id']) ? $_POST['guide_id'] : null;
+        }
 
         $this->model->updateLog($id, $data);
 

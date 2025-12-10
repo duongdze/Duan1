@@ -170,9 +170,14 @@ class BookingCustomer extends BaseModel
         $priceModel = new TourVersionPrice();
         $prices = $priceModel->getPriceForBooking($tourId, $versionId);
 
-        $adults = $this->countByType($bookingId, 'adult');
+        // Count companions by type (from booking_customers table)
+        $companionAdults = $this->countByType($bookingId, 'adult');
         $children = $this->countByType($bookingId, 'child');
         $infants = $this->countByType($bookingId, 'infant');
+
+        // IMPORTANT: Customer (booker) is NOT in booking_customers table
+        // Customer is always counted as 1 adult (stored in bookings.customer_id)
+        $adults = $companionAdults + 1;
 
         $total = ($adults * $prices['price_adult']) +
             ($children * $prices['price_child']) +

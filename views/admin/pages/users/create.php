@@ -112,24 +112,8 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
                                         </div>
                                     </div>
 
-                                    <div class="col-md-6">
-                                        <div class="form-floating">
-                                            <select class="form-select" id="role" name="role" required>
-                                                <option value="">-- Chọn vai trò --</option>
-                                                <option value="customer">Khách hàng</option>
-                                                <?php if ($currentUserRole === 'admin'): ?>
-                                                    <option value="guide">Hướng dẫn viên</option>
-                                                <?php endif; ?>
-                                            </select>
-                                            <label for="role">Vai trò <span class="text-danger">*</span></label>
-                                        </div>
-                                        <?php if ($currentUserRole === 'guide'): ?>
-                                            <small class="text-muted d-block mt-2">
-                                                <i class="fas fa-info-circle"></i>
-                                                Bạn chỉ có thể tạo tài khoản Khách hàng
-                                            </small>
-                                        <?php endif; ?>
-                                    </div>
+                                    <!-- Hidden role field - automatically set to customer -->
+                                    <input type="hidden" name="role" value="customer">
                                 </div>
                             </div>
                         </div>
@@ -223,16 +207,10 @@ $currentUserRole = $_SESSION['user']['role'] ?? 'customer';
                                     <i class="fas fa-check text-success me-2"></i>
                                     Email phải là duy nhất
                                 </li>
-                                <li class="mb-2">
+                                <li class="mb-0">
                                     <i class="fas fa-check text-success me-2"></i>
                                     Mật khẩu tối thiểu 6 ký tự
                                 </li>
-                                <?php if ($currentUserRole === 'guide'): ?>
-                                    <li class="mb-0">
-                                        <i class="fas fa-info text-info me-2"></i>
-                                        Chỉ tạo được Khách hàng
-                                    </li>
-                                <?php endif; ?>
                             </ul>
                         </div>
                     </div>

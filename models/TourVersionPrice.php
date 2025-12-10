@@ -4,6 +4,16 @@ require_once 'BaseModel.php';
 class TourVersionPrice extends BaseModel
 {
     protected $table = 'tour_version_prices';
+    protected $columns = [
+        'id',
+        'version_id',
+        'adult_percent',
+        'child_percent',
+        'infant_percent',
+        'child_base_percent',
+        'infant_base_percent',
+        'created_at'
+    ];
 
     /**
      * Get price by version_id
@@ -28,27 +38,38 @@ class TourVersionPrice extends BaseModel
      */
     public function upsertPrice($versionId, $priceData)
     {
-        // Check if price exists
-        $existing = $this->getByVersionId($versionId);
+        try {
+            // Check if price exists
+            $existing = $this->getByVersionId($versionId);
 
-        $data = [
-            'version_id' => $versionId,
-            'adult_percent' => $priceData['adult_percent'] ?? 0,
-            'child_percent' => $priceData['child_percent'] ?? 0,
-            'infant_percent' => $priceData['infant_percent'] ?? 0,
-            'child_base_percent' => $priceData['child_base_percent'] ?? 75,
-            'infant_base_percent' => $priceData['infant_base_percent'] ?? 50,
-            // 'updated_at' => date('Y-m-d H:i:s')
-        ];
+            $data = [
+                'version_id' => $versionId,
+                'adult_percent' => $priceData['adult_percent'] ?? 0,
+                'child_percent' => $priceData['child_percent'] ?? 0,
+                'infant_percent' => $priceData['infant_percent'] ?? 0,
+                'child_base_percent' => $priceData['child_base_percent'] ?? 75,
+                'infant_base_percent' => $priceData['infant_base_percent'] ?? 50
+            ];
 
-        if ($existing) {
-            // Update existing price - use update() method from BaseModel
-            unset($data['version_id']); // Don't update version_id
-            return $this->update($data, 'id = :id', ['id' => $existing['id']]);
-        } else {
-            // Insert new price
-            $data['created_at'] = date('Y-m-d H:i:s');
-            return $this->insert($data);
+            if ($existing) {
+                // Update existing price - use update() method from BaseModel
+                unset($data['version_id']); // Don't update version_id
+                error_log('Updating tour version price: ' . json_encode($data));
+                $result = $this->update($data, 'id = :id', ['id' => $existing['id']]);
+                error_log('Update result: ' . ($result ? 'success' : 'failed'));
+                return $result;
+            } else {
+                // Insert new price
+                $data['created_at'] = date('Y-m-d H:i:s');
+                error_log('Inserting tour version price: ' . json_encode($data));
+                $result = $this->insert($data);
+                error_log('Insert result: ' . ($result ? 'success' : 'failed'));
+                return $result;
+            }
+        } catch (Exception $e) {
+            error_log('Error in upsertPrice: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            throw $e; // Re-throw to be caught by controller
         }
     }
 
