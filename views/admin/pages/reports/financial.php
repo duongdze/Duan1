@@ -39,38 +39,33 @@ $filterOptions = $data['filterOptions'] ?? [];
 
         <!-- Filter Section -->
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 py-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0 fw-bold"><i class="fas fa-filter me-2"></i>Bộ Lọc</h5>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">
-                        <i class="fas fa-redo me-1"></i> Reset
-                    </button>
-                </div>
-            </div>
-            <div class="card-body">
-                <form method="GET" action="<?= BASE_URL_ADMIN ?>" class="row g-3">
+            <div class="card-body py-3">
+                <form action="" method="GET" class="row g-3 align-items-end">
+                    <!-- Ensure mode=admin is preserved -->
+                    <input type="hidden" name="mode" value="admin">
+                    <!-- Maintain current action -->
                     <input type="hidden" name="action" value="reports/financial">
-
+                    
+                    <!-- Date From -->
                     <div class="col-12 col-md-3">
-                        <label class="form-label text-muted small">Từ ngày</label>
-                        <input type="date" class="form-control" name="date_from"
-                            value="<?= htmlspecialchars($filters['date_from'] ?? date('Y-m-01')) ?>">
+                        <label class="form-label small text-muted">Từ ngày</label>
+                        <input type="date" name="date_from" class="form-control" value="<?= $filters['date_from'] ?? date('Y-m-01') ?>">
                     </div>
 
+                    <!-- Date To -->
                     <div class="col-12 col-md-3">
-                        <label class="form-label text-muted small">Đến ngày</label>
-                        <input type="date" class="form-control" name="date_to"
-                            value="<?= htmlspecialchars($filters['date_to'] ?? date('Y-m-d')) ?>">
+                        <label class="form-label small text-muted">Đến ngày</label>
+                        <input type="date" name="date_to" class="form-control" value="<?= $filters['date_to'] ?? date('Y-m-d') ?>">
                     </div>
 
-                    <div class="col-12 col-md-3">
-                        <label class="form-label text-muted small">Tour</label>
-                        <select class="form-select" name="tour_id">
-                            <option value="">Tất cả</option>
+                    <!-- Tour Filter -->
+                     <div class="col-12 col-md-4">
+                        <label class="form-label small text-muted">Tour</label>
+                        <select name="tour_id" class="form-select">
+                            <option value="">Tất cả Tour</option>
                             <?php if (!empty($filterOptions['tours'])): ?>
                                 <?php foreach ($filterOptions['tours'] as $tour): ?>
-                                    <option value="<?= $tour['id'] ?>"
-                                        <?= ($filters['tour_id'] ?? '') == $tour['id'] ? 'selected' : '' ?>>
+                                    <option value="<?= $tour['id'] ?>" <?= ($filters['tour_id'] ?? '') == $tour['id'] ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($tour['name']) ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -78,30 +73,14 @@ $filterOptions = $data['filterOptions'] ?? [];
                         </select>
                     </div>
 
-                    <div class="col-12 col-md-3">
-                        <label class="form-label text-muted small">Danh mục</label>
-                        <select class="form-select" name="category_id">
-                            <option value="">Tất cả</option>
-                            <?php if (!empty($filterOptions['categories'])): ?>
-                                <?php foreach ($filterOptions['categories'] as $category): ?>
-                                    <option value="<?= $category['id'] ?>"
-                                        <?= ($filters['category_id'] ?? '') == $category['id'] ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($category['name']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                    </div>
-
-                    <div class="col-12 d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary px-4">
-                            <i class="fas fa-search me-2"></i> Lọc dữ liệu
-                        </button>
+                    <!-- Buttons -->
+                    <div class="col-12 col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Lọc</button>
+                        <button type="button" onclick="resetFilters()" class="btn btn-outline-secondary"><i class="fas fa-undo"></i></button>
                     </div>
                 </form>
             </div>
         </div>
-
         <!-- Summary Cards -->
         <div class="row g-3 mb-4">
             <!-- Total Revenue -->
@@ -147,7 +126,7 @@ $filterOptions = $data['filterOptions'] ?? [];
                             <h6 class="text-muted mb-0">Lợi Nhuận</h6>
                         </div>
                         <h3 class="fw-bold mb-1"><?= number_format($financialData['profit'] ?? 0, 0, ',', '.') ?> ₫</h3>
-                        <small class="text-muted">Margin: <?= number_format($financialData['profit_margin'] ?? 0, 1) ?>%</small>
+                        <small class="text-muted">Tỷ suất LN: <?= number_format($financialData['profit_margin'] ?? 0, 1) ?>%</small>
                     </div>
                 </div>
             </div>
@@ -218,7 +197,7 @@ $filterOptions = $data['filterOptions'] ?? [];
                                 <th class="border-0 text-end">Doanh Thu</th>
                                 <th class="border-0 text-end">Chi Phí</th>
                                 <th class="border-0 text-end">Lợi Nhuận</th>
-                                <th class="border-0 text-end pe-3">Margin</th>
+                                <th class="border-0 text-end pe-3">Tỷ suất LN</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -388,10 +367,13 @@ $filterOptions = $data['filterOptions'] ?? [];
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
                             labels: {
                                 boxWidth: 12,
-                                padding: 15
+                                padding: 15,
+                                font: {
+                                    size: 11
+                                }
                             }
                         },
                         tooltip: {

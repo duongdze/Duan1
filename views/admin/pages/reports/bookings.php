@@ -37,51 +37,60 @@ $tours = $data['tours'] ?? [];
             </div>
         </header>
 
-        <!-- Filters -->
+        <!-- Filter Section -->
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-                <form method="GET" action="<?= BASE_URL_ADMIN ?>">
+            <div class="card-body py-3">
+                <form action="" method="GET" class="row g-3 align-items-end">
+                    <input type="hidden" name="mode" value="admin">
                     <input type="hidden" name="action" value="reports/bookings">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-12 col-md-3">
-                            <label class="form-label text-muted small">Từ ngày</label>
-                            <input type="date" class="form-control" name="date_from" value="<?= $filters['date_from'] ?? date('Y-m-01') ?>">
-                        </div>
-                        <div class="col-12 col-md-3">
-                            <label class="form-label text-muted small">Đến ngày</label>
-                            <input type="date" class="form-control" name="date_to" value="<?= $filters['date_to'] ?? date('Y-m-d') ?>">
-                        </div>
-                        <div class="col-12 col-md-2">
-                             <label class="form-label text-muted small">Tour</label>
-                             <select class="form-select" name="tour_id">
-                                 <option value="">Tất cả</option>
-                                 <?php foreach ($tours as $tour): ?>
-                                     <option value="<?= $tour['id'] ?>" <?= ($filters['tour_id'] ?? '') == $tour['id'] ? 'selected' : '' ?>>
-                                         <?= htmlspecialchars($tour['name']) ?>
-                                     </option>
-                                 <?php endforeach; ?>
-                             </select>
-                        </div>
-                        <div class="col-12 col-md-2">
-                            <label class="form-label text-muted small">Trạng thái</label>
-                            <select class="form-select" name="status">
-                                <option value="">Tất cả</option>
-                                <option value="pending" <?= ($filters['status'] ?? '') == 'pending' ? 'selected' : '' ?>>Chờ xác nhận</option>
-                                <option value="confirmed" <?= ($filters['status'] ?? '') == 'confirmed' ? 'selected' : '' ?>>Đã xác nhận</option>
-                                <option value="deposited" <?= ($filters['status'] ?? '') == 'deposited' ? 'selected' : '' ?>>Đã cọc</option>
-                                <option value="paid" <?= ($filters['status'] ?? '') == 'paid' ? 'selected' : '' ?>>Đã thanh toán</option>
-                                <option value="completed" <?= ($filters['status'] ?? '') == 'completed' ? 'selected' : '' ?>>Hoàn tất</option>
-                                <option value="cancelled" <?= ($filters['status'] ?? '') == 'cancelled' ? 'selected' : '' ?>>Đã hủy</option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-2">
-                            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-search me-1"></i> Lọc</button>
-                        </div>
+                    
+                    <!-- Date From -->
+                    <div class="col-12 col-md-2">
+                        <label class="form-label small text-muted">Từ ngày</label>
+                        <input type="date" name="date_from" class="form-control" value="<?= $filters['date_from'] ?? date('Y-m-01') ?>">
+                    </div>
+
+                    <!-- Date To -->
+                    <div class="col-12 col-md-2">
+                        <label class="form-label small text-muted">Đến ngày</label>
+                        <input type="date" name="date_to" class="form-control" value="<?= $filters['date_to'] ?? date('Y-m-d') ?>">
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="col-12 col-md-2">
+                        <label class="form-label small text-muted">Trạng thái</label>
+                        <select name="status" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="cho_xac_nhan" <?= ($filters['status'] ?? '') == 'cho_xac_nhan' ? 'selected' : '' ?>>Chờ xác nhận</option>
+                            <option value="da_coc" <?= ($filters['status'] ?? '') == 'da_coc' ? 'selected' : '' ?>>Đã cọc</option>
+                            <option value="hoan_tat" <?= ($filters['status'] ?? '') == 'hoan_tat' ? 'selected' : '' ?>>Hoàn tất</option>
+                            <option value="da_huy" <?= ($filters['status'] ?? '') == 'da_huy' ? 'selected' : '' ?>>Đã hủy</option>
+                        </select>
+                    </div>
+
+                    <!-- Tour Filter -->
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small text-muted">Tour</label>
+                        <select name="tour_id" class="form-select">
+                             <option value="">Tất cả Tour</option>
+                            <?php if (!empty($tours)): ?>
+                                <?php foreach ($tours as $tour): ?>
+                                    <option value="<?= $tour['id'] ?>" <?= ($filters['tour_id'] ?? '') == $tour['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($tour['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+
+                     <!-- Buttons -->
+                    <div class="col-12 col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Lọc</button>
+                        <a href="<?= BASE_URL_ADMIN ?>&action=reports/bookings" class="btn btn-outline-secondary"><i class="fas fa-undo"></i></a>
                     </div>
                 </form>
             </div>
         </div>
-
         <!-- Stats Cards -->
         <div class="row g-3 mb-4">
             <div class="col-12 col-sm-6 col-xl-3">
@@ -95,7 +104,7 @@ $tours = $data['tours'] ?? [];
             <div class="col-12 col-sm-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
                     <div class="card-body">
-                        <h6 class="text-muted mb-2">Thành Công</h6>
+                        <h6 class="text-muted mb-2">Hoàn Tất</h6>
                         <h3 class="fw-bold text-success mb-1"><?= number_format($bookingStats['successful_bookings'] ?? 0) ?></h3>
                         <small class="text-muted">Tỷ lệ: <?= number_format($bookingStats['success_rate'] ?? 0, 1) ?>%</small>
                     </div>
@@ -205,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tension: 0.4,
                 fill: true
             }, {
-                label: 'Thành Công',
+                label: 'Hoàn Tất',
                 data: <?= json_encode($data['monthlySuccessfulBookings'] ?? []) ?>,
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
