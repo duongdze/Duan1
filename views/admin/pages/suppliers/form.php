@@ -99,13 +99,74 @@ $actionUrl = BASE_URL_ADMIN . '&action=suppliers/' . ($isEdit ? 'update' : 'stor
                                             <option value="restaurant" <?= ($supplier['type'] ?? '') == 'restaurant' ? 'selected' : '' ?>>Nhà hàng</option>
                                             <option value="transportation" <?= ($supplier['type'] ?? '') == 'transportation' ? 'selected' : '' ?>>Vận chuyển</option>
                                             <option value="entertainment" <?= ($supplier['type'] ?? '') == 'entertainment' ? 'selected' : '' ?>>Giải trí</option>
-                                            <option value="guide" <?= ($supplier['type'] ?? '') == 'guide' ? 'selected' : '' ?>>Hướng dẫn viên</option>
+                                            <!-- Hướng dẫn viên đã bị loại bỏ theo yêu cầu -->
                                             <option value="other" <?= ($supplier['type'] ?? '') == 'other' ? 'selected' : '' ?>>Khác</option>
                                         </select>
                                         <label for="type">Loại Dịch Vụ</label>
                                     </div>
+                                    </div>
+                                    <!-- Contracts Card -->
+                                    <div class="card mb-4">
+                                        <div class="card-header">
+                                            <h5 class="card-title mb-0">
+                                                <i class="fas fa-file-contract text-info me-2"></i>
+                                                Hợp đồng
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="contracts-wrapper">
+                                                <?php if (!empty($contracts) && is_array($contracts)): ?>
+                                                    <?php foreach ($contracts as $i => $c): ?>
+                                                        <div class="contract-item border rounded p-3 mb-3" data-idx="<?= $i ?>">
+                                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                <strong>Hợp đồng #<?= $i + 1 ?></strong>
+                                                                <button type="button" class="btn btn-sm btn-outline-danger remove-contract">Xóa</button>
+                                                            </div>
+                                                            <div class="row g-2">
+                                                                <div class="col-md-6">
+                                                                    <div class="form-floating">
+                                                                        <input type="text" class="form-control" name="contracts[<?= $i ?>][name]" placeholder=" " value="<?= htmlspecialchars($c['contract_name'] ?? '') ?>">
+                                                                        <label>Tiêu đề hợp đồng</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-floating">
+                                                                        <input type="date" class="form-control" name="contracts[<?= $i ?>][start_date]" placeholder=" " value="<?= htmlspecialchars($c['start_date'] ?? '') ?>">
+                                                                        <label>Ngày bắt đầu</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <div class="form-floating">
+                                                                        <input type="date" class="form-control" name="contracts[<?= $i ?>][end_date]" placeholder=" " value="<?= htmlspecialchars($c['end_date'] ?? '') ?>">
+                                                                        <label>Ngày kết thúc</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <div class="form-floating">
+                                                                        <input type="number" step="0.01" class="form-control" name="contracts[<?= $i ?>][price]" placeholder=" " value="<?= htmlspecialchars($c['price_info'] ?? '') ?>">
+                                                                        <label>Giá / Giá trị</label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-12">
+                                                                    <div class="form-floating">
+                                                                        <textarea class="form-control" name="contracts[<?= $i ?>][notes]" style="height:80px" placeholder=" "><?= htmlspecialchars($c['notes'] ?? '') ?></textarea>
+                                                                        <label>Ghi chú hợp đồng</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" id="add-contract-btn">
+                                                    <i class="fas fa-plus me-1"></i> Thêm hợp đồng
+                                                </button>
+                                            </div>
+                                            <small class="text-muted d-block mt-2">Thêm một hoặc nhiều hợp đồng liên quan đến nhà cung cấp.</small>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
                         </div>
                     </div>
 
@@ -146,16 +207,7 @@ $actionUrl = BASE_URL_ADMIN . '&action=suppliers/' . ($isEdit ? 'update' : 'stor
                                     </div>
                                 </div>
 
-                                <div class="col-md-6">
-                                    <div class="form-floating">
-                                        <input type="number" class="form-control" id="rating" name="rating" 
-                                               min="0" max="5" step="0.1"
-                                               value="<?= htmlspecialchars($supplier['rating'] ?? '') ?>" 
-                                               placeholder=" ">
-                                        <label for="rating">Đánh Giá (0-5)</label>
-                                    </div>
-                                    <small class="text-muted d-block mt-2">Nhập đánh giá từ 0 đến 5 sao</small>
-                                </div>
+                                <!-- Rating field removed per request -->
 
                                 <div class="col-12">
                                     <div class="form-floating">
@@ -225,10 +277,7 @@ $actionUrl = BASE_URL_ADMIN . '&action=suppliers/' . ($isEdit ? 'update' : 'stor
                                     <i class="fas fa-check-circle text-success me-2"></i>
                                     <small>Điền đầy đủ thông tin liên hệ</small>
                                 </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-check-circle text-success me-2"></i>
-                                    <small>Đánh giá giúp theo dõi chất lượng</small>
-                                </li>
+                                <!-- Rating guidance removed -->
                                 <li class="mb-0">
                                     <i class="fas fa-check-circle text-success me-2"></i>
                                     <small>Mô tả chi tiết để dễ quản lý</small>
@@ -245,38 +294,57 @@ $actionUrl = BASE_URL_ADMIN . '&action=suppliers/' . ($isEdit ? 'update' : 'stor
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('supplier-form');
-    
+    const contractsWrapper = document.getElementById('contracts-wrapper');
+    const addContractBtn = document.getElementById('add-contract-btn');
+
+    let contractIndex = <?= isset($contracts) && is_array($contracts) ? count($contracts) : 0 ?>;
+
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+
+    function createContractItem(data = {}) {
+        const idx = contractIndex++;
+        return `\n            <div class="contract-item border rounded p-3 mb-3" data-idx="${idx}">\n                <div class="d-flex justify-content-between align-items-center mb-2">\n                    <strong>Hợp đồng #${idx + 1}</strong>\n                    <button type="button" class="btn btn-sm btn-outline-danger remove-contract">Xóa</button>\n                </div>\n                <div class="row g-2">\n                    <div class="col-md-6">\n                        <div class="form-floating">\n                            <input type="text" class="form-control" name="contracts[${idx}][name]" placeholder=" " value="${data.name || ''}">\n                            <label>Tiêu đề hợp đồng</label>\n                        </div>\n                    </div>\n                    <div class="col-md-3">\n                        <div class="form-floating">\n                            <input type="date" class="form-control" name="contracts[${idx}][start_date]" placeholder=" " value="${data.start_date || ''}">\n                            <label>Ngày bắt đầu</label>\n                        </div>\n                    </div>\n                    <div class="col-md-3">\n                        <div class="form-floating">\n                            <input type="date" class="form-control" name="contracts[${idx}][end_date]" placeholder=" " value="${data.end_date || ''}">\n                            <label>Ngày kết thúc</label>\n                        </div>\n                    </div>\n                    <div class="col-md-6">\n                        <div class="form-floating">\n                            <input type="number" step="0.01" class="form-control" name="contracts[${idx}][price]" placeholder=" " value="${data.price || ''}">\n                            <label>Giá / Giá trị</label>\n                        </div>\n                    </div>\n                    <div class="col-12">\n                        <div class="form-floating">\n                            <textarea class="form-control" name="contracts[${idx}][notes]" style="height:80px" placeholder=" ">${data.notes || ''}</textarea>\n                            <label>Ghi chú hợp đồng</label>\n                        </div>\n                    </div>\n                </div>\n            </div>\n        `;
+    }
+
+    // add first contract button behavior
+    if (addContractBtn) {
+        addContractBtn.addEventListener('click', function() {
+            contractsWrapper.insertAdjacentHTML('beforeend', createContractItem());
+        });
+    }
+
+    // allow removing contracts via delegation
+    if (contractsWrapper) {
+        contractsWrapper.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-contract')) {
+                const item = e.target.closest('.contract-item');
+                if (item) item.remove();
+            }
+        });
+    }
+
+    // basic form validation (no rating check)
     form.addEventListener('submit', function(e) {
         const name = document.getElementById('name').value.trim();
         const email = document.getElementById('email').value.trim();
-        const rating = document.getElementById('rating').value;
-        
+
         if (!name) {
             e.preventDefault();
             alert('Vui lòng nhập tên nhà cung cấp');
             document.getElementById('name').focus();
             return false;
         }
-        
+
         if (email && !validateEmail(email)) {
             e.preventDefault();
             alert('Email không hợp lệ');
             document.getElementById('email').focus();
             return false;
         }
-        
-        if (rating && (parseFloat(rating) < 0 || parseFloat(rating) > 5)) {
-            e.preventDefault();
-            alert('Đánh giá phải từ 0 đến 5');
-            document.getElementById('rating').focus();
-            return false;
-        }
     });
-    
-    function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
-    }
 });
 </script>
 
