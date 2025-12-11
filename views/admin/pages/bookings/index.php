@@ -328,20 +328,20 @@ $isGuide = $userRole === 'guide';
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 <?php if ($isAdmin): ?>
-                                                <a href="<?= BASE_URL_ADMIN . '&action=bookings/edit&id=' . $booking['id'] ?>"
-                                                    class="btn-action btn-edit"
-                                                    data-bs-toggle="tooltip"
-                                                    title="Chỉnh sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <button type="button"
-                                                    class="btn-action btn-delete delete-booking"
-                                                    data-id="<?= $booking['id'] ?>"
-                                                    data-name="<?= htmlspecialchars($booking['customer_name']) ?>"
-                                                    data-bs-toggle="tooltip"
-                                                    title="Xóa">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                                    <a href="<?= BASE_URL_ADMIN . '&action=bookings/edit&id=' . $booking['id'] ?>"
+                                                        class="btn-action btn-edit"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Chỉnh sửa">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <button type="button"
+                                                        class="btn-action btn-delete delete-booking"
+                                                        data-id="<?= $booking['id'] ?>"
+                                                        data-name="<?= htmlspecialchars($booking['customer_name']) ?>"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Xóa">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
                                                 <?php endif; ?>
                                             </div>
                                         </td>
