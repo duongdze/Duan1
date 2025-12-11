@@ -135,8 +135,36 @@ $statusColors = [
             </div>
             <div class="col-md-6">
               <?php if (!empty($assignment)): ?>
-                <p><strong>Trạng thái:</strong> <?= htmlspecialchars($assignment['status'] ?? '') ?></p>
+                <div class="mb-3">
+                  <label class="form-label"><strong>Trạng thái:</strong></label>
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select form-select-sm" id="tour-status-select" style="max-width: 200px;">
+                      <?php
+                      $currentStatus = $assignment['status'] ?? 'pending';
+                      $statuses = [
+                        'pending' => 'Chưa bắt đầu',
+                        'active' => 'Đang diễn ra',
+                        'completed' => 'Hoàn thành'
+                      ];
+                      foreach ($statuses as $value => $label):
+                      ?>
+                        <option value="<?= $value ?>" <?= $currentStatus === $value ? 'selected' : '' ?>>
+                          <?= $label ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-update-status"
+                      data-assignment-id="<?= $assignment['id'] ?? '' ?>">
+                      <i class="fas fa-save"></i> Cập nhật
+                    </button>
+                  </div>
+                </div>
                 <p><strong>Tài xế:</strong> <?= htmlspecialchars($assignment['driver_name'] ?? 'N/A') ?></p>
+              <?php else: ?>
+                <div class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  Chưa có phân công HDV cho tour này.
+                </div>
               <?php endif; ?>
             </div>
           </div>
@@ -445,6 +473,58 @@ $statusColors = [
         container.style.zIndex = '1080';
         document.body.appendChild(container);
         return container;
+      }
+
+      // Handle tour status update
+      const btnUpdateStatus = document.getElementById('btn-update-status');
+      if (btnUpdateStatus) {
+        btnUpdateStatus.addEventListener('click', function() {
+          const assignmentId = this.dataset.assignmentId;
+          const statusSelect = document.getElementById('tour-status-select');
+          const newStatus = statusSelect.value;
+
+          // Validate assignment ID
+          if (!assignmentId || assignmentId === '') {
+            showToast('error', 'Không tìm thấy thông tin phân công. Vui lòng thử lại.');
+            return;
+          }
+
+          if (!confirm('Bạn có chắc muốn cập nhật trạng thái tour?')) {
+            return;
+          }
+
+          // Disable button
+          this.disabled = true;
+          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang cập nhật...';
+
+          fetch('<?= BASE_URL_ADMIN ?>&action=guide/updateStatus', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: `assignment_id=${assignmentId}&status=${newStatus}`
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                showToast('success', data.message);
+                // Reload page after 1 second to show updated status
+                setTimeout(() => location.reload(), 1000);
+              } else {
+                showToast('error', data.message);
+                this.disabled = false;
+                this.innerHTML = '<i class="fas fa-save"></i> Cập nhật';
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              // Comment để xem error thật
+              // showToast('error', 'Có lỗi xảy ra khi cập nhật trạng thái');
+              showToast('error', 'Lỗi: ' + error.message);
+              this.disabled = false;
+              this.innerHTML = '<i class="fas fa-save"></i> Cập nhật';
+            });
+        });
       }
     });
   </script>

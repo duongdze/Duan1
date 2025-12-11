@@ -123,6 +123,7 @@ match ($action) {
     'guide/schedule'                        => (new GuideWorkController)->schedule(),
     'guide/tourDetail'                      => (new GuideWorkController)->tourDetail(),
     'guide/cancelAssignment'                => (new GuideWorkController)->cancelAssignment(), // AJAX
+    'guide/updateStatus'                    => (new GuideWorkController)->updateStatus(), // AJAX
     
     // Available Tours (moved from guides/)
     'available-tours'                       => (new AvailableToursController)->index(),
