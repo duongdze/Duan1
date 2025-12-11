@@ -144,11 +144,13 @@ class Booking extends BaseModel
                     B.booking_date,
                     B.status,
                     T.name AS tour_name, 
-                    BC.full_name AS customer_name
+                    COALESCE(U.full_name, MIN(BC.full_name), 'Khách lẻ') AS customer_name
                 FROM {$this->table} AS B 
                 LEFT JOIN tours AS T ON B.tour_id = T.id
+                LEFT JOIN users AS U ON B.customer_id = U.user_id
                 LEFT JOIN booking_customers AS BC ON B.id = BC.booking_id
                 WHERE B.status = 'cho_xac_nhan'
+                GROUP BY B.id, B.booking_date, B.status, T.name
                 ORDER BY B.booking_date DESC, B.id DESC
                 LIMIT " . (int)$limit;
         $stmt = self::$pdo->prepare($sql);
