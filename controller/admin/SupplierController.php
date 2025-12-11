@@ -1,13 +1,16 @@
 <?php
 require_once 'models/Supplier.php';
+require_once 'models/SupplierContract.php'; // Add SupplierContract model
 
 class SupplierController
 {
     protected $model;
+    protected $contractModel;
 
     public function __construct()
     {
         $this->model = new Supplier();
+        $this->contractModel = new SupplierContract();
     }
 
     public function index()
@@ -45,13 +48,13 @@ class SupplierController
         $allSuppliers = $this->model->select();
         $stats = [
             'total' => count($allSuppliers),
-            'active' => count(array_filter($allSuppliers, function($s) {
+            'active' => count(array_filter($allSuppliers, function ($s) {
                 return !empty($s['rating']) && $s['rating'] >= 3;
             })),
-            'high_rated' => count(array_filter($allSuppliers, function($s) {
+            'high_rated' => count(array_filter($allSuppliers, function ($s) {
                 return !empty($s['rating']) && $s['rating'] >= 4;
             })),
-            'avg_rating' => !empty($allSuppliers) ? 
+            'avg_rating' => !empty($allSuppliers) ?
                 array_sum(array_column($allSuppliers, 'rating')) / count($allSuppliers) : 0
         ];
 
@@ -63,6 +66,8 @@ class SupplierController
 
     public function create()
     {
+        // $contracts is empty for create view
+        $contracts = [];
         require_once 'views/admin/pages/suppliers/form.php';
     }
 
@@ -117,9 +122,6 @@ class SupplierController
             if ($supplierId) {
                 // Save contracts if any
                 if (!empty($_POST['contracts']) && is_array($_POST['contracts'])) {
-                    require_once 'models/SupplierContract.php';
-                    $contractModel = new SupplierContract();
-
                     foreach ($_POST['contracts'] as $c) {
                         $contractData = [
                             'supplier_id' => $supplierId,
@@ -131,9 +133,8 @@ class SupplierController
                             'notes' => trim($c['notes'] ?? '')
                         ];
 
-                        // Only insert if has a name or any meaningful data
                         if ($contractData['contract_name'] || $contractData['start_date'] || $contractData['end_date'] || $contractData['price_info'] || $contractData['notes']) {
-                            $contractModel->insert($contractData);
+                            $this->contractModel->insert($contractData);
                         }
                     }
                 }
@@ -153,7 +154,7 @@ class SupplierController
     public function edit()
     {
         $id = $_GET['id'] ?? null;
-        
+
         if (!$id) {
             $_SESSION['error'] = 'ID không hợp lệ';
             header('Location: ' . BASE_URL_ADMIN . '&action=suppliers');
@@ -162,16 +163,14 @@ class SupplierController
 
         $supplier = $this->model->find('*', 'id = :id', ['id' => $id]);
 
-        // Load supplier contracts for edit form
-        require_once 'models/SupplierContract.php';
-        $contractModel = new SupplierContract();
-        $contracts = $contractModel->getBySupplier($id);
-
         if (!$supplier) {
             $_SESSION['error'] = 'Không tìm thấy nhà cung cấp';
             header('Location: ' . BASE_URL_ADMIN . '&action=suppliers');
             exit;
         }
+
+        // Fetch contracts for edit view
+        $contracts = $this->contractModel->getBySupplierId($id);
 
         require_once 'views/admin/pages/suppliers/form.php';
     }
@@ -234,11 +233,8 @@ class SupplierController
 
             if ($result !== false) {
                 // Replace contracts: delete existing then insert provided
-                require_once 'models/SupplierContract.php';
-                $contractModel = new SupplierContract();
-
                 // delete all existing for supplier
-                $contractModel->delete('supplier_id = :sid', ['sid' => $id]);
+                $this->contractModel->delete('supplier_id = :sid', ['sid' => $id]);
 
                 if (!empty($_POST['contracts']) && is_array($_POST['contracts'])) {
                     foreach ($_POST['contracts'] as $c) {
@@ -253,7 +249,7 @@ class SupplierController
                         ];
 
                         if ($contractData['contract_name'] || $contractData['start_date'] || $contractData['end_date'] || $contractData['price_info'] || $contractData['notes']) {
-                            $contractModel->insert($contractData);
+                            $this->contractModel->insert($contractData);
                         }
                     }
                 }
@@ -287,6 +283,10 @@ class SupplierController
         }
 
         try {
+            // Delete contracts
+            $this->contractModel->delete('supplier_id = :sid', ['sid' => $id]);
+
+            // Delete supplier
             $result = $this->model->delete('id = :id', ['id' => $id]);
 
             if ($result) {
@@ -305,7 +305,7 @@ class SupplierController
     public function detail()
     {
         $id = $_GET['id'] ?? null;
-        
+
         if (!$id) {
             $_SESSION['error'] = 'ID không hợp lệ';
             header('Location: ' . BASE_URL_ADMIN . '&action=suppliers');
@@ -320,10 +320,8 @@ class SupplierController
             exit;
         }
 
-        // Load contracts
-        require_once 'models/SupplierContract.php';
-        $contractModel = new SupplierContract();
-        $contracts = $contractModel->getBySupplier($id);
+        // Fetch contracts
+        $contracts = $this->contractModel->getBySupplierId($id);
 
         require_once 'views/admin/pages/suppliers/detail.php';
     }

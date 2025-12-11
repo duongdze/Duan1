@@ -61,6 +61,9 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                 <a href="<?= BASE_URL_ADMIN ?>&action=guide/tourDetail&id=<?= $a['tour_id'] ?>&guide_id=<?= $group['guide']['id'] ?>" class="btn btn-sm btn-info">
                                                     <i class="fas fa-eye"></i> Chi tiết
                                                 </a>
+                                                <a href="<?= BASE_URL_ADMIN ?>&action=tour_vehicles&assignment_id=<?= $a['id'] ?>" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-bus"></i> Xe
+                                                </a>
                                                 <button class="btn btn-sm btn-danger remove-assignment-btn"
                                                     data-assignment-id="<?= $a['id'] ?>"
                                                     data-tour-name="<?= htmlspecialchars($a['tour_name'] ?? '') ?>"

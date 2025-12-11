@@ -19,6 +19,14 @@ class TourAssignment extends BaseModel
     ];
 
     /**
+     * Lấy chi tiết assignment theo ID
+     */
+    public function getById($id)
+    {
+        return $this->find('*', 'id = :id', ['id' => $id]);
+    }
+
+    /**
      * Phân công tour cho HDV
      * @param int $guideId
      * @param int $tourId
