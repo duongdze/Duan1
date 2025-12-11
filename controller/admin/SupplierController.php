@@ -112,9 +112,32 @@ class SupplierController
             }
 
             // Insert into database
-            $result = $this->model->insert($data);
+            $supplierId = $this->model->insert($data);
 
-            if ($result) {
+            if ($supplierId) {
+                // Save contracts if any
+                if (!empty($_POST['contracts']) && is_array($_POST['contracts'])) {
+                    require_once 'models/SupplierContract.php';
+                    $contractModel = new SupplierContract();
+
+                    foreach ($_POST['contracts'] as $c) {
+                        $contractData = [
+                            'supplier_id' => $supplierId,
+                            'contract_name' => trim($c['name'] ?? ''),
+                            'start_date' => !empty($c['start_date']) ? trim($c['start_date']) : null,
+                            'end_date' => !empty($c['end_date']) ? trim($c['end_date']) : null,
+                            'price_info' => !empty($c['price']) ? trim($c['price']) : null,
+                            'status' => 'active',
+                            'notes' => trim($c['notes'] ?? '')
+                        ];
+
+                        // Only insert if has a name or any meaningful data
+                        if ($contractData['contract_name'] || $contractData['start_date'] || $contractData['end_date'] || $contractData['price_info'] || $contractData['notes']) {
+                            $contractModel->insert($contractData);
+                        }
+                    }
+                }
+
                 $_SESSION['success'] = 'Thêm nhà cung cấp thành công';
             } else {
                 $_SESSION['error'] = 'Có lỗi xảy ra khi thêm nhà cung cấp';
@@ -138,6 +161,11 @@ class SupplierController
         }
 
         $supplier = $this->model->find('*', 'id = :id', ['id' => $id]);
+
+        // Load supplier contracts for edit form
+        require_once 'models/SupplierContract.php';
+        $contractModel = new SupplierContract();
+        $contracts = $contractModel->getBySupplier($id);
 
         if (!$supplier) {
             $_SESSION['error'] = 'Không tìm thấy nhà cung cấp';
@@ -204,7 +232,32 @@ class SupplierController
             // Update database
             $result = $this->model->update($data, 'id = :id', ['id' => $id]);
 
-            if ($result) {
+            if ($result !== false) {
+                // Replace contracts: delete existing then insert provided
+                require_once 'models/SupplierContract.php';
+                $contractModel = new SupplierContract();
+
+                // delete all existing for supplier
+                $contractModel->delete('supplier_id = :sid', ['sid' => $id]);
+
+                if (!empty($_POST['contracts']) && is_array($_POST['contracts'])) {
+                    foreach ($_POST['contracts'] as $c) {
+                        $contractData = [
+                            'supplier_id' => $id,
+                            'contract_name' => trim($c['name'] ?? ''),
+                            'start_date' => !empty($c['start_date']) ? trim($c['start_date']) : null,
+                            'end_date' => !empty($c['end_date']) ? trim($c['end_date']) : null,
+                            'price_info' => !empty($c['price']) ? trim($c['price']) : null,
+                            'status' => 'active',
+                            'notes' => trim($c['notes'] ?? '')
+                        ];
+
+                        if ($contractData['contract_name'] || $contractData['start_date'] || $contractData['end_date'] || $contractData['price_info'] || $contractData['notes']) {
+                            $contractModel->insert($contractData);
+                        }
+                    }
+                }
+
                 $_SESSION['success'] = 'Cập nhật nhà cung cấp thành công';
             } else {
                 $_SESSION['error'] = 'Có lỗi xảy ra khi cập nhật nhà cung cấp';
