@@ -191,7 +191,7 @@
             </tr>
             <tr>
                 <td>Số lượng khách:</td>
-                <td><strong><?= $stats['total'] ?> khách</strong> (<?= $stats['adults'] ?> NL, <?= $stats['children'] ?> TE, <?= $stats['infants'] ?> EB)</td>
+                <td><strong><?= $stats['total'] ?> khách</strong> (<?= $stats['adults'] ?> NL, <?= $stats['children'] ?> TE, <?= $stats['infants'] ?> SN)</td>
             </tr>
         </table>
     </div>
@@ -205,6 +205,7 @@
                 <th style="width: 60px;">GT</th>
                 <th style="width: 100px;">Ngày sinh</th>
                 <th style="width: 100px;">CMND/Passport</th>
+                <th style="width: 60px;">Booking</th>
                 <th style="width: 80px;">Loại khách</th>
                 <th style="width: 80px;">Loại phòng</th>
                 <th>Yêu cầu đặc biệt</th>
@@ -214,7 +215,7 @@
         <tbody>
             <?php if (empty($customers)): ?>
                 <tr>
-                    <td colspan="9" class="center">Chưa có khách nào</td>
+                    <td colspan="10" class="center">Chưa có khách nào</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($customers as $index => $customer): ?>
@@ -235,13 +236,14 @@
                             ?>
                         </td>
                         <td class="center"><?= htmlspecialchars($customer['id_card'] ?? '') ?></td>
+                        <td class="center">#<?= htmlspecialchars($customer['booking_code'] ?? '') ?></td>
                         <td class="center">
                             <?php
                             $type = $customer['passenger_type'] ?? 'adult';
                             $typeLabels = [
                                 'adult' => 'NL',
                                 'child' => 'TE',
-                                'infant' => 'EB'
+                                'infant' => 'SN'
                             ];
                             echo $typeLabels[$type] ?? 'NL';
 
@@ -273,7 +275,7 @@
     <!-- Summary -->
     <div class="summary">
         Tổng cộng: <?= $stats['total'] ?> khách
-        (<?= $stats['adults'] ?> Người lớn, <?= $stats['children'] ?> Trẻ em, <?= $stats['infants'] ?> Em bé)
+        (<?= $stats['adults'] ?> Người lớn, <?= $stats['children'] ?> Trẻ em, <?= $stats['infants'] ?> Sơ sinh)
     </div>
 
     <!-- Signature Section -->
