@@ -173,7 +173,18 @@ class Booking extends BaseModel
      */
     public function getByTourId($tourId)
     {
-        return $this->select('*', 'tour_id = :tour_id', ['tour_id' => $tourId], 'id ASC');
+        $sql = "SELECT 
+                    B.*,
+                    U.full_name AS customer_name
+                FROM bookings AS B
+                LEFT JOIN users AS U ON B.customer_id = U.user_id
+                WHERE B.tour_id = :tour_id
+                AND B.status IN ('cho_xac_nhan', 'da_coc')
+                ORDER BY B.id ASC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**

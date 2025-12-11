@@ -718,25 +718,107 @@ class BookingController
             exit;
         }
 
+
         try {
             $userId = $_SESSION['user']['user_id'] ?? null;
             $customerModel = new BookingCustomer();
 
-            $result = $customerModel->updateCheckinStatus(
-                $customerId,
-                $status,
-                $userId,
-                $notes
-            );
+            // Check if this is a main customer (ID starts with 'main_')
+            if (strpos($customerId, 'main_') === 0) {
+                // Extract booking_id from 'main_42' -> 42
+                $bookingId = (int)str_replace('main_', '', $customerId);
 
-            if ($result) {
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Cập nhật thành công',
-                    'timestamp' => date('H:i d/m/Y')
+                // Get booking info with customer_name
+                $sql = "SELECT 
+                            B.*,
+                            U.full_name AS customer_name
+                        FROM bookings AS B
+                        LEFT JOIN users AS U ON B.customer_id = U.user_id
+                        WHERE B.id = :booking_id";
+
+                $pdo = BaseModel::getPdo();
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute(['booking_id' => $bookingId]);
+                $booking = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$booking) {
+                    echo json_encode(['success' => false, 'message' => 'Không tìm thấy booking']);
+                    exit;
+                }
+
+                // Check if main customer record already exists
+                $sql = "SELECT id FROM booking_customers 
+                        WHERE booking_id = :booking_id 
+                        AND full_name = :full_name 
+                        LIMIT 1";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([
+                    'booking_id' => $bookingId,
+                    'full_name' => $booking['customer_name']
                 ]);
+                $existingCustomer = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($existingCustomer) {
+                    // Update existing record
+                    $result = $customerModel->updateCheckinStatus(
+                        $existingCustomer['id'],
+                        $status,
+                        $userId,
+                        $notes
+                    );
+
+                    if ($result) {
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'Cập nhật thành công',
+                            'timestamp' => date('H:i d/m/Y')
+                        ]);
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'Cập nhật thất bại']);
+                    }
+                } else {
+                    // Create new booking_customer record for main customer
+                    $customerData = [
+                        'booking_id' => $bookingId,
+                        'full_name' => $booking['customer_name'] ?? 'N/A',
+                        'passenger_type' => 'adult',
+                        'is_foc' => 0,
+                        'checkin_status' => $status,
+                        'checked_by' => $userId,
+                        'checkin_time' => ($status !== 'not_arrived') ? date('Y-m-d H:i:s') : null,
+                        'checkin_notes' => $notes
+                    ];
+
+                    $newCustomerId = $customerModel->insert($customerData);
+
+                    if ($newCustomerId) {
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'Cập nhật thành công',
+                            'timestamp' => date('H:i d/m/Y')
+                        ]);
+                    } else {
+                        echo json_encode(['success' => false, 'message' => 'Không thể tạo record']);
+                    }
+                }
             } else {
-                echo json_encode(['success' => false, 'message' => 'Cập nhật thất bại']);
+                // Regular customer - update existing record
+                $result = $customerModel->updateCheckinStatus(
+                    $customerId,
+                    $status,
+                    $userId,
+                    $notes
+                );
+
+                if ($result) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Cập nhật thành công',
+                        'timestamp' => date('H:i d/m/Y')
+                    ]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Cập nhật thất bại']);
+                }
             }
         } catch (Exception $e) {
             error_log('Check-in error: ' . $e->getMessage());

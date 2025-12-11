@@ -65,10 +65,44 @@ class GuideWorkController
         ];
 
         foreach ($bookings as $booking) {
+            // Lấy khách đi cùng
             $customers = $customerModel->getCustomersWithCheckinStatus($booking['id']);
+
+            // Kiểm tra xem main customer đã có trong booking_customers chưa
+            $mainCustomerExists = false;
+            foreach ($customers as $customer) {
+                if ($customer['full_name'] === $booking['customer_name']) {
+                    $mainCustomerExists = true;
+                    break;
+                }
+            }
+
+            // Chỉ thêm virtual main customer nếu chưa có trong database
+            if (!empty($booking['customer_name']) && !$mainCustomerExists) {
+                $mainCustomer = [
+                    'id' => 'main_' . $booking['id'],
+                    'full_name' => $booking['customer_name'],
+                    'booking_code' => $booking['id'],
+                    'booking_customer_name' => $booking['customer_name'],
+                    'checkin_status' => 'not_arrived',
+                    'passenger_type' => 'adult',
+                    'is_foc' => 0,
+                    'is_main' => true, // Đánh dấu là người đặt
+                    'phone' => null,
+                    'special_request' => null
+                ];
+                $allCustomers[] = $mainCustomer;
+
+                // Tính stats
+                $stats['total']++;
+                $stats['not_arrived']++;
+            }
+
+            // Thêm khách đi cùng
             foreach ($customers as $customer) {
                 $customer['booking_code'] = $booking['id'];
                 $customer['booking_customer_name'] = $booking['customer_name'] ?? 'N/A';
+                $customer['is_main'] = false;
                 $allCustomers[] = $customer;
 
                 // Tính stats
