@@ -250,7 +250,7 @@ class FinancialReport extends BaseModel
 
             $monthlyData[] = [
                 'month' => $month,
-                'month_name' => date('F', mktime(0, 0, 0, $month, 1)),
+                'month_name' => "Tháng $month",
                 'revenue' => $revenue,
                 'expense' => $expense,
                 'profit' => $profit,

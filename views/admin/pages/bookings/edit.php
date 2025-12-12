@@ -75,7 +75,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         <?php endif; ?>
 
         <!-- Progress Steps -->
-        <div class="progress-steps-wrapper mb-4">
+        <div class="progress-steps-wrapper mb-4" style="display: none;">
             <div class="progress-steps">
                 <div class="step active" data-step="1">
                     <div class="step-number">1</div>

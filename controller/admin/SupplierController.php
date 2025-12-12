@@ -234,6 +234,40 @@ class SupplierController
         }
 
         try {
+            // 1. Kiểm tra Hợp đồng
+            require_once 'models/SupplierContract.php';
+            $contractModel = new SupplierContract();
+            $contractCount = $contractModel->count('supplier_id = :id', ['id' => $id]);
+            
+            if ($contractCount > 0) {
+                $_SESSION['error'] = 'Không thể xóa: Nhà cung cấp này đang có ' . $contractCount . ' hợp đồng lưu trong hệ thống.';
+                header('Location: ' . BASE_URL_ADMIN . '&action=suppliers');
+                exit;
+            }
+
+            // 2. Kiểm tra Tour
+            require_once 'models/Tour.php';
+            $tourModel = new Tour();
+            $tourCount = $tourModel->count('supplier_id = :id', ['id' => $id]);
+            
+            if ($tourCount > 0) {
+                $_SESSION['error'] = 'Không thể xóa: Nhà cung cấp này đang cung cấp dịch vụ cho ' . $tourCount . ' tour.';
+                header('Location: ' . BASE_URL_ADMIN . '&action=suppliers');
+                exit;
+            }
+
+            // 3. Kiểm tra Chi phí phát sinh trong Booking
+            require_once 'models/BookingSupplierAssignment.php';
+            $assignmentModel = new BookingSupplierAssignment();
+            $assignmentCount = $assignmentModel->count('supplier_id = :id', ['id' => $id]);
+            
+            if ($assignmentCount > 0) {
+                $_SESSION['error'] = 'Không thể xóa: Nhà cung cấp này đã được gán vào ' . $assignmentCount . ' khoản chi trong booking. Việc xóa sẽ làm sai lệch báo cáo tài chính.';
+                header('Location: ' . BASE_URL_ADMIN . '&action=suppliers');
+                exit;
+            }
+
+            // Nếu an toàn thì mới cho xóa
             $result = $this->model->delete('id = :id', ['id' => $id]);
 
             if ($result) {
