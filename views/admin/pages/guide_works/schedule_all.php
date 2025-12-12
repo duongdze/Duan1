@@ -34,10 +34,35 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <tr>
                                             <td><?= htmlspecialchars($a['tour_name'] ?? '') ?></td>
                                             <td><?= htmlspecialchars($a['start_date'] ?? '') ?> - <?= htmlspecialchars($a['end_date'] ?? '') ?></td>
-                                            <td><?= htmlspecialchars($a['status'] ?? '') ?></td>
+                                            <td>
+                                                <?php
+                                                $status = $a['status'] ?? 'pending';
+                                                $statusConfig = [
+                                                    'pending' => ['class' => 'warning', 'label' => 'Chưa bắt đầu'],
+                                                    'active' => ['class' => 'success', 'label' => 'Đang diễn ra'],
+                                                    'completed' => ['class' => 'secondary', 'label' => 'Hoàn thành']
+                                                ];
+                                                $config = $statusConfig[$status] ?? ['class' => 'secondary', 'label' => $status];
+                                                ?>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge bg-<?= $config['class'] ?>">
+                                                        <?= $config['label'] ?>
+                                                    </span>
+                                                    <!-- <select class="form-select form-select-sm status-select"
+                                                        style="max-width: 150px;"
+                                                        data-assignment-id="<?= $a['id'] ?>">
+                                                        <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Chưa bắt đầu</option>
+                                                        <option value="active" <?= $status === 'active' ? 'selected' : '' ?>>Đang diễn ra</option>
+                                                        <option value="completed" <?= $status === 'completed' ? 'selected' : '' ?>>Hoàn thành</option>
+                                                    </select> -->
+                                                </div>
+                                            </td>
                                             <td>
                                                 <a href="<?= BASE_URL_ADMIN ?>&action=guide/tourDetail&id=<?= $a['tour_id'] ?>&guide_id=<?= $group['guide']['id'] ?>" class="btn btn-sm btn-info">
                                                     <i class="fas fa-eye"></i> Chi tiết
+                                                </a>
+                                                <a href="<?= BASE_URL_ADMIN ?>&action=tour_vehicles&assignment_id=<?= $a['id'] ?>" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-bus"></i> Xe
                                                 </a>
                                                 <button class="btn btn-sm btn-danger remove-assignment-btn"
                                                     data-assignment-id="<?= $a['id'] ?>"
@@ -60,6 +85,48 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Handle status change
+        document.querySelectorAll('.status-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const assignmentId = this.dataset.assignmentId;
+                const newStatus = this.value;
+                const originalValue = this.querySelector('option[selected]')?.value || 'pending';
+
+                if (!confirm('Bạn có chắc muốn cập nhật trạng thái?')) {
+                    this.value = originalValue;
+                    return;
+                }
+
+                // Disable select
+                this.disabled = true;
+
+                fetch('<?= BASE_URL_ADMIN ?>&action=guide/updateStatus', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: `assignment_id=${assignmentId}&status=${newStatus}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('✅ ' + data.message);
+                            location.reload();
+                        } else {
+                            alert('❌ ' + data.message);
+                            this.value = originalValue;
+                            this.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra khi cập nhật trạng thái');
+                        this.value = originalValue;
+                        this.disabled = false;
+                    });
+            });
+        });
+
         // Handle remove assignment buttons
         document.querySelectorAll('.remove-assignment-btn').forEach(btn => {
             btn.addEventListener('click', function() {

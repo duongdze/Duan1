@@ -19,6 +19,14 @@ class TourAssignment extends BaseModel
     ];
 
     /**
+     * Lấy chi tiết assignment theo ID
+     */
+    public function getById($id)
+    {
+        return $this->find('*', 'id = :id', ['id' => $id]);
+    }
+
+    /**
      * Phân công tour cho HDV
      * @param int $guideId
      * @param int $tourId
@@ -219,8 +227,7 @@ class TourAssignment extends BaseModel
         ) bc_count ON b.id = bc_count.booking_id
         WHERE t.id NOT IN (
             SELECT DISTINCT tour_id 
-            FROM tour_assignments 
-            WHERE status = 'active'
+            FROM tour_assignments
         )
         GROUP BY t.id, t.name, t.category_id, t.description, t.base_price, t.created_at, t.updated_at
         HAVING COUNT(DISTINCT b.id) > 0

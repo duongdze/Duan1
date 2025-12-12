@@ -894,9 +894,61 @@ class BookingController
         $tourModel = new Tour();
         $tour = $tourModel->find('*', 'id = :id', ['id' => $booking['tour_id']]);
 
-        // Lấy danh sách khách
+        // Lấy TẤT CẢ booking của tour này (chỉ đã cọc và chờ xác nhận)
+        $pdo = $this->model->getPdo();
+        $stmt = $pdo->prepare("
+            SELECT b.*, u.full_name, u.email, u.phone
+            FROM bookings b
+            LEFT JOIN users u ON b.customer_id = u.user_id
+            WHERE b.tour_id = :tour_id 
+            AND b.status IN ('da_coc', 'cho_xac_nhan')
+        ");
+        $stmt->execute([
+            ':tour_id' => $booking['tour_id']
+        ]);
+        $allBookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Lấy danh sách khách từ TẤT CẢ booking
         $customerModel = new BookingCustomer();
-        $customers = $customerModel->getByBooking($bookingId);
+        $customers = [];
+
+        foreach ($allBookings as $bk) {
+            // Lấy các khách đi kèm từ booking_customers
+            $bookingCustomers = $customerModel->getByBooking($bk['id']);
+
+            // Kiểm tra xem người đặt booking đã có trong booking_customers chưa
+            $mainCustomerExists = false;
+            foreach ($bookingCustomers as $customer) {
+                if ($customer['full_name'] === $bk['full_name']) {
+                    $mainCustomerExists = true;
+                    break;
+                }
+            }
+
+            // 1. Chỉ thêm người đặt booking nếu CHƯA có trong booking_customers
+            if (!empty($bk['full_name']) && !$mainCustomerExists) {
+                $bookingCustomer = [
+                    'full_name' => $bk['full_name'],
+                    'gender' => '', // Không có trong users table
+                    'birth_date' => '', // Không có trong users table
+                    'id_card' => '', // Không có trong users table
+                    'passenger_type' => 'adult', // Người đặt thường là người lớn
+                    'room_type' => '',
+                    'special_request' => '',
+                    'is_foc' => 0,
+                    'booking_code' => $bk['id'],
+                    'booking_customer_name' => $bk['full_name']
+                ];
+                $customers[] = $bookingCustomer;
+            }
+
+            // 2. Thêm các khách đi kèm (từ bảng booking_customers)
+            foreach ($bookingCustomers as $customer) {
+                $customer['booking_code'] = $bk['id'];
+                $customer['booking_customer_name'] = $bk['full_name'] ?? 'N/A';
+                $customers[] = $customer;
+            }
+        }
 
         // Thống kê theo loại khách
         $stats = [

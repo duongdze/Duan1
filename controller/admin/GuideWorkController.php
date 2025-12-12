@@ -180,4 +180,84 @@ class GuideWorkController
         }
         exit;
     }
+
+    /**
+     * Cập nhật trạng thái tour assignment
+     */
+    public function updateStatus()
+    {
+        header('Content-Type: application/json');
+
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        $assignmentId = $_POST['assignment_id'] ?? null;
+        $status = $_POST['status'] ?? null;
+        $userId = $_SESSION['user_id'] ?? null;
+
+        // Validate input
+        if (!$assignmentId || !$status) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc']);
+            exit;
+        }
+
+        // Validate status value
+        $validStatuses = ['pending', 'active', 'completed'];
+        if (!in_array($status, $validStatuses)) {
+            echo json_encode(['success' => false, 'message' => 'Trạng thái không hợp lệ']);
+            exit;
+        }
+
+        // Lấy thông tin assignment
+        $assignment = GuideWorkModel::getAssignmentById($assignmentId);
+
+        if (!$assignment) {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy phân công']);
+            exit;
+        }
+
+        // Kiểm tra quyền (HDV được phân công hoặc admin)
+        $role = $_SESSION['role'] ?? null;
+
+        if ($role !== 'admin') {
+            // Nếu không phải admin, kiểm tra xem có phải HDV được phân công không
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.']);
+                exit;
+            }
+
+            $guide = GuideWorkModel::getGuideByUserId($userId);
+            if (!$guide) {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy thông tin hướng dẫn viên.']);
+                exit;
+            }
+
+            if ($guide['id'] != $assignment['guide_id']) {
+                echo json_encode(['success' => false, 'message' => 'Bạn không có quyền cập nhật trạng thái tour này.']);
+                exit;
+            }
+        }
+
+        // Update status
+        $result = GuideWorkModel::updateAssignmentStatus($assignmentId, $status);
+
+        if ($result) {
+            $statusLabels = [
+                'pending' => 'Chưa bắt đầu',
+                'active' => 'Đang diễn ra',
+                'completed' => 'Hoàn thành'
+            ];
+            echo json_encode([
+                'success' => true,
+                'message' => 'Đã cập nhật trạng thái thành "' . $statusLabels[$status] . '"'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi cập nhật trạng thái'
+            ]);
+        }
+        exit;
+    }
 }

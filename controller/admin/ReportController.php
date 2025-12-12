@@ -351,10 +351,10 @@ class ReportController
         $sql = "SELECT 
                     COUNT(F.id) as total_feedbacks,
                     AVG(F.rating) as avg_rating,
-                    SUM(CASE WHEN F.sentiment = 'positive' THEN 1 ELSE 0 END) as positive_feedbacks,
-                    SUM(CASE WHEN F.sentiment = 'negative' THEN 1 ELSE 0 END) as negative_feedbacks,
-                    SUM(CASE WHEN F.sentiment = 'neutral' THEN 1 ELSE 0 END) as neutral_feedbacks
-                FROM feedbacks F 
+                    SUM(CASE WHEN F.rating >= 4 THEN 1 ELSE 0 END) as positive_feedbacks,
+                    SUM(CASE WHEN F.rating <= 2 THEN 1 ELSE 0 END) as negative_feedbacks,
+                    SUM(CASE WHEN F.rating = 3 THEN 1 ELSE 0 END) as neutral_feedbacks
+                FROM tour_feedbacks F 
                 $whereClause";
 
         try {
@@ -436,18 +436,17 @@ class ReportController
                     TC.name AS category_name,
                     U.full_name AS customer_name,
                     U.email AS customer_email,
+                    T.name AS target_name,
+                    'tour' as feedback_type,
                     CASE 
-                        WHEN F.feedback_type = 'tour' THEN T.name
-                        WHEN F.feedback_type = 'supplier' THEN S.name
-                        WHEN F.feedback_type = 'guide' THEN G.full_name
-                        ELSE 'N/A'
-                    END AS target_name
-                FROM feedbacks F
+                        WHEN F.rating >= 4 THEN 'positive'
+                        WHEN F.rating <= 2 THEN 'negative'
+                        ELSE 'neutral'
+                    END AS sentiment
+                FROM tour_feedbacks F
                 LEFT JOIN tours T ON F.tour_id = T.id
                 LEFT JOIN tour_categories TC ON T.category_id = TC.id
-                LEFT JOIN users U ON F.customer_id = U.user_id
-                LEFT JOIN suppliers S ON F.supplier_id = S.id
-                LEFT JOIN guides G ON F.guide_id = G.id
+                LEFT JOIN users U ON F.user_id = U.user_id
                 $whereClause
                 ORDER BY F.created_at DESC";
 
@@ -471,9 +470,8 @@ class ReportController
                     COUNT(F.id) AS feedback_count,
                     AVG(F.rating) AS avg_rating
                 FROM tours T
-                LEFT JOIN feedbacks F ON T.id = F.tour_id
+                LEFT JOIN tour_feedbacks F ON T.id = F.tour_id
                 WHERE F.created_at BETWEEN :date_from AND :date_to
-                AND F.feedback_type = 'tour'
                 GROUP BY T.id, T.name
                 HAVING feedback_count > 0
                 ORDER BY avg_rating DESC, feedback_count DESC
@@ -494,7 +492,14 @@ class ReportController
     private function getKeywordAnalysis($dateFrom, $dateTo)
     {
         // Simplified keyword analysis - trong thực tế có thể dùng NLP library
-        $sql = "SELECT comment, sentiment FROM feedbacks 
+        $sql = "SELECT 
+                    comment,
+                    CASE 
+                        WHEN rating >= 4 THEN 'positive'
+                        WHEN rating <= 2 THEN 'negative'
+                        ELSE 'neutral'
+                    END as sentiment 
+                FROM tour_feedbacks 
                 WHERE created_at BETWEEN :date_from AND :date_to
                 AND comment IS NOT NULL AND comment != ''";
 
@@ -547,12 +552,10 @@ class ReportController
     private function getFeedbackTypeDistribution($dateFrom, $dateTo)
     {
         $sql = "SELECT 
-                    F.feedback_type as type,
+                    'Tour' as type,
                     COUNT(F.id) as count
-                FROM feedbacks F 
-                WHERE F.created_at BETWEEN :date_from AND :date_to
-                GROUP BY F.feedback_type
-                ORDER BY count DESC";
+                FROM tour_feedbacks F 
+                WHERE F.created_at BETWEEN :date_from AND :date_to";
 
         try {
             $stmt = $this->pdo->prepare($sql);

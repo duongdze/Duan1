@@ -15,36 +15,12 @@ class SupplierContract extends BaseModel
         'notes'
     ];
 
-    /**
-     * Lấy hợp đồng theo supplier_id
-     */
-    public function getBySupplier($supplierId)
+    public function getBySupplierId($supplierId)
     {
-        return $this->select('*', 'supplier_id = :supplier_id', ['supplier_id' => $supplierId], 'start_date DESC');
-    }
+        $sql = "SELECT * FROM {$this->table} WHERE supplier_id = :supplier_id";
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['supplier_id' => $supplierId]);
 
-    /**
-     * Lấy hợp đồng đang hoạt động
-     */
-    public function getActiveContracts($supplierId)
-    {
-        return $this->select('*', "supplier_id = :supplier_id AND status = 'active'", ['supplier_id' => $supplierId], 'start_date DESC');
-    }
-
-    /**
-     * Kiểm tra hợp đồng có còn hiệu lực không
-     */
-    public function isValid($contractId)
-    {
-        $contract = $this->find('*', 'id = :id', ['id' => $contractId]);
-        
-        if (!$contract) {
-            return false;
-        }
-
-        $today = date('Y-m-d');
-        return $contract['status'] === 'active' 
-            && $today >= $contract['start_date'] 
-            && $today <= $contract['end_date'];
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

@@ -89,4 +89,12 @@ class GuideWorkModel
         $stmt = $pdo->prepare($sql);
         return $stmt->execute([$assignmentId]);
     }
+
+    public static function updateAssignmentStatus($assignmentId, $status)
+    {
+        $pdo = self::ensurePdo();
+        $sql = "UPDATE tour_assignments SET status = ? WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute([$status, $assignmentId]);
+    }
 }

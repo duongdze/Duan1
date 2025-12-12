@@ -30,8 +30,17 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <td><?= htmlspecialchars($a['tour_name'] ?? '') ?></td>
                                         <td><?= htmlspecialchars($a['start_date'] ?? '') ?> - <?= htmlspecialchars($a['end_date'] ?? '') ?></td>
                                         <td>
-                                            <span class="badge bg-<?= $a['status'] === 'active' ? 'success' : 'secondary' ?>">
-                                                <?= htmlspecialchars($a['status'] ?? '') ?>
+                                            <?php
+                                            $status = $a['status'] ?? 'pending';
+                                            $statusConfig = [
+                                                'pending' => ['class' => 'warning', 'label' => 'Chưa bắt đầu'],
+                                                'active' => ['class' => 'success', 'label' => 'Đang diễn ra'],
+                                                'completed' => ['class' => 'secondary', 'label' => 'Hoàn thành']
+                                            ];
+                                            $config = $statusConfig[$status] ?? ['class' => 'secondary', 'label' => $status];
+                                            ?>
+                                            <span class="badge bg-<?= $config['class'] ?>">
+                                                <?= $config['label'] ?>
                                             </span>
                                         </td>
                                         <td>
@@ -43,7 +52,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                 // Kiểm tra xem còn >= 3 ngày trước ngày bắt đầu không
                                                 $canCancel = false;
                                                 $daysUntilStart = 0;
-                                                
+
                                                 if (!empty($a['start_date'])) {
                                                     try {
                                                         $startDate = new DateTime($a['start_date']);
@@ -57,10 +66,10 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                 }
                                                 ?>
                                                 <?php if ($canCancel): ?>
-                                                    <button type="button" class="btn btn-danger btn-cancel-tour" 
-                                                            data-assignment-id="<?= $a['id'] ?>"
-                                                            data-tour-name="<?= htmlspecialchars($a['tour_name']) ?>"
-                                                            data-days-left="<?= $daysUntilStart ?>">
+                                                    <button type="button" class="btn btn-danger btn-cancel-tour"
+                                                        data-assignment-id="<?= $a['id'] ?>"
+                                                        data-tour-name="<?= htmlspecialchars($a['tour_name']) ?>"
+                                                        data-days-left="<?= $daysUntilStart ?>">
                                                         <i class="fas fa-times"></i> Hủy nhận (còn <?= $daysUntilStart ?> ngày)
                                                     </button>
                                                 <?php else: ?>
@@ -82,35 +91,37 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 </main>
 
 <script>
-document.querySelectorAll('.btn-cancel-tour').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const assignmentId = this.dataset.assignmentId;
-        const tourName = this.dataset.tourName;
-        const daysLeft = this.dataset.daysLeft;
+    document.querySelectorAll('.btn-cancel-tour').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const assignmentId = this.dataset.assignmentId;
+            const tourName = this.dataset.tourName;
+            const daysLeft = this.dataset.daysLeft;
 
-        if (confirm(`Bạn có chắc muốn hủy nhận tour "${tourName}"?\n\nCòn ${daysLeft} ngày trước ngày bắt đầu.\nHành động này không thể hoàn tác.`)) {
-            // Send AJAX request
-            fetch('<?= BASE_URL_ADMIN ?>&action=guide/cancelAssignment', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'assignment_id=' + assignmentId
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert('Lỗi: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Có lỗi xảy ra khi hủy tour');
-            });
-        }
+            if (confirm(`Bạn có chắc muốn hủy nhận tour "${tourName}"?\n\nCòn ${daysLeft} ngày trước ngày bắt đầu.\nHành động này không thể hoàn tác.`)) {
+                // Send AJAX request
+                fetch('<?= BASE_URL_ADMIN ?>&action=guide/cancelAssignment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: 'assignment_id=' + assignmentId
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(data.message);
+                            location.reload();
+                        } else {
+                            alert('Lỗi: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra khi hủy tour');
+                    });
+            }
+        });
     });
-});
 </script>
 
 <?php include_once PATH_VIEW_ADMIN . 'default/footer.php'; ?>

@@ -17,6 +17,8 @@ require_once 'controller/admin/ItineraryController.php';
 require_once 'controller/admin/TourLogController.php';
 require_once 'controller/admin/TourAssignmentController.php';
 require_once 'controller/admin/GuideWorkController.php';
+require_once 'controller/admin/TourVehicleController.php';
+require_once 'controller/admin/AvailableToursController.php'; // Add missing controller
 
 require_once 'controller/admin/UserController.php';
 
@@ -123,6 +125,7 @@ match ($action) {
     'guide/schedule'                        => (new GuideWorkController)->schedule(),
     'guide/tourDetail'                      => (new GuideWorkController)->tourDetail(),
     'guide/cancelAssignment'                => (new GuideWorkController)->cancelAssignment(), // AJAX
+    'guide/updateStatus'                    => (new GuideWorkController)->updateStatus(), // AJAX
     
     // Available Tours (moved from guides/)
     'available-tours'                       => (new AvailableToursController)->index(),
@@ -180,4 +183,13 @@ match ($action) {
     'suppliers/update'             => (new SupplierController)->update(),
     'suppliers/delete'             => (new SupplierController)->delete(),
     'suppliers/detail'             => (new SupplierController)->detail(),
+
+    // Quản lý xe
+    'tour_vehicles'             => (new TourVehicleController)->index(),
+    'tour_vehicles/create'      => (new TourVehicleController)->create(),
+    'tour_vehicles/store'       => (new TourVehicleController)->store(),
+    'tour_vehicles/edit'        => (new TourVehicleController)->edit(),
+    'tour_vehicles/update'      => (new TourVehicleController)->update(),
+    'tour_vehicles/delete'      => (new TourVehicleController)->delete(),
+    'tour_vehicles/get-history' => (new TourVehicleController)->getHistoryByCompany(), // AJAX route
 };
