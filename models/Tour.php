@@ -170,8 +170,8 @@ class Tour extends BaseModel
 
         $whereClause = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
 
-        // Build ORDER BY
-        $orderBy = 't.created_at DESC';
+        // Build ORDER BY - Active first, then featured, then by selected sort, inactive last
+        $orderBy = "CASE WHEN t.status = 'active' THEN 0 ELSE 1 END, t.featured DESC, t.created_at DESC";
         if (!empty($filters['sort_by'])) {
             $sortBy = $filters['sort_by'];
             $sortDir = strtoupper($filters['sort_dir'] ?? 'DESC');
@@ -180,17 +180,17 @@ class Tour extends BaseModel
 
             switch ($sortBy) {
                 case 'name':
-                    $orderBy = "t.name $sortDir";
+                    $orderBy = "CASE WHEN t.status = 'active' THEN 0 ELSE 1 END, t.featured DESC, t.name $sortDir";
                     break;
                 case 'price':
-                    $orderBy = "t.base_price $sortDir";
+                    $orderBy = "CASE WHEN t.status = 'active' THEN 0 ELSE 1 END, t.featured DESC, t.base_price $sortDir";
                     break;
                 case 'rating':
-                    $orderBy = "COALESCE(avg_rating, 0) $sortDir";
+                    $orderBy = "CASE WHEN t.status = 'active' THEN 0 ELSE 1 END, t.featured DESC, COALESCE(avg_rating, 0) $sortDir";
                     break;
                 case 'created_at':
                 default:
-                    $orderBy = "t.created_at $sortDir";
+                    $orderBy = "CASE WHEN t.status = 'active' THEN 0 ELSE 1 END, t.featured DESC, t.created_at $sortDir";
                     break;
             }
         }
@@ -544,9 +544,17 @@ class Tour extends BaseModel
             return false;
         }
 
-        // Since status column doesn't exist, just return success
-        // In a real implementation, you might want to add the status column to the database
-        return true;
+        // Toggle status between 'active' and 'inactive'
+        $currentStatus = $tour['status'] ?? 'active';
+        $newStatus = ($currentStatus === 'active') ? 'inactive' : 'active';
+
+        $result = $this->update(
+            ['status' => $newStatus],
+            'id = :id',
+            ['id' => $id]
+        );
+
+        return $result > 0;
     }
 
     /**
@@ -554,15 +562,22 @@ class Tour extends BaseModel
      */
     public function toggleFeatured($id)
     {
-        $tour = $this->find($id);
+        $tour = $this->findById($id);
         if (!$tour) {
             return false;
         }
 
-        // Since featured column doesn't exist, we'll use a different approach
-        // For now, just return success without actual toggle
-        // In a real implementation, you might want to add the featured column to the database
-        return true;
+        // Toggle featured between 0 and 1
+        $currentFeatured = $tour['featured'] ?? 0;
+        $newFeatured = $currentFeatured ? 0 : 1;
+
+        $result = $this->update(
+            ['featured' => $newFeatured],
+            'id = :id',
+            ['id' => $id]
+        );
+
+        return $result > 0;
     }
 
     /**
@@ -575,11 +590,11 @@ class Tour extends BaseModel
         // Total tours
         $stats['total'] = $this->count();
 
-        // Active tours (since status column doesn't exist, use total count as fallback)
-        $stats['active'] = $this->count();
+        // Active tours
+        $stats['active'] = $this->count("status = 'active'");
 
-        // Featured tours (since featured column doesn't exist, return 0)
-        $stats['featured'] = 0;
+        // Featured tours
+        $stats['featured'] = $this->count("featured = 1");
 
         // Ongoing tours
         $stats['ongoing'] = $this->getOngoingTours();
@@ -609,9 +624,13 @@ class Tour extends BaseModel
             return false;
         }
 
-        // Since status column doesn't exist, just return success
-        // In a real implementation, you might want to add the status column to the database
-        return true;
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "UPDATE {$this->table} SET status = ? WHERE id IN ($placeholders)";
+
+        $stmt = self::$pdo->prepare($sql);
+        $params = array_merge([$status], $ids);
+
+        return $stmt->execute($params);
     }
 
     /**

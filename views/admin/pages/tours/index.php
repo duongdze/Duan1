@@ -301,10 +301,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                         <i class="fas fa-star me-2"></i>
                         Nổi bật
                     </button>
-                    <button type="button" class="btn btn-danger" id="bulk-delete">
-                        <i class="fas fa-trash me-2"></i>
-                        Xóa
-                    </button>
                 </div>
             </div>
         </section>
@@ -520,14 +516,6 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                 title="Chỉnh sửa">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <button type="button"
-                                                class="btn-action btn-delete delete-tour"
-                                                data-id="<?= $tour['id'] ?>"
-                                                data-name="<?= htmlspecialchars($tour['name']) ?>"
-                                                data-bs-toggle="tooltip"
-                                                title="Xóa">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
                                             <button type="button"
                                                 class="btn-action btn-qr btn-info"
                                                 data-id="<?= $tour['id'] ?>"
