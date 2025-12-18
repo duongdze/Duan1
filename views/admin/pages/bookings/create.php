@@ -180,9 +180,13 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
 
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="date" class="form-control" id="booking_date" name="booking_date" required placeholder=" ">
-                                            <label for="booking_date">Ngày đặt tour <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="departure_id" name="departure_id" required>
+                                                <option value="">-- Chọn ngày khởi hành --</option>
+                                            </select>
+                                            <label for="departure_id">Ngày khởi hành <span class="text-danger">*</span></label>
                                         </div>
+                                        <small class="text-muted d-block mt-2" id="departure-info"></small>
+                                        <input type="hidden" id="booking_date" name="booking_date">
                                     </div>
 
                                     <div class="col-md-6">
@@ -379,9 +383,20 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
     function setupEventListeners() {
         // Auto-update price when tour is selected
         document.getElementById('tour_id').addEventListener('change', function() {
+            const tourId = this.value;
             const selectedOption = this.options[this.selectedIndex];
             const price = selectedOption.getAttribute('data-price');
-            if (price) {
+
+            // Reset departure selection
+            const departureSelect = document.getElementById('departure_id');
+            departureSelect.innerHTML = '<option value="">-- Chọn ngày khởi hành --</option>';
+            document.getElementById('departure-info').textContent = '';
+            document.getElementById('booking_date').value = '';
+
+            if (tourId) {
+                // Fetch departures for this tour
+                fetchDepartures(tourId);
+
                 // Reset version selection when tour changes
                 const versionSelect = document.getElementById('version_id');
                 if (versionSelect) {
@@ -389,6 +404,34 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                 }
                 document.getElementById('total_price').value = price;
                 updateSummary();
+            }
+        });
+
+        // Handle departure selection
+        document.getElementById('departure_id').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const departureDate = selectedOption.getAttribute('data-date');
+                const priceAdult = selectedOption.getAttribute('data-price-adult');
+                const availableSeats = selectedOption.getAttribute('data-seats');
+                const maxSeats = selectedOption.getAttribute('data-max-seats');
+
+                // Update hidden booking_date field
+                document.getElementById('booking_date').value = departureDate;
+
+                // Disable automatic price update - keep tour base price
+                // if (priceAdult) {
+                //     document.getElementById('total_price').value = priceAdult;
+                // }
+
+                // Show departure info
+                document.getElementById('departure-info').innerHTML =
+                    `<i class="fas fa-info-circle me-1"></i>Còn ${availableSeats}/${maxSeats} chỗ trống`;
+
+                updateSummary();
+            } else {
+                document.getElementById('booking_date').value = '';
+                document.getElementById('departure-info').textContent = '';
             }
         });
         // Auto-update price when version is selected
@@ -413,12 +456,54 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             });
         }
         // Update summary on field changes
-        ['customer_id', 'tour_id', 'version_id', 'booking_date', 'status', 'total_price'].forEach(id => {
+        ['customer_id', 'tour_id', 'version_id', 'departure_id', 'status', 'total_price'].forEach(id => {
             const element = document.getElementById(id);
             if (element) {
                 element.addEventListener('change', updateSummary);
             }
         });
+    }
+
+    // Fetch departures for a tour
+    function fetchDepartures(tourId) {
+        const departureSelect = document.getElementById('departure_id');
+        const infoDiv = document.getElementById('departure-info');
+
+        // Show loading
+        infoDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang tải lịch khởi hành...';
+
+        fetch(`<?= BASE_URL_ADMIN ?>&action=bookings/get-departures&tour_id=${tourId}`)
+            .then(response => response.json())
+            .then(data => {
+                infoDiv.textContent = '';
+
+                if (data.success && data.departures && data.departures.length > 0) {
+                    data.departures.forEach(dep => {
+                        const option = document.createElement('option');
+                        option.value = dep.id;
+                        option.textContent = `${dep.formatted_date} - ${new Intl.NumberFormat('vi-VN').format(dep.price_adult)} ₫`;
+                        option.setAttribute('data-date', dep.departure_date);
+                        option.setAttribute('data-price-adult', dep.price_adult);
+                        option.setAttribute('data-price-child', dep.price_child);
+                        option.setAttribute('data-seats', dep.available_seats);
+                        option.setAttribute('data-max-seats', dep.max_seats);
+
+                        if (dep.version_name) {
+                            option.textContent += ` (${dep.version_name})`;
+                        }
+
+                        departureSelect.appendChild(option);
+                    });
+
+                    infoDiv.innerHTML = `<i class="fas fa-check-circle text-success me-1"></i>Tìm thấy ${data.departures.length} lịch khởi hành`;
+                } else {
+                    infoDiv.innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-1"></i>Không có lịch khởi hành nào';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching departures:', error);
+                infoDiv.innerHTML = '<i class="fas fa-exclamation-circle text-danger me-1"></i>Lỗi khi tải lịch khởi hành';
+            });
     }
 
     // Step Navigation

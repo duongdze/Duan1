@@ -25,8 +25,32 @@ class TourDeparture extends BaseModel
      */
     public function getByTourId($tourId)
     {
-        return $this->select('*', 'tour_id = :tid', ['tid' => $tourId], 'departure_date ASC');
+        $sql = "SELECT 
+                    td.id,
+                    td.tour_id,
+                    td.version_id,
+                    td.departure_date,
+                    td.max_seats,
+                    td.booked_seats,
+                    td.price_adult,
+                    td.price_child,
+                    td.price_infant,
+                    td.status,
+                    td.notes,
+                    (td.max_seats - td.booked_seats) as available_seats,
+                    tv.name as version_name
+                FROM tour_departures td
+                LEFT JOIN tour_versions tv ON td.version_id = tv.id
+                WHERE td.tour_id = :tour_id
+                    AND td.status = 'open'
+                    AND td.departure_date >= CURDATE()
+                ORDER BY td.departure_date ASC";
+
+        $stmt = self::$pdo->prepare($sql);
+        $stmt->execute(['tour_id' => $tourId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
 
     /**
      * Lấy lịch khởi hành gần nhất (>= hôm nay) cho tour

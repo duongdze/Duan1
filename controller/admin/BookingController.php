@@ -76,6 +76,7 @@ class BookingController
                 'customer_id' => $customer_id,
                 'tour_id' => $tour_id,
                 'version_id' => !empty($version_id) ? $version_id : null,
+                'departure_id' => $_POST['departure_id'] ?? null,
                 'booking_date' => $booking_date,
                 'total_price' => $total_price,
                 'final_price' => $total_price,
@@ -83,6 +84,7 @@ class BookingController
                 'notes' => $notes,
                 'created_by' => $_SESSION['user']['user_id'] ?? null
             ]);
+
 
             // Tự động thêm supplier từ tour vào booking_suppliers_assignment
             if ($booking_id) {
@@ -958,6 +960,7 @@ class BookingController
             'total' => count($customers)
         ];
 
+
         foreach ($customers as $customer) {
             $type = $customer['passenger_type'] ?? 'adult';
             if ($type === 'adult') $stats['adults']++;
@@ -966,5 +969,62 @@ class BookingController
         }
 
         require_once PATH_VIEW_ADMIN . 'pages/bookings/print-group-list.php';
+    }
+
+    /**
+     * AJAX endpoint to get departures by tour ID
+     */
+    public function getDeparturesByTour()
+    {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+            exit;
+        }
+
+        $tourId = $_GET['tour_id'] ?? null;
+
+        if (!$tourId) {
+            echo json_encode(['success' => false, 'message' => 'Tour ID is required']);
+            exit;
+        }
+
+        try {
+            $departureModel = new TourDeparture();
+            $departures = $departureModel->getByTourId($tourId);
+
+            // Get tour base price for fallback
+            $tourModel = new Tour();
+            $tour = $tourModel->find('*', 'id = :id', ['id' => $tourId]);
+            $basePrice = $tour['base_price'] ?? 0;
+
+            // Format departures for response
+            $formattedDepartures = array_map(function ($dep) use ($basePrice) {
+                return [
+                    'id' => $dep['id'],
+                    'departure_date' => $dep['departure_date'],
+                    'formatted_date' => date('d/m/Y', strtotime($dep['departure_date'])),
+                    'price_adult' => $dep['price_adult'] ?: $basePrice,
+                    'price_child' => $dep['price_child'] ?: ($dep['price_adult'] ?: $basePrice),
+                    'price_infant' => $dep['price_infant'] ?: 0,
+                    'available_seats' => $dep['available_seats'],
+                    'max_seats' => $dep['max_seats'],
+                    'version_name' => $dep['version_name'] ?? null
+                ];
+            }, $departures);
+
+            echo json_encode([
+                'success' => true,
+                'departures' => $formattedDepartures,
+                'base_price' => $basePrice
+            ]);
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error fetching departures: ' . $e->getMessage()
+            ]);
+        }
+        exit;
     }
 }

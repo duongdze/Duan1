@@ -242,8 +242,6 @@ if (empty($galleryUrls)) {
                                     <thead>
                                         <tr>
                                             <th>Ngày khởi hành</th>
-                                            <th>Số chỗ</th>
-                                            <th>Đã đặt</th>
                                             <th>Trạng thái</th>
                                         </tr>
                                     </thead>
@@ -252,12 +250,6 @@ if (empty($galleryUrls)) {
                                             <tr>
                                                 <td class="fw-medium">
                                                     <?= date('d/m/Y', strtotime($departure['departure_date'])) ?>
-                                                </td>
-                                                <td>
-                                                    <?= $departure['max_seats'] ?? 'N/A' ?>
-                                                </td>
-                                                <td>
-                                                    <?= $departure['booked_seats'] ?? 0 ?>
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-<?= $departure['status'] === 'open' ? 'success' : ($departure['status'] === 'full' ? 'danger' : 'warning') ?>">
@@ -333,15 +325,15 @@ if (empty($galleryUrls)) {
                     <div class="card-body">
                         <?php if (!empty($galleryUrls)): ?>
                             <div class="row g-3">
-                                <?php 
+                                <?php
                                 $displayImages = array_slice($galleryUrls, 0, 6);
-                                foreach ($displayImages as $index => $url): 
+                                foreach ($displayImages as $index => $url):
                                     $isLast = ($index === 5 && count($galleryUrls) > 6);
                                 ?>
                                     <div class="col-md-6 col-lg-4">
                                         <div class="gallery-item-wrapper position-relative overflow-hidden rounded shadow-sm" style="cursor: pointer; aspect-ratio: 16/9;" onclick="openLightbox(<?= $index ?>)">
                                             <img src="<?= $url ?>" alt="Tour Gallery Image <?= $index + 1 ?>" class="img-fluid w-100 h-100" style="object-fit: cover; transition: transform 0.3s;">
-                                            
+
                                             <div class="gallery-overlay">
                                                 <div class="gallery-overlay-content">
                                                     <i class="fas fa-search-plus"></i>
@@ -381,7 +373,7 @@ if (empty($galleryUrls)) {
                 <div id="galleryLightbox" class="lightbox-overlay">
                     <div class="lightbox-content">
                         <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
-                        
+
                         <div class="lightbox-main">
                             <button class="lightbox-nav prev" onclick="moveSlide(-1)"><i class="fas fa-chevron-left"></i></button>
                             <img id="lightboxImage" src="" alt="Gallery Image">
@@ -391,7 +383,7 @@ if (empty($galleryUrls)) {
                         <div class="lightbox-caption">
                             <span id="currentIndex">1</span> / <span id="totalImages">0</span>
                         </div>
-                        
+
                         <!-- Thumbnails Strip -->
                         <div class="lightbox-thumbnails">
                             <div class="thumbnails-track" id="thumbnailsTrack">
@@ -414,9 +406,9 @@ if (empty($galleryUrls)) {
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="main-image-container gallery-item-wrapper" 
-                             style="cursor: pointer; position: relative;"
-                             onclick="openMainImageLightbox(this)">
+                        <div class="main-image-container gallery-item-wrapper"
+                            style="cursor: pointer; position: relative;"
+                            onclick="openMainImageLightbox(this)">
                             <img src="<?= $mainImage ?>" alt="Tour Main Image" class="img-fluid rounded" style="width: 100%; height: auto; object-fit: cover;">
                             <div class="gallery-overlay rounded">
                                 <div class="gallery-overlay-content">
@@ -512,16 +504,21 @@ if (empty($galleryUrls)) {
                     .gallery-item-wrapper {
                         transition: transform 0.3s ease;
                     }
+
                     .gallery-item-wrapper:hover {
                         transform: translateY(-2px);
                     }
+
                     .gallery-item-wrapper:hover img {
-                         transform: scale(1.05);
+                        transform: scale(1.05);
                     }
-                    
+
                     .gallery-overlay {
                         position: absolute;
-                        top: 0; left: 0; right: 0; bottom: 0;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
                         background: rgba(0, 0, 0, 0.5);
                         display: flex;
                         align-items: center;
@@ -530,15 +527,16 @@ if (empty($galleryUrls)) {
                         transition: opacity 0.3s ease;
                         z-index: 1;
                     }
-                    
+
                     .gallery-item-wrapper:hover .gallery-overlay {
                         opacity: 1;
                     }
-                    
+
                     .gallery-overlay-content {
                         text-align: center;
                         color: white;
                     }
+
                     .gallery-overlay-content i {
                         font-size: 24px;
                         margin-bottom: 5px;
@@ -583,7 +581,7 @@ if (empty($galleryUrls)) {
                         max-height: 100%;
                         object-fit: contain;
                         border-radius: 4px;
-                        box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+                        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
                     }
 
                     .lightbox-close {
@@ -605,7 +603,10 @@ if (empty($galleryUrls)) {
                         justify-content: center;
                         transition: color 0.2s;
                     }
-                    .lightbox-close:hover { color: #dc3545; }
+
+                    .lightbox-close:hover {
+                        color: #dc3545;
+                    }
 
                     .lightbox-nav {
                         background: rgba(255, 255, 255, 0.1);
@@ -622,12 +623,19 @@ if (empty($galleryUrls)) {
                         justify-content: center;
                         position: absolute;
                     }
+
                     .lightbox-nav:hover {
                         background: rgba(255, 255, 255, 0.2);
                         transform: scale(1.1);
                     }
-                    .lightbox-nav.prev { left: 20px; }
-                    .lightbox-nav.next { right: 20px; }
+
+                    .lightbox-nav.prev {
+                        left: 20px;
+                    }
+
+                    .lightbox-nav.next {
+                        right: 20px;
+                    }
 
                     .lightbox-caption {
                         color: #ccc;
@@ -644,7 +652,7 @@ if (empty($galleryUrls)) {
                         display: flex;
                         justify-content: center;
                         padding: 10px 0;
-                        background: rgba(0,0,0,0.3);
+                        background: rgba(0, 0, 0, 0.3);
                     }
 
                     .thumbnails-track {
@@ -663,35 +671,57 @@ if (empty($galleryUrls)) {
                         transition: all 0.2s;
                         border: 2px solid transparent;
                     }
+
                     .lightbox-thumb.active {
                         opacity: 1;
                         border-color: #0d6efd;
                     }
-                    .lightbox-thumb:hover { opacity: 0.8; }
+
+                    .lightbox-thumb:hover {
+                        opacity: 0.8;
+                    }
 
                     @media (max-width: 768px) {
-                        .lightbox-main { padding: 0; }
-                        .lightbox-nav { width: 40px; height: 40px; font-size: 16px; }
-                        .lightbox-nav.prev { left: 10px; }
-                        .lightbox-nav.next { right: 10px; }
-                        .lightbox-thumbnails { display: none; } /* Hide thumbs on mobile */
+                        .lightbox-main {
+                            padding: 0;
+                        }
+
+                        .lightbox-nav {
+                            width: 40px;
+                            height: 40px;
+                            font-size: 16px;
+                        }
+
+                        .lightbox-nav.prev {
+                            left: 10px;
+                        }
+
+                        .lightbox-nav.next {
+                            right: 10px;
+                        }
+
+                        .lightbox-thumbnails {
+                            display: none;
+                        }
+
+                        /* Hide thumbs on mobile */
                     }
                 </style>
 
                 <script>
                     // Prepare Gallery Data
                     const galleryImages = <?= json_encode($galleryUrls) ?>;
-                    
+
                     let currentImageIndex = 0;
 
                     function openLightbox(index) {
                         if (galleryImages.length === 0) return;
                         currentImageIndex = index;
-                        
+
                         const lightbox = document.getElementById('galleryLightbox');
                         const totalImages = document.getElementById('totalImages');
                         const thumbnailsTrack = document.getElementById('thumbnailsTrack');
-                        
+
                         // Render Thumbnails
                         thumbnailsTrack.innerHTML = '';
                         galleryImages.forEach((src, idx) => {
@@ -704,17 +734,17 @@ if (empty($galleryUrls)) {
 
                         totalImages.innerText = galleryImages.length;
                         showImage(index);
-                        
+
                         lightbox.style.display = 'block';
                         document.body.style.overflow = 'hidden'; // Prevent background scrolling
-                        
+
                         // Keyboard Nav
                         document.addEventListener('keydown', handleKeyboardNav);
                     }
 
                     function closeLightbox() {
                         const lightbox = document.getElementById('galleryLightbox');
-                        if(lightbox) lightbox.style.display = 'none';
+                        if (lightbox) lightbox.style.display = 'none';
                         document.body.style.overflow = '';
                         document.removeEventListener('keydown', handleKeyboardNav);
                     }
@@ -722,12 +752,12 @@ if (empty($galleryUrls)) {
                     function showImage(index) {
                         if (index >= galleryImages.length) index = 0;
                         if (index < 0) index = galleryImages.length - 1;
-                        
+
                         currentImageIndex = index;
-                        
+
                         const imgEnd = document.getElementById('lightboxImage');
                         const currentIndexEl = document.getElementById('currentIndex');
-                        
+
                         // Update Image
                         imgEnd.style.opacity = '0';
                         setTimeout(() => {
@@ -742,7 +772,11 @@ if (empty($galleryUrls)) {
                         document.querySelectorAll('.lightbox-thumb').forEach((thumb, idx) => {
                             if (idx === index) {
                                 thumb.classList.add('active');
-                                thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                                thumb.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'nearest',
+                                    inline: 'center'
+                                });
                             } else {
                                 thumb.classList.remove('active');
                             }
@@ -761,29 +795,30 @@ if (empty($galleryUrls)) {
 
                     // Close on click outside
                     const lightboxEl = document.getElementById('galleryLightbox');
-                    if(lightboxEl) {
+                    if (lightboxEl) {
                         lightboxEl.addEventListener('click', (e) => {
                             if (e.target.id === 'galleryLightbox' || e.target.classList.contains('lightbox-content')) {
                                 closeLightbox();
                             }
                         });
                     }
+
                     function openMainImageLightbox(element) {
                         const img = element.querySelector('img');
                         if (!img) return;
-                        
+
                         const src = img.getAttribute('src');
-                        
+
                         // Check against galleryImages variable defined above
                         if (!galleryImages || !galleryImages.length) {
-                             console.warn('No gallery data available');
-                             return;
+                            console.warn('No gallery data available');
+                            return;
                         }
 
                         // Try to find index
                         let index = -1;
-                        
-                        for(let i=0; i < galleryImages.length; i++) {
+
+                        for (let i = 0; i < galleryImages.length; i++) {
                             // Compare src with gallery image URL. 
                             // Using includes to be safe about relative/absolute path differences
                             if (src.includes(galleryImages[i]) || galleryImages[i].includes(src)) {
@@ -791,7 +826,7 @@ if (empty($galleryUrls)) {
                                 break;
                             }
                         }
-                        
+
                         if (index !== -1) {
                             openLightbox(index);
                         } else {

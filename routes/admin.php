@@ -100,10 +100,12 @@ match ($action) {
     'bookings/add-companion'                => (new BookingController)->addCompanion(),
     'bookings/update-companion'             => (new BookingController)->updateCompanion(),
     'bookings/delete-companion'             => (new BookingController)->deleteCompanion(),
+    'bookings/get-departures'               => (new BookingController)->getDeparturesByTour(), // AJAX endpoint
     'bookings/checkin'                      => (new BookingController)->checkin(),
     'bookings/update-checkin'               => (new BookingController)->updateCheckin(), // AJAX endpoint
     'bookings/bulk-checkin'                 => (new BookingController)->bulkCheckin(), // AJAX endpoint
     'bookings/print-group-list'             => (new BookingController)->printGroupList(),
+
 
 
     // Guides
@@ -126,17 +128,17 @@ match ($action) {
     'guide/tourDetail'                      => (new GuideWorkController)->tourDetail(),
     'guide/cancelAssignment'                => (new GuideWorkController)->cancelAssignment(), // AJAX
     'guide/updateStatus'                    => (new GuideWorkController)->updateStatus(), // AJAX
-    
+
     // Available Tours (moved from guides/)
     'available-tours'                       => (new AvailableToursController)->index(),
     'available-tours/assign-guide'          => (new AvailableToursController)->assignGuide(), // AJAX
     'available-tours/claim-tour'            => (new AvailableToursController)->claimTour(), // AJAX
-    
+
     // Legacy routes for backward compatibility (will be removed later)
     'guides/available-tours'                => (new AvailableToursController)->index(),
     'guides/admin-assign-guide'             => (new AvailableToursController)->assignGuide(), // AJAX
     'guides/claim-tour'                     => (new AvailableToursController)->claimTour(), // AJAX
-    
+
     'guides/tour-bookings'                  => (new TourAssignmentController)->tourBookings(),
     'guides/accept-booking'                 => (new TourAssignmentController)->acceptBooking(), // AJAX
     'guides/remove-assignment'              => (new TourAssignmentController)->removeAssignmentByAdmin(), // AJAX
