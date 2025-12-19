@@ -139,7 +139,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     </div>
                 </div>
 
-                <form id="tour-filters" method="GET" class="filter-form" onsubmit="return false;">
+                <form id="tour-filters" method="GET" class="filter-form">
                     <input type="hidden" name="action" value="tours">
 
                     <!-- Basic Filters -->
@@ -1055,6 +1055,191 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
             toastElement.firstElementChild.remove();
         }, 3000);
     }
+
+
+    // Client-side Filter Functions
+    function resetFilters() {
+        const form = document.getElementById('tour-filters');
+        form.reset();
+        filterTours();
+    }
+
+    function toggleAdvancedFilters() {
+        const advancedFilters = document.querySelector('.advanced-filters');
+        if (advancedFilters) {
+            if (advancedFilters.style.display === 'none' || !advancedFilters.style.display) {
+                advancedFilters.style.display = 'flex';
+            } else {
+                advancedFilters.style.display = 'none';
+            }
+        }
+    }
+
+    // Main filter function
+    function filterTours() {
+        const keyword = document.querySelector('input[name="keyword"]').value.toLowerCase();
+        const categoryId = document.querySelector('select[name="category_id"]').value;
+        const status = document.querySelector('select[name="status"]').value;
+        const ratingMin = document.querySelector('select[name="rating_min"]').value;
+        const priceMin = document.querySelector('input[name="price_min"]').value;
+        const priceMax = document.querySelector('input[name="price_max"]').value;
+        const sortBy = document.querySelector('select[name="sort_by"]').value;
+        const sortDir = document.querySelector('select[name="sort_dir"]').value;
+
+        const tourCards = Array.from(document.querySelectorAll('.tour-card-modern'));
+        let visibleCount = 0;
+
+        // Filter tours
+        tourCards.forEach(card => {
+            let show = true;
+
+            // Keyword search
+            if (keyword) {
+                const tourName = card.querySelector('.tour-title').textContent.toLowerCase();
+                if (!tourName.includes(keyword)) {
+                    show = false;
+                }
+            }
+
+            // Category filter
+            if (categoryId && show) {
+                const categoryBadge = card.querySelector('.category-badge');
+                const cardCategoryName = categoryBadge ? categoryBadge.textContent.trim() : '';
+                const selectedCategory = document.querySelector(`select[name="category_id"] option[value="${categoryId}"]`);
+                const selectedCategoryName = selectedCategory ? selectedCategory.textContent.trim() : '';
+                if (cardCategoryName !== selectedCategoryName) {
+                    show = false;
+                }
+            }
+
+            // Status filter
+            if (status && show) {
+                const statusBadge = card.querySelector('.badge-status');
+                const isActive = statusBadge && statusBadge.classList.contains('badge-active');
+                if ((status === 'active' && !isActive) || (status === 'inactive' && isActive)) {
+                    show = false;
+                }
+            }
+
+            // Rating filter
+            if (ratingMin && show) {
+                const ratingValue = card.querySelector('.rating-value');
+                const rating = ratingValue ? parseFloat(ratingValue.textContent) : 0;
+                if (rating < parseFloat(ratingMin)) {
+                    show = false;
+                }
+            }
+
+            // Price filter
+            if ((priceMin || priceMax) && show) {
+                const priceText = card.querySelector('.price-value').textContent.replace(/[^\d]/g, '');
+                const price = parseInt(priceText) || 0;
+                if (priceMin && price < parseInt(priceMin)) {
+                    show = false;
+                }
+                if (priceMax && price > parseInt(priceMax)) {
+                    show = false;
+                }
+            }
+
+            // Show/hide card
+            if (show) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Sort tours
+        if (sortBy) {
+            sortTours(tourCards, sortBy, sortDir);
+        }
+
+        // Update count
+        updateTourCount(visibleCount);
+
+        // Show empty state if no results
+        const emptyState = document.querySelector('.empty-state');
+        const toursGrid = document.querySelector('.tours-grid');
+        if (visibleCount === 0) {
+            if (toursGrid) toursGrid.style.display = 'none';
+            if (emptyState) emptyState.style.display = 'flex';
+        } else {
+            if (toursGrid) toursGrid.style.display = 'grid';
+            if (emptyState) emptyState.style.display = 'none';
+        }
+    }
+
+    // Sort function
+    function sortTours(tourCards, sortBy, sortDir) {
+        const toursGrid = document.querySelector('.tours-grid');
+        if (!toursGrid) return;
+
+        const visibleCards = tourCards.filter(card => card.style.display !== 'none');
+
+        visibleCards.sort((a, b) => {
+            let aValue, bValue;
+
+            switch (sortBy) {
+                case 'name':
+                    aValue = a.querySelector('.tour-title').textContent.toLowerCase();
+                    bValue = b.querySelector('.tour-title').textContent.toLowerCase();
+                    break;
+                case 'price':
+                    aValue = parseInt(a.querySelector('.price-value').textContent.replace(/[^\d]/g, '')) || 0;
+                    bValue = parseInt(b.querySelector('.price-value').textContent.replace(/[^\d]/g, '')) || 0;
+                    break;
+                case 'rating':
+                    aValue = parseFloat(a.querySelector('.rating-value').textContent) || 0;
+                    bValue = parseFloat(b.querySelector('.rating-value').textContent) || 0;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (aValue < bValue) return sortDir === 'ASC' ? -1 : 1;
+            if (aValue > bValue) return sortDir === 'ASC' ? 1 : -1;
+            return 0;
+        });
+
+        // Re-append sorted cards
+        visibleCards.forEach(card => {
+            toursGrid.appendChild(card);
+        });
+    }
+
+    // Update tour count
+    function updateTourCount(count) {
+        const countInfo = document.querySelector('.count-info');
+        if (countInfo) {
+            const currentPage = <?= $pagination['page'] ?? 1 ?>;
+            const totalPages = <?= max(1, $pagination['total_pages'] ?? 1) ?>;
+            countInfo.textContent = `${count} tour • Trang ${currentPage}/${totalPages}`;
+        }
+    }
+
+    // Setup event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('tour-filters');
+        if (!filterForm) return;
+
+        // Prevent form submission and filter when search button is clicked
+        filterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            filterTours();
+        });
+
+        // Also filter when Enter is pressed in keyword input
+        const keywordInput = document.querySelector('input[name="keyword"]');
+        if (keywordInput) {
+            keywordInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    filterTours();
+                }
+            });
+        }
+    });
 </script>
 <!-- QR Code Functionality -->
 <script>

@@ -513,31 +513,13 @@ $policies = $policies ?? [];
             </button>
         </div>
         <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="form-floating">
                     <input type="date" class="form-control departure-date" required>
                     <label>Ngày khởi hành</label>
                 </div>
             </div>
-            <div class="col-md-2">
-                <div class="form-floating">
-                    <input type="number" class="form-control departure-max-seats" min="1" value="40" required>
-                    <label>Số chỗ</label>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="form-floating">
-                    <input type="number" class="form-control departure-price-adult" min="0" step="1000" placeholder=" ">
-                    <label>Giá NL</label>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="form-floating">
-                    <input type="number" class="form-control departure-price-child" min="0" step="1000" placeholder=" ">
-                    <label>Giá TE</label>
-                </div>
-            </div>
-            <div class="col-md-2">
+            <div class="col-md-6">
                 <div class="form-floating">
                     <select class="form-select departure-status">
                         <option value="open">Mở</option>

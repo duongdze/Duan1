@@ -481,7 +481,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                     data.departures.forEach(dep => {
                         const option = document.createElement('option');
                         option.value = dep.id;
-                        option.textContent = `${dep.formatted_date} - ${new Intl.NumberFormat('vi-VN').format(dep.price_adult)} ₫`;
+                        option.textContent = dep.formatted_date;
                         option.setAttribute('data-date', dep.departure_date);
                         option.setAttribute('data-price-adult', dep.price_adult);
                         option.setAttribute('data-price-child', dep.price_child);

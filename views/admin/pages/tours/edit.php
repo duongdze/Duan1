@@ -381,20 +381,13 @@ $departures = $departures ?? [];
                                                     </button>
                                                 </div>
                                                 <div class="row g-3">
-                                                    <div class="col-md-4">
+                                                    <div class="col-md-6">
                                                         <div class="form-floating">
                                                             <input type="date" class="form-control departure-date" value="<?= $departure['departure_date'] ?>" required>
                                                             <label>Ngày khởi hành</label>
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-2">
-                                                        <div class="form-floating">
-                                                            <input type="number" class="form-control departure-max-seats" min="1" value="<?= $departure['max_seats'] ?>" required>
-                                                            <label>Số chỗ</label>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-md-2">
+                                                    <div class="col-md-6">
                                                         <div class="form-floating">
                                                             <select class="form-select departure-status">
                                                                 <option value="open" <?= ($departure['status'] ?? 'open') === 'open' ? 'selected' : '' ?>>Mở</option>
@@ -705,20 +698,13 @@ $departures = $departures ?? [];
             </button>
         </div>
         <div class="row g-3">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="form-floating">
                     <input type="date" class="form-control departure-date" required>
                     <label>Ngày khởi hành</label>
                 </div>
             </div>
-            <div class="col-md-2">
-                <div class="form-floating">
-                    <input type="number" class="form-control departure-max-seats" min="1" value="40" required>
-                    <label>Số chỗ</label>
-                </div>
-            </div>
-
-            <div class="col-md-2">
+            <div class="col-md-6">
                 <div class="form-floating">
                     <select class="form-select departure-status">
                         <option value="open">Mở</option>
