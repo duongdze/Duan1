@@ -22,23 +22,8 @@ class AvailableToursController
             exit;
         }
 
-        $rawTours = $this->tourAssignmentModel->getAvailableTours();
-
-        // Loại bỏ duplicate tours dựa trên ID
-        $availableTours = [];
-        $seenIds = [];
-
-        foreach ($rawTours as $tour) {
-            $tourId = $tour['id'];
-            if (!isset($seenIds[$tourId])) {
-                $seenIds[$tourId] = true;
-                // Thêm version breakdown
-                $tour['version_breakdown'] = $this->tourAssignmentModel->getTourVersionBreakdown($tourId);
-                // Thêm danh sách ngày khởi hành
-                $tour['departure_dates'] = $this->tourAssignmentModel->getTourDepartureDates($tourId);
-                $availableTours[] = $tour;
-            }
-        }
+        // Lấy danh sách tour theo từng lịch khởi hành
+        $availableTours = $this->tourAssignmentModel->getAvailableTours();
 
         // Nếu là admin, lấy danh sách HDV để phân công
         $guides = [];
@@ -66,6 +51,7 @@ class AvailableToursController
 
         $guideId = $_POST['guide_id'] ?? null;
         $tourId = $_POST['tour_id'] ?? null;
+        $departureId = $_POST['departure_id'] ?? null;
         $departureDate = $_POST['departure_date'] ?? null;
 
         if (!$guideId || !$tourId) {
@@ -74,25 +60,22 @@ class AvailableToursController
         }
 
         try {
-            // Kiểm tra tour đã có HDV chưa
-            if ($this->tourAssignmentModel->tourHasGuide($tourId)) {
-                echo json_encode(['success' => false, 'message' => 'Tour này đã có HDV phụ trách']);
+            // Kiểm tra tour đã có HDV chưa (cho ngày cụ thể)
+            if ($this->tourAssignmentModel->tourHasGuide($tourId, $departureDate)) {
+                echo json_encode(['success' => false, 'message' => 'Tour này đã có HDV phụ trách cho ngày ' . date('d/m/Y', strtotime($departureDate))]);
                 exit;
             }
 
-            // Nếu không có departure_date, lấy ngày khởi hành sớm nhất
+            // Nếu không có departure_date, lấy từ departure_id hoặc ngày hiện tại
             if (!$departureDate) {
-                $bookingModel = new Booking();
-                $pdo = $bookingModel->getPDO();
-                $sql = "SELECT MIN(booking_date) as start_date 
-                    FROM bookings 
-                    WHERE tour_id = :tour_id 
-                    AND status NOT IN ('hoan_tat', 'da_huy')";
-
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute(['tour_id' => $tourId]);
-                $dateInfo = $stmt->fetch(PDO::FETCH_ASSOC);
-                $departureDate = $dateInfo['start_date'] ?? date('Y-m-d');
+                if ($departureId) {
+                    // Lấy từ tour_departures
+                    $departureModel = new TourDeparture();
+                    $departure = $departureModel->findById($departureId);
+                    $departureDate = $departure['departure_date'] ?? date('Y-m-d');
+                } else {
+                    $departureDate = date('Y-m-d');
+                }
             }
 
             // Validate departure date
@@ -102,12 +85,19 @@ class AvailableToursController
             }
 
             // Gán tour cho HDV
-            $result = $this->tourAssignmentModel->insert([
+            $assignmentData = [
                 'guide_id' => $guideId,
                 'tour_id' => $tourId,
                 'start_date' => $departureDate,
                 'status' => 'active'
-            ]);
+            ];
+
+            // Chỉ thêm departure_id nếu có
+            if (!empty($departureId)) {
+                $assignmentData['departure_id'] = $departureId;
+            }
+
+            $result = $this->tourAssignmentModel->insert($assignmentData);
 
             if ($result) {
                 echo json_encode([
@@ -151,6 +141,8 @@ class AvailableToursController
 
         $guideId = $guide['id'];
         $tourId = $_POST['tour_id'] ?? null;
+        $departureId = $_POST['departure_id'] ?? null;
+        $departureDate = $_POST['departure_date'] ?? null;
 
         if (!$tourId) {
             echo json_encode(['success' => false, 'message' => 'Thiếu thông tin tour']);
@@ -202,24 +194,43 @@ class AvailableToursController
                 exit;
             }
 
-            // Lấy ngày khởi hành sớm nhất
-            $sql = "SELECT MIN(booking_date) as start_date 
-                FROM bookings 
-                WHERE tour_id = :tour_id 
-                AND status NOT IN ('hoan_tat', 'da_huy')";
+            // Lấy ngày khởi hành
+            if (!$departureDate) {
+                if ($departureId) {
+                    // Lấy từ tour_departures
+                    $departureModel = new TourDeparture();
+                    $departure = $departureModel->findById($departureId);
+                    $startDate = $departure['departure_date'] ?? date('Y-m-d');
+                } else {
+                    // Lấy ngày khởi hành sớm nhất từ bookings
+                    $sql = "SELECT MIN(booking_date) as start_date 
+                        FROM bookings 
+                        WHERE tour_id = :tour_id 
+                        AND status NOT IN ('hoan_tat', 'da_huy')";
 
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute(['tour_id' => $tourId]);
-            $dateInfo = $stmt->fetch(PDO::FETCH_ASSOC);
-            $startDate = $dateInfo['start_date'] ?? date('Y-m-d');
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute(['tour_id' => $tourId]);
+                    $dateInfo = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $startDate = $dateInfo['start_date'] ?? date('Y-m-d');
+                }
+            } else {
+                $startDate = $departureDate;
+            }
 
             // Gán tour cho HDV
-            $result = $this->tourAssignmentModel->insert([
+            $assignmentData = [
                 'guide_id' => $guideId,
                 'tour_id' => $tourId,
                 'start_date' => $startDate,
                 'status' => 'active'
-            ]);
+            ];
+
+            // Chỉ thêm departure_id nếu có
+            if (!empty($departureId)) {
+                $assignmentData['departure_id'] = $departureId;
+            }
+
+            $result = $this->tourAssignmentModel->insert($assignmentData);
 
             if ($result) {
                 echo json_encode([

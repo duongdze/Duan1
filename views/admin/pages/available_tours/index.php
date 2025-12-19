@@ -49,7 +49,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             <div class="card-body">
                                 <h5 class="card-title text-primary" style="word-break: break-word; white-space: normal;">
                                     <i class="fas fa-route"></i>
-                                    <?= htmlspecialchars($tour['name']) ?>
+                                    <?= htmlspecialchars($tour['tour_name'] ?? '') ?>
                                 </h5>
 
                                 <p class="card-text text-muted small mb-3">
@@ -60,11 +60,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <div class="mb-2">
                                     <small class="text-muted d-block">
                                         <i class="fas fa-calendar-alt text-info"></i>
-                                        <strong>Booking gần nhất:</strong>
-                                        <?php if ($tour['nearest_booking_date']): ?>
-                                            <?= date('d/m/Y', strtotime($tour['nearest_booking_date'])) ?>
+                                        <strong>Ngày khởi hành:</strong>
+                                        <?php if ($tour['departure_date']): ?>
+                                            <?= date('d/m/Y', strtotime($tour['departure_date'])) ?>
                                         <?php else: ?>
-                                            <span class="text-warning">Chưa có booking</span>
+                                            <span class="text-warning">Chưa có lịch</span>
                                         <?php endif; ?>
                                     </small>
                                 </div>
@@ -97,17 +97,18 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <!-- Version Breakdown -->
                                 <?php if (!empty($tour['version_breakdown']) && count($tour['version_breakdown']) > 0): ?>
                                     <div class="version-breakdown mt-3">
+                                        <?php $uniqueId = $tour['tour_id'] . '-' . str_replace('-', '', $tour['departure_date']); ?>
                                         <button class="btn btn-sm btn-outline-info w-100"
                                             type="button"
                                             data-bs-toggle="collapse"
-                                            data-bs-target="#version-detail-<?= $tour['id'] ?>"
+                                            data-bs-target="#version-detail-<?= $uniqueId ?>"
                                             aria-expanded="false"
-                                            aria-controls="version-detail-<?= $tour['id'] ?>">
+                                            aria-controls="version-detail-<?= $uniqueId ?>">
                                             <i class="fas fa-chevron-down me-1"></i>
                                             Chi tiết theo version
                                         </button>
 
-                                        <div class="collapse mt-2" id="version-detail-<?= $tour['id'] ?>">
+                                        <div class="collapse mt-2" id="version-detail-<?= $uniqueId ?>">
                                             <div class="card card-body bg-light p-2">
                                                 <?php foreach ($tour['version_breakdown'] as $index => $version): ?>
                                                     <div class="d-flex justify-content-between align-items-center <?= $index > 0 ? 'mt-2 pt-2 border-top' : '' ?>">
@@ -146,7 +147,8 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                                 <i class="fas fa-user-tie me-1"></i>
                                                 Chọn HDV
                                             </label>
-                                            <select class="form-select form-select-sm" id="guide-select-<?= $tour['id'] ?>">
+                                            <?php $uniqueId = $tour['tour_id'] . '-' . str_replace('-', '', $tour['departure_date']); ?>
+                                            <select class="form-select form-select-sm" id="guide-select-<?= $uniqueId ?>">
                                                 <option value="">-- Chọn HDV --</option>
                                                 <?php foreach ($guides as $guide): ?>
                                                     <option value="<?= $guide['id'] ?>">
@@ -160,8 +162,11 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         </div>
 
                                         <button class="btn btn-primary w-100 admin-assign-guide-btn"
-                                            data-tour-id="<?= $tour['id'] ?>"
-                                            data-tour-name="<?= htmlspecialchars($tour['name']) ?>">
+                                            data-unique-id="<?= $uniqueId ?>"
+                                            data-tour-id="<?= $tour['tour_id'] ?>"
+                                            data-departure-id="<?= $tour['departure_id'] ?? '' ?>"
+                                            data-departure-date="<?= $tour['departure_date'] ?>"
+                                            data-tour-name="<?= htmlspecialchars($tour['tour_name']) ?>">
                                             <i class="fas fa-user-check me-2"></i>
                                             Phân công HDV
                                         </button>
@@ -169,8 +174,10 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <!-- HDV: Claim Tour Button -->
                                         <button
                                             class="btn btn-primary w-100 claim-tour-btn"
-                                            data-tour-id="<?= $tour['id'] ?>"
-                                            data-tour-name="<?= htmlspecialchars($tour['name']) ?>"
+                                            data-tour-id="<?= $tour['tour_id'] ?>"
+                                            data-departure-id="<?= $tour['departure_id'] ?? '' ?>"
+                                            data-departure-date="<?= $tour['departure_date'] ?>"
+                                            data-tour-name="<?= htmlspecialchars($tour['tour_name']) ?>"
                                             data-total-customers="<?= $totalCustomers ?>">
                                             <i class="fas fa-hand-paper me-2"></i>
                                             Nhận Tour
@@ -219,7 +226,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
                             },
-                            body: `tour_id=${tourId}`
+                            body: `tour_id=${tourId}&departure_id=${this.dataset.departureId}`
                         })
                         .then(response => response.json())
                         .then(data => {
@@ -298,9 +305,10 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
         // Handle admin assign guide buttons
         document.querySelectorAll('.admin-assign-guide-btn').forEach(btn => {
             btn.addEventListener('click', function() {
+                const uniqueId = this.dataset.uniqueId;
                 const tourId = this.dataset.tourId;
                 const tourName = this.dataset.tourName;
-                const guideSelect = document.getElementById(`guide-select-${tourId}`);
+                const guideSelect = document.getElementById(`guide-select-${uniqueId}`);
                 const guideId = guideSelect.value;
 
                 if (!guideId) {
@@ -322,7 +330,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
                             },
-                            body: `tour_id=${tourId}&guide_id=${guideId}`
+                            body: `tour_id=${tourId}&guide_id=${guideId}&departure_id=${this.dataset.departureId || ''}&departure_date=${this.dataset.departureDate}`
                         })
                         .then(response => response.json())
                         .then(data => {

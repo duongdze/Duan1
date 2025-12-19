@@ -200,38 +200,41 @@ class TourAssignment extends BaseModel
     }
 
     /**
-     * Lấy danh sách tour chưa có HDV
+     * Lấy danh sách tour chưa có HDV - theo ngày booking (gộp các booking cùng ngày)
      * @return array
      */
     public function getAvailableTours()
     {
         $sql = "SELECT 
-            t.id, 
-            t.name, 
+            t.id as tour_id, 
+            t.name as tour_name, 
             t.category_id, 
             t.description, 
-            t.base_price, 
-            t.created_at, 
-            t.updated_at,
+            t.base_price as tour_base_price,
+            DATE(b.booking_date) as departure_date,
             COUNT(DISTINCT b.id) as booking_count,
             COALESCE(SUM(CASE WHEN bc_count.total IS NOT NULL THEN bc_count.total ELSE 0 END), 0) + COUNT(DISTINCT b.id) as total_customers,
-            MIN(b.booking_date) as nearest_booking_date,
-            COALESCE(SUM(b.total_price), 0) as total_booking_price
+            COALESCE(SUM(b.total_price), 0) as total_booking_price,
+            GROUP_CONCAT(DISTINCT b.id ORDER BY b.id) as booking_ids
         FROM tours t
         INNER JOIN bookings b ON t.id = b.tour_id 
+            AND DATE(b.booking_date) >= CURDATE()
             AND b.status NOT IN ('hoan_tat', 'da_huy')
         LEFT JOIN (
             SELECT booking_id, COUNT(*) as total 
             FROM booking_customers 
             GROUP BY booking_id
         ) bc_count ON b.id = bc_count.booking_id
-        WHERE t.id NOT IN (
-            SELECT DISTINCT tour_id 
-            FROM tour_assignments
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM tour_assignments ta
+            WHERE ta.tour_id = t.id 
+            AND ta.start_date = DATE(b.booking_date)
+            AND ta.status = 'active'
         )
-        GROUP BY t.id, t.name, t.category_id, t.description, t.base_price, t.created_at, t.updated_at
-        HAVING COUNT(DISTINCT b.id) > 0
-        ORDER BY nearest_booking_date ASC";
+        AND t.status = 'active'
+        GROUP BY t.id, t.name, t.category_id, t.description, t.base_price, DATE(b.booking_date)
+        ORDER BY DATE(b.booking_date) ASC, t.name ASC";
 
         $stmt = self::$pdo->prepare($sql);
         $stmt->execute();
@@ -264,19 +267,37 @@ class TourAssignment extends BaseModel
     }
 
     /**
-     * Kiểm tra tour đã có HDV chưa
+     * Kiểm tra tour đã có HDV chưa (cho ngày cụ thể)
      * @param int $tourId
+     * @param string|null $startDate - Ngày khởi hành cụ thể
      * @return bool
      */
-    public function tourHasGuide($tourId)
+    public function tourHasGuide($tourId, $startDate = null)
     {
-        $sql = "SELECT COUNT(*) as count 
-            FROM tour_assignments 
-            WHERE tour_id = :tour_id 
-            AND status = 'active'";
+        if ($startDate) {
+            // Check theo cả tour_id và start_date
+            $sql = "SELECT COUNT(*) as count 
+                FROM tour_assignments 
+                WHERE tour_id = :tour_id 
+                AND start_date = :start_date
+                AND status = 'active'";
 
-        $stmt = self::$pdo->prepare($sql);
-        $stmt->execute(['tour_id' => $tourId]);
+            $stmt = self::$pdo->prepare($sql);
+            $stmt->execute([
+                'tour_id' => $tourId,
+                'start_date' => $startDate
+            ]);
+        } else {
+            // Check chỉ theo tour_id (backward compatibility)
+            $sql = "SELECT COUNT(*) as count 
+                FROM tour_assignments 
+                WHERE tour_id = :tour_id 
+                AND status = 'active'";
+
+            $stmt = self::$pdo->prepare($sql);
+            $stmt->execute(['tour_id' => $tourId]);
+        }
+
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['count'] > 0;
     }

@@ -60,13 +60,20 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                 <div class="mb-2">
                                     <small class="text-muted d-block">
                                         <i class="fas fa-calendar-alt text-info"></i>
-                                        <strong>Booking gần nhất:</strong>
-                                        <?php if ($tour['nearest_booking_date']): ?>
-                                            <?= date('d/m/Y', strtotime($tour['nearest_booking_date'])) ?>
+                                        <strong>Ngày khởi hành:</strong>
+                                        <?php if ($tour['departure_date']): ?>
+                                            <?= date('d/m/Y', strtotime($tour['departure_date'])) ?>
                                         <?php else: ?>
-                                            <span class="text-warning">Chưa có booking</span>
+                                            <span class="text-warning">Chưa có lịch</span>
                                         <?php endif; ?>
                                     </small>
+                                    <?php if (isset($tour['available_seats'])): ?>
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="fas fa-chair text-success"></i>
+                                            <strong>Chỗ trống:</strong>
+                                            <?= $tour['available_seats'] ?>/<?= $tour['max_seats'] ?> chỗ
+                                        </small>
+                                    <?php endif; ?>
                                 </div>
 
                                 <div class="mb-3">
@@ -161,6 +168,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <button
                                             class="btn btn-success w-100 admin-assign-guide-btn"
                                             data-tour-id="<?= $tour['id'] ?>"
+                                            data-departure-id="<?= $tour['departure_id'] ?>"
                                             data-tour-name="<?= htmlspecialchars($tour['name']) ?>">
                                             <i class="fas fa-user-check me-2"></i>
                                             Phân công HDV
@@ -170,6 +178,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                                         <button
                                             class="btn btn-primary w-100 claim-tour-btn"
                                             data-tour-id="<?= $tour['id'] ?>"
+                                            data-departure-id="<?= $tour['departure_id'] ?>"
                                             data-tour-name="<?= htmlspecialchars($tour['name']) ?>"
                                             data-total-customers="<?= $totalCustomers ?>">
                                             <i class="fas fa-hand-paper me-2"></i>
@@ -219,7 +228,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
                             },
-                            body: `tour_id=${tourId}`
+                            body: `tour_id=${tourId}&departure_id=${this.dataset.departureId}`
                         })
                         .then(response => response.json())
                         .then(data => {
@@ -271,7 +280,7 @@ include_once PATH_VIEW_ADMIN . 'default/sidebar.php';
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
                             },
-                            body: `tour_id=${tourId}&guide_id=${guideId}`
+                            body: `tour_id=${tourId}&guide_id=${guideId}&departure_id=${this.dataset.departureId}`
                         })
                         .then(response => response.json())
                         .then(data => {
